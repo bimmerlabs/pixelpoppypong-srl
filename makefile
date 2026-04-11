@@ -1,23 +1,43 @@
-JO_COMPILE_WITH_VIDEO_MODULE = 0
-JO_PSEUDO_SATURN_KAI_SUPPORT = 0
-JO_COMPILE_WITH_BACKUP_MODULE = 1
-JO_COMPILE_WITH_RAM_CARD_MODULE = 0
-JO_COMPILE_WITH_TGA_MODULE = 1
-JO_COMPILE_WITH_AUDIO_MODULE = 0
-JO_COMPILE_WITH_3D_MODULE = 0
-JO_COMPILE_WITH_PSEUDO_MODE7_MODULE = 0
-JO_COMPILE_WITH_EFFECTS_MODULE = 0
-JO_COMPILE_WITH_DUAL_CPU_MODULE = 0
-JO_COMPILE_WITH_PRINTF_MODULE = 0
-JO_DEBUG = 0
-JO_NTSC = 1
-JO_COMPILE_USING_SGL=1
-CCFLAGS += -DMY_CRAM_MODE=1
-CCFLAGS += -DMY_CRAM_OFFSET=0
-CCFLAGS += -DMY_TV_704x240=1
-CCFLAGS += -DENABLE_DEBUG_MODE=0
-CCFLAGS += -DENABLE_EXPERIMENTAL_FEATURES=0
-SRCS=main.c core/state.c core/screen_transition.c core/assets.c core/sprites.c core/audio.c core/pcmsys.c core/input.c core/pause.c core/debug.c core/math.c core/util.c core/backup.c game/physics.c game/ppp_logo.c game/title_screen.c game/team_select.c game/gameplay.c game/storymode.c game/AI.c game/credits.c game/highscores.c game/name_entry.c objects/player.c objects/goal.c objects/teams.c objects/items.c palettefx/font.c palettefx/ColorHelpers.c palettefx/palettetools.c palettefx/lighting.c palettefx/sprite_colors.c palettefx/nbg1.c
-JO_ENGINE_SRC_DIR=../../jo_engine
-COMPILER_DIR=../../Compiler
-include $(COMPILER_DIR)/COMMON/jo_engine_makefile
+# Configuration
+SRL_MAX_TEXTURES = 300         # Number of VDP1 texture slots
+SRL_MODE = NTSC                 # Valid options are PAL or NTSC
+SRL_HIGH_RES = 0                # 480i mode
+SRL_HIGH_RES_NON_INTERLACED = 1 # 240p mode
+SRL_DISABLE_NBG3_FONT = 1	# Don't initialize NBG3 debug font by default
+SRL_VDP1_ATTR_MANUAL_MODE = 1	# allow manual assignment of VDP1 sprite attributes
+SRL_FRAMERATE = 1               # Framerate control (0=dynamic, 1=< 60/value)
+SRL_MAX_CD_BACKGROUND_JOBS = 1  # Maximum number of files GFS can open at once
+SRL_MAX_CD_FILES = 256          # Maximum number of files on a CD
+SRL_MAX_CD_RETRIES = 5          # Number of times to retry on unsuccessful read
+SRL_MALLOC_METHOD = SIMPLE      # Allocation method: TLSF or SIMPLE are supported.
+
+# Sound driver specific configuration
+SRL_USE_SGL_SOUND_DRIVER = 0    # Set to 1 if you want to use SGL sound driver, this will copy necessary files into the CD folder
+SRL_ENABLE_FREQ_ANALYSIS = 0    # Set to 1 if you want to enable frequency analysis for CD audio, this will load a DSP program into effect slot 1, SGL sound driver must be enabled
+
+# SGL configuration
+SGL_MAX_VERTICES = 2500         # Number of vertices that can be used
+SGL_MAX_POLYGONS = 1500         # Number of polygons that can be used
+SGL_MAX_EVENTS = 1             # Number of events that can be used
+SGL_MAX_WORKS = 1             # Number of works that can be used
+
+# Custom flags
+CCFLAGS += -DENABLE_DEBUG_MODE=1
+CCFLAGS += -DDISABLE_PERFORMANCE_WARNINGS=1 # For SRL::Math::Fxp conversions
+
+# Disk name
+CD_NAME = PPPong
+
+# Directory build will be placed into
+BUILD_DROP = ./BuildDrop
+
+# SRL installation directory
+SRL_INSTALL_ROOT ?= ../..
+
+# Find all .c and .cxx files
+SOURCES = $(patsubst ./%,%,$(shell find src/ -name '*.c')) 
+SOURCES += $(patsubst ./%,%,$(shell find src/ -name '*.cxx'))
+
+# Include shared makefile
+SDK_ROOT = $(SRL_INSTALL_ROOT)/saturnringlib
+include $(SDK_ROOT)/shared.mk

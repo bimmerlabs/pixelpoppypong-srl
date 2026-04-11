@@ -1,36 +1,55 @@
-#include <jo/jo.h>
 #include "../main.h"
 #include "ppp_logo.h"
+#include "player_setup.h"
 #include "../core/assets.h"
 #include "../core/state.h"
 #include "../core/screen_transition.h"
-#include "../palettefx/nbg1.h"
-#include "../palettefx/lighting.h"
-#include "../palettefx/sprite_colors.h"
+#include "../vdp2/lighting.h"
+#include "../vdp2/sprite_colors.h"
+#include "../vdp2/nbg1.h"
 
-unsigned int g_LogoTimer = 0; // not worth putting these in a struct..
-int transparency_rate = TRANSPARENCY_MAX;
+// Using to shorten names for Vector and HighColor
+using namespace SRL::Types;
+using namespace SRL::Math::Types;
+using namespace SRL::Math;
+using namespace SRL::Input;
 
-// // cheat codes?
-// static bool draw_start_text = true;
-// static bool a_pressed = false;
-// static bool b_pressed = false;
-// static bool c_pressed = false;
-// static bool x_pressed = false;
-// static bool y_pressed = false;
-// static bool z_pressed = false;
+unsigned int g_LogoTimer = 0;
+
+bool test_colors = false;
 
 // initializations for PPP screen
 void pppLogo_init(void)
 {
-    if (g_Game.lastState == GAME_STATE_TEAM_SELECT 
-     || g_Game.lastState == GAME_STATE_GAMEPLAY 
-     || g_Game.lastState == GAME_STATE_DEMO_LOOP 
-     || g_Game.lastState == GAME_STATE_CREDITS) {
-        unloadGameAssets();
+    // I think everything fits into VRAM, so there's no real need to unload anything
+    // if (g_Game.lastState == GAME_STATE_TEAM_SELECT 
+     // || g_Game.lastState == GAME_STATE_GAMEPLAY 
+     // || g_Game.lastState == GAME_STATE_DEMO_LOOP 
+     // || g_Game.lastState == GAME_STATE_CREDITS) {
+        // unloadGameAssets();
+    // }
+    
+    g_Game.lastState = GAME_STATE_PPP_LOGO;
+    
+    reset_normal_map();
+    
+    SRL::TV::TVOn();
+    // SRL::Debug::Print(18, 14, "LOADING!");
+    SRL::Debug::Print(18, 14, "  BOO!"); // MAKE A DIFFERENT MESSAGE PER DAY?
+    
+    if (!g_Assets.coreAssetsLoaded) {
+        loadCoreAssets();
+        loadCoreSoundAssets();
+        g_Assets.coreAssetsLoaded = true;
     }
-
-    loadTitleScreenAssets();
+    else {
+        switchCoreAssets();
+    }
+    if (!g_Assets.titleAssetsLoaded) {
+        loadTitleScreenAssets();        
+    }
+    
+    SRL::Debug::PrintClearScreen();
     
     if (g_GameOptions.mesh_display) {
         pppshadow.mesh = MESHon;
@@ -39,9 +58,9 @@ void pppLogo_init(void)
         pppshadow.mesh = MESHoff;
     }
     
-    light.x = toFIXED(10);
-    light.y = FIXED_255;
-    light.z = FIXED_255;
+    light.x = Fxp(10);
+    light.y = Fxp(255);
+    light.z = Fxp(255);
     
     set_spr_scale(&pixel_poppy, 1.0, 1.0);
     pixel_poppy.rot.z = 0;
@@ -50,17 +69,14 @@ void pppLogo_init(void)
         
     g_LogoTimer = 0;
     
-    g_Game.lastState = GAME_STATE_PPP_LOGO;
     
     screenTransition_init(MINIMUM_FADE, MINIMUM_FADE, MINIMUM_FADE);
-    
-    
+        
     if (g_GameOptions.mosaic_display) {
         mosaicInit(NBG1ON);
     }
     g_Transition.fade_in_rate = 1;
     if (!g_GameOptions.debug_display) {
-        jo_set_displayed_screens(JO_NBG0_SCREEN | JO_SPRITE_SCREEN | JO_NBG1_SCREEN);
         slColOffsetOn(NBG0ON | SPRON);
         slColOffsetAUse(NBG0ON);
         slColOffsetBUse(NBG1ON);
@@ -68,100 +84,89 @@ void pppLogo_init(void)
         slColOffsetB(nbg1_rate, nbg1_rate, nbg1_rate);
     }
     else {
-        jo_set_displayed_screens(JO_NBG0_SCREEN | JO_SPRITE_SCREEN | JO_NBG1_SCREEN);
         slColOffsetOn(NBG1ON);
         slColOffsetAUse(OFF);
         slColOffsetBUse(SPRON);
         slColOffsetB(nbg1_rate, nbg1_rate, nbg1_rate);
     }
+        
+    SRL::VDP2::NBG1::ScrollEnable();
     
     g_Transition.mosaic_in_rate = MOSAIC_SLOW_RATE;
     g_Transition.music_in = true;
     g_Transition.all_in = true;
-    
-    jo_set_default_background_color(JO_COLOR_Black);
+    test_colors = false;
 }
 
 // update callback routine for PPP logo
+
 void pppLogo_input(void)
 {
-    //
-    // skip the logo if player 1 hits start
-    //
-    if(jo_is_pad1_key_down(JO_KEY_START))
+    PPLAYER player = &g_Players[0];
+    
+    if (!player->input->isSelected)
     {
-        // set everything back to defaults
-        nbg1_rate = NEUTRAL_FADE;
-        slColOffsetA(nbg1_rate, nbg1_rate, nbg1_rate);
-        slColOffsetB(nbg1_rate, nbg1_rate, nbg1_rate);
-        g_Transition.mosaic_x = MOSAIC_MIN;
-        g_Transition.mosaic_y = MOSAIC_MIN;
-	slScrMosSize(g_Transition.mosaic_x, g_Transition.mosaic_y);
-        g_Transition.fade_in_rate = 8;
-        changeState(GAME_STATE_TITLE_SCREEN);
-        return;
+        check_ui_inputs();
     }
-    
-    // // cheat codes? (could be left out)
-    // if (jo_is_pad1_key_down(JO_KEY_A)) {
-        // a_pressed = true;
-    // }
-    // if (jo_is_pad1_key_down(JO_KEY_B)) {
-        // b_pressed = true;
-    // }
-    // if (jo_is_pad1_key_down(JO_KEY_C)) {
-        // c_pressed = true;
-    // }
-    // if (jo_is_pad1_key_down(JO_KEY_X)) {
-        // x_pressed = true;
-    // }
-    // if (jo_is_pad1_key_down(JO_KEY_Y)) {
-        // y_pressed = true;
-    // }
-    // if (jo_is_pad1_key_down(JO_KEY_Z)) {
-        // z_pressed = true;
-    // }
-    
-    // if (a_pressed && b_pressed && c_pressed) {
-        // if (jo_is_pad1_key_pressed(JO_KEY_UP)) {
-            // light.y += LIGHT_SPEED;
-            // if (light.y > FIXED_255) {
-                // light.y = FIXED_255;
-            // }
-                
-                // pixel_poppy.pos.x = 2*(light.x - FIXED_127);
-                // pixel_poppy.pos.y = -2.5*(light.y - FIXED_127);
-            // do_update_ppplogo = true;
+    if (player->input->isSelected)
+    {
+        // Digital gamepad(player->input->id);
+
+        // if (gamepad.WasPressed(Digital::Button::A) && attrSprites.hue < 360)
+        // {
+            // hsl_incSprites[HSL_MAX].h++;
         // }
-        // else if (jo_is_pad1_key_pressed(JO_KEY_DOWN)) {
-            // light.y -= LIGHT_SPEED;
-            // if (light.y < JO_FIXED_0) {
-                // light.y = JO_FIXED_0;
-            // }
-                
-                // pixel_poppy.pos.x = 2*(light.x - FIXED_127);
-                // pixel_poppy.pos.y = -2.5*(light.y - FIXED_127);
-            // do_update_ppplogo = true;
-        // }	
-        // if (jo_is_pad1_key_pressed(JO_KEY_LEFT)) {
-            // light.x -= LIGHT_SPEED;
-            // if (light.x < JO_FIXED_0) {
-                // light.x = JO_FIXED_0;
-            // }
-                
-                // pixel_poppy.pos.x = 2*(light.x - FIXED_127);
-                // pixel_poppy.pos.y = -2.5*(light.y - FIXED_127);
-            // do_update_ppplogo = true;
+        // else if (gamepad.WasPressed(Digital::Button::B) && attrSprites.hue > 0)
+        // {
+            // hsl_incSprites[HSL_MAX].h--;
         // }
-        // else if (jo_is_pad1_key_pressed(JO_KEY_RIGHT)) {
-            // light.x += LIGHT_SPEED;
-            // if (light.x > FIXED_255) {
-                // light.x = FIXED_255;
-            // }
-                
-                // pixel_poppy.pos.x = 2*(light.x - FIXED_127);
-                // pixel_poppy.pos.y = -2.5*(light.y - FIXED_127);
-            // do_update_ppplogo = true;
+        // else if (gamepad.WasPressed(Digital::Button::X))
+        // {
+            // light.ambient++;
+        // }
+        // else if (gamepad.WasPressed(Digital::Button::Y))
+        // {
+            // light.ambient--;
+        // }        
+        // else if (gamepad.WasPressed(Digital::Button::START) && test_colors)
+        // {
+            // set everything back to defaults
+            nbg1_rate = NEUTRAL_FADE;
+            slColOffsetA(nbg1_rate, nbg1_rate, nbg1_rate);
+            slColOffsetB(nbg1_rate, nbg1_rate, nbg1_rate);
+            g_Transition.mosaic_x = MOSAIC_MIN;
+            g_Transition.mosaic_y = MOSAIC_MIN;
+            slScrMosSize(g_Transition.mosaic_x, g_Transition.mosaic_y);
+            g_Transition.fade_in_rate = 8;
+            changeState(GAME_STATE_TITLE_SCREEN);
+            return;
+        // }
+
+        // test_colors = true;
+        // SRL::Debug::Print(2, 21, "Hue_inc:%3d ", hsl_incSprites[HSL_MAX].h);
+        // SRL::Debug::Print(2, 22, "Hue:%3d ", hslSprites[240].h);
+        // SRL::Debug::Print(2, 23, "light.ambient:%3d ", light.ambient);
+
+    }
+
+    // shouldn't need this since the inputs will always be reset when restarting the loop at ppplogo
+    // else {
+        // Digital gamepad(player->input->id);
+        // //
+        // // skip the logo if player 1 hits start
+        // //
+        // if(gamepad.WasPressed(Digital::Button::START))
+        // {
+            // // set everything back to defaults
+            // nbg1_rate = NEUTRAL_FADE;
+            // slColOffsetA(nbg1_rate, nbg1_rate, nbg1_rate);
+            // slColOffsetB(nbg1_rate, nbg1_rate, nbg1_rate);
+            // g_Transition.mosaic_x = MOSAIC_MIN;
+            // g_Transition.mosaic_y = MOSAIC_MIN;
+            // slScrMosSize(g_Transition.mosaic_x, g_Transition.mosaic_y);
+            // g_Transition.fade_in_rate = 8;
+            // changeState(GAME_STATE_TITLE_SCREEN);
+            // return;
         // }
     // }
 }
@@ -169,12 +174,8 @@ void pppLogo_input(void)
 // update callback routine for PPP logo
 void pppLogo_update(void)
 {
-    if(g_Game.gameState != GAME_STATE_PPP_LOGO)
-    {
-        return;
-    }
     g_LogoTimer++;
-
+    
     // transition mosaic in
     if(g_LogoTimer > 4)
     {
@@ -204,53 +205,49 @@ void pppLogo_update(void)
             slColOffsetA(nbg1_rate, nbg1_rate, nbg1_rate);
         }
         slColOffsetB(nbg1_rate, nbg1_rate, nbg1_rate);
-        
-        if (!g_GameOptions.mosaic_display) {
-            jo_set_displayed_screens(JO_NBG0_SCREEN | JO_NBG1_SCREEN);
-        }
     }
     if(g_LogoTimer > PPP_LOGO_TIMER)
-    {
-        jo_set_displayed_screens(JO_NBG0_SCREEN | JO_NBG1_SCREEN);
+    {   
+        SRL::Debug::PrintClearScreen();
         g_Transition.fade_in_rate = 8;
         changeState(GAME_STATE_TITLE_SCREEN);
         return;
     }
 }
 
-#define X_RADIUS toFIXED(155)
-#define Y_RADIUS toFIXED(80)
-static int lightAngle = 360;
-    
+static Angle lightAngle;
+constexpr Angle lightAngleAdder = Angle(0.0055555555555556);
+constexpr Fxp x_radius = Fxp(155);
+constexpr Fxp y_radius = Fxp(80);
+
 void pppLogo_draw(void)
-{    
+{
     my_sprite_draw(&ppplogo);
     my_sprite_draw(&pppshadow);
     
-    my_sprite_draw(&pixel_poppy);
-    jo_nbg0_printf(17, 19, "PRESENTS...");
+    my_sprite_draw_rot(&pixel_poppy);
+    SRL::Debug::Print(17, 19, "Presents...");
     #if ENABLE_DEBUG_MODE == 1
     if (g_GameOptions.debug_display) {
-        jo_nbg0_printf(2, 25, "LIGHT:X=%3d,Y=%3d,Z=%3d", JO_FIXED_TO_INT(light.x), JO_FIXED_TO_INT(light.y), JO_FIXED_TO_INT(light.z));
-        jo_nbg0_printf(2, 26, "LIGHTANGLE:%3d", lightAngle);
+        SRL::Debug::Print(2, 21, "LightAngle:%d", lightAngle);
     }
     #endif
 }
 
 // draw an ellipse
 void update_light_position(void) {
-    lightAngle -= 2;
-    if (lightAngle == 0)
-        lightAngle = 360;
-    light.x = FIXED_127 + jo_fixed_mult(jo_cos(lightAngle), X_RADIUS);
-    light.y = FIXED_127 + jo_fixed_mult(my_fixed_sine(lightAngle), Y_RADIUS);
-
-    pppshadow.pos.x = -jo_fixed_mult(jo_cos(lightAngle), toFIXED(9));
-    pppshadow.pos.y = jo_fixed_mult(my_fixed_sine(lightAngle), toFIXED(6));
+    lightAngle -= lightAngleAdder;
+    Fxp fixedAngle = lightAngle.ToFxp();
     
-    pixel_poppy.pos.x = 2*(light.x - FIXED_127);
-    pixel_poppy.pos.y = -2*(light.y - FIXED_127);
-    pixel_poppy.rot.z = 90-2*lightAngle;
+    light.x = Fxp(127) + Trigonometry::Cos(fixedAngle) * x_radius;
+    light.y = Fxp(127) + Trigonometry::Sin(fixedAngle) * y_radius;
+
+    pppshadow.pos.x = -Trigonometry::Cos(fixedAngle) * Fxp(9);
+    pppshadow.pos.y = Trigonometry::Sin(fixedAngle) * Fxp(6);
+    
+    pixel_poppy.pos.x = 2*(light.x - Fxp(127));
+    pixel_poppy.pos.y = -2*(light.y - Fxp(127));
+    pixel_poppy.rot.z = Angle(0.25)-Angle(fixedAngle * Fxp(2));
 
     do_update_ppplogo = true;
 }

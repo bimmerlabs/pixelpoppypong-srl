@@ -15,9 +15,12 @@
 #define MOSAIC_SLOW_RATE  4
 #define MOSAIC_FAST_RATE  2
 
-extern Sint16 nbg0_rate;
-extern Sint16 nbg1_rate;
-extern Sint16 spr_rate;
+#define TRANSPARENCY_MIN    CLRate31_1
+#define TRANSPARENCY_MAX    CLRate0_32
+
+extern int16_t nbg0_rate;
+extern int16_t nbg1_rate;
+extern int16_t spr_rate;
 
 typedef struct _TRANSITION
 {
@@ -26,8 +29,8 @@ typedef struct _TRANSITION
 	bool all_out;
 	bool all_in;
 	
-	Sint8 fade_in_rate;
-	Sint8 fade_out_rate;
+	int8_t fade_in_rate;
+	int8_t fade_out_rate;
 	bool fade_out;
 	bool fade_in;
 	bool story_fade_out;
@@ -35,7 +38,7 @@ typedef struct _TRANSITION
 	bool slow_fade_in;
 	bool explosion_flash;
 
-	Uint8 mosaic_in_rate;
+	unsigned char mosaic_in_rate;
 	unsigned short mosaic_x;
 	unsigned short mosaic_y;
 	bool mosaic_out;
@@ -47,18 +50,26 @@ typedef struct _TRANSITION
 
 extern TRANSITION g_Transition;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void initTransitionStruct(void);
-void screenTransition_init(Sint16 nbg0, Sint16 nbg1, Sint16 spr);
+void screenTransition_init(int16_t nbg0, int16_t nbg1, int16_t spr);
 void screenTransition_update(void);
 bool transitionOut(void);
 bool transitionIn(void);
-bool fadeOut(Sint16 rate, Sint16 max);
-bool fadeIn(Sint16 rate, Sint16 min);
-bool slowFadeIn(Sint16 rate, Sint16 max);
-void mosaicInit(jo_scroll_screen screens);
-bool mosaicOut(jo_scroll_screen screens);
-bool mosaicIn(jo_scroll_screen screens);
-void mosaicRandom(jo_scroll_screen screens);
+bool fadeOut(int16_t rate, int16_t max);
+bool fadeIn(int16_t rate, int16_t min);
+bool slowFadeIn(int16_t rate, int16_t max);
+void mosaicInit(uint16_t screens);
+bool mosaicOut(uint16_t screens);
+bool mosaicIn(uint16_t screens);
+void mosaicRandom(uint16_t screens);
 bool musicOut(void);
 bool musicIn(void);
 bool explosionEffect(void);
+
+#ifdef __cplusplus
+}
+#endif

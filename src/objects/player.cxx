@@ -1,46 +1,23 @@
-#include <jo/jo.h>
-#include <string.h>
 #include "player.h"
 #include "../main.h"
 #include "../core/assets.h"
 #include "../core/sprites.h"
 #include "../core/backup.h"
+#include "../core/screen_transition.h"
 #include "../game/gameplay.h"
 #include "../game/AI.h"
 #include "../game/physics.h"
-#include "../game/team_select.h"
-#include "../palettefx/sprite_colors.h"
+#include "../game/player_setup.h"
+#include "../vdp2/sprite_colors.h"
 
-PLAYER g_Players[MAX_PLAYERS] = {0};
-
-bool characterUnlocked[TOTAL_CHARACTERS] = {0};
-bool characterAvailable[TOTAL_CHARACTERS] = {0};
-
-const CHARACTER_ATTRIBUTES characterAttributes[] = {
-  // s   a   p    // speed, acceleration, power - scale 0-100
-    {70, 60, 60}, // MACCHI: High speed, medium acceleration, medium power
-    {60, 70, 60}, // JELLY: Medium speed, high acceleration, medium-high power
-    {60, 50, 70}, // PENNY: Medium-high speed, medium acceleration, high power
-    {60, 45, 80}, // POPPY: Low attributes (for cursors) (was 4 4 4)
-    {50, 60, 70}, // POTTER: Low attributes (for cursors) (was 4 4 4)
-    {70, 80, 50}, // SPARTA: High acceleration, high speed, medium power
-    {65, 65, 65}, // TJ: Balanced attributes
-    {75, 50, 90}, // GEORGE: He's kinda mean
-    {90, 62, 100},// WUPPY: High power, medium speed, low acceleration
-    {88, 88, 88}, // THE WALRUS: Above average attributes
-    {99, 99, 99}, // GARFIELD: Ultimate attributes
-    {60, 60, 60}, // NONE: Medium attributes (for CPU)
-};
+PLAYER g_Players[MAX_PLAYERS] = {};
 
 void resetPlayerScores(void)
 {
-    // g_Game.numStars = getStars();
     initTouchCounter(1);
-    
-    PPLAYER player = NULL;
     for(unsigned int i = 0; i < MAX_PLAYERS; i++)
     {
-        player = &g_Players[i];
+        PPLAYER player = &g_Players[i];
         player->shield.power = SHIELD_POWER;
         player->score.stars  = 0;
         player->score.continues = 0;
@@ -49,7 +26,8 @@ void resetPlayerScores(void)
         player->score.lastMillion = 0;
         player->totalLives = getLives(player);
         player->numLives = player->totalLives;
-        set_spr_scale(player->_sprite, 2, 2);
+        assignCharacterSprite(player);
+        // set_spr_scale(player->_sprite, 2, 2);
         set_spr_scale(&shield[i], 2, 2);
         player->isBig = false;
         player->isSmall = false;
@@ -58,11 +36,10 @@ void resetPlayerScores(void)
 }
 
 void resetPlayerAttacks(void)
-{    
-    PPLAYER player = NULL;
+{
     for(unsigned int i = 0; i < MAX_PLAYERS; i++)
     {
-        player = &g_Players[i];
+        PPLAYER player = &g_Players[i];
 
         player->shield.activate = false;
         player->_sprite->pos.r = PLAYER_RADIUS;
@@ -227,21 +204,16 @@ void getContinues(void)
     }
 }
 
-void initPlayers(void)
-{
-    PPLAYER player = NULL;
-
-    memset(g_Players, 0, sizeof(g_Players));
-    
-    for(unsigned int i = 0; i <= g_Game.numPlayers; i++)
+void initPlayers(bool resetInputs)
+{    
+    for(int8_t i = 0; i < MAX_PLAYERS; i++)
     {
-        player = &g_Players[i];
+        PPLAYER player = &g_Players[i];
         
         player->playerID = i;
-        player->objectState = OBJECT_STATE_ACTIVE;
-        player->subState = PLAYER_STATE_ACTIVE;
-        player->input->id = 0;
-        player->input->isSelected = false;
+        
+        if (resetInputs)
+            player->input = nullptr;
         
         player->score.continues = 0;
         player->score.points = 0;
@@ -253,6 +225,8 @@ void initPlayers(void)
         player->isReady = false;
         player->pressedB = false; // get rid of this?
         player->isPlaying = false;
+        player->isActivated = true;
+        player->isDead = false;
         player->scored = false;
         player->isAI = false;
         player->isExploded = false;
@@ -264,14 +238,13 @@ void initPlayers(void)
         // CHARACTER
         player->character.choice = CHARACTER_NONE;
         player->character.selected = false;
-        player->maxSpeed = FIXED_0;
-        player->acceleration = FIXED_0;
-        player->basePower = FIXED_0;
-        player->power = FIXED_0;
+        player->maxSpeed = Fxp_0;
+        player->acceleration = Fxp_0;
+        player->basePower = Fxp_0;
+        player->power = Fxp_0;
         
         // TEAM
         player->teamChoice = TEAM_COUNT;
-        // player->teamOldTeam = TEAM_COUNT;
         player->teamSelected = false;
         
         player->moveHorizontal = false;
@@ -279,12 +252,16 @@ void initPlayers(void)
         
         // SPRITES
         // assign cursor & bg tile to each player
-        player->_cursor = &player_cursor;
+        player->_cursor[0] = &player_cursor1;
+        player->_cursor[0]->id = player->_cursor[0]->anim[0].asset + i;
+        player->_cursor[1] = &player_cursor2;
+        player->_cursor[1]->id = player->_cursor[1]->anim[0].asset + i;
+        
         player->_bg = &player_bg;
+        player->_bg->scl.y = PLAYER_BG_Y;
         player->_bg->zmode = _ZmLC;
-        player->_sprite = &paw_blank;
-        set_spr_scale(player->_sprite, 2, 2);
-        player->_sprite->spr_id = paw_blank_id; // not sure why this changes
+        assignCharacterSprite(player);
+        // set_spr_scale(player->_sprite, 2, 2);
         player->_sprite->isColliding = false;
         
         // cursors
@@ -297,13 +274,16 @@ void initPlayers(void)
         else if (i == 3) {
             hsl_incSprites[HSL_CURSOR].h -= 270;
         }
-        update_palette_Pmenu[i] = update_sprites_color(&p_rangePmenu[i], HSL_CURSOR);
+        if (i > 0)
+        {
+            update_palette_Pmenu[i] = update_sprites_color(&p_rangePmenu[i], HSL_CURSOR);
+        }
         
         // INPUTS
-        player->curPos.dx = FIXED_0;
-        player->_sprite->vel.x = FIXED_0;
-        player->curPos.dy = FIXED_0;
-        player->_sprite->vel.y = FIXED_0;
+        player->curPos.dx = Fxp_0;
+        player->_sprite->vel.x = Fxp_0;
+        player->curPos.dy = Fxp_0;
+        player->_sprite->vel.y = Fxp_0;
         
         player->attack1 = false;
         player->attack2 = false;
@@ -314,6 +294,8 @@ void initPlayers(void)
         player->shield.activate = false;
         
         player->_portrait = &character_portrait;
+        player->_portrait->id = player->_portrait->anim[0].asset + CHARACTER_NONE;
+        set_spr_scale(player->_portrait, 2, 2);
         
         player->isBig = false;
         player->isSmall = false;
@@ -322,83 +304,76 @@ void initPlayers(void)
 }
 
 void initAiPlayers(void)
-{
-    PPLAYER player = NULL;
-    
-    for(unsigned short i = 0; i < g_Team.maxTeams; i++)
+{    
+    for(unsigned short i = 0; i < g_Team.maxTeams; i++) // max players instead of teams?
     {
-        player = &g_Players[i];
-        if (player->isPlaying) {
+        PPLAYER computer = &g_Players[i];
+        if (computer->isPlaying) {
             continue;
         }
         
-        player->teamChoice = TEAM_1;
-        validateTeam(player);
-        // do {
-            // player->teamChoice++;
-            // if (player->teamChoice > g_Team.maxTeams) {
-                // player->teamChoice = TEAM_1;
-            // }
-        // } while (!g_Team.isAvailable[player->teamChoice]);
-        // if (player->teamChoice == TEAM_2 || player->teamChoice == TEAM_4) {
-            // player->_sprite->flip = sprHflip;
-        // }
-        // else {
-            // player->_sprite->flip = sprNoflip;
-        // }
-        g_Team.isAvailable[player->teamChoice] = false;
-        g_Team.objectState[player->teamChoice] = OBJECT_STATE_ACTIVE;
+        computer->teamChoice = TEAM_1;
+        validateTeam(computer);
+        g_Team.isAvailable[computer->teamChoice] = false;
+        g_Team.isActive[computer->teamChoice] = true;
         g_Team.numTeams++;
         g_Game.currentNumPlayers++;
         
-        player->_bg->spr_id = player->_bg->anim1.asset[i];
-        player->character.choice = my_random_range(CHARACTER_MACCHI, CHARACTER_GARF);
-        validateCharacters(player);
-        characterAvailable[player->character.choice] = false;
+        computer->_bg->id = computer->_bg->anim[0].asset + i;
+        computer->character.choice = rnd.GetNumber(CHARACTER_MACCHI, CHARACTER_GARF);
+        validateCharacters(computer);
+        characterAvailable[computer->character.choice] = false;
                         
-        assignCharacterSprite(player);        
-        assignCharacterStats(player);
+        assignCharacterSprite(computer);        
+        assignCharacterStats(computer);
         
-        player->_sprite->pos.r = PLAYER_RADIUS;
-        player->shield.activate = false;
+        player_bg.mesh = MESHoff;
         
-        player->isPlaying = true;
-        player->objectState = OBJECT_STATE_ACTIVE;
-        player->isAI = true;
+        computer->_sprite->pos.r = PLAYER_RADIUS;
+        computer->shield.activate = false;
+        
+        computer->isPlaying = true;
+        computer->isActivated = true;
+        computer->isAI = true;
     }
 }
 
 void initStoryCharacters(void)
 {
-    PPLAYER player = NULL;
-    player = &g_Players[1];
+    PPLAYER computer = &g_Players[1];
     
-    player->teamChoice = TEAM_2;
-    g_Team.isAvailable[player->teamChoice] = false; 
-    g_Team.objectState[player->teamChoice] = OBJECT_STATE_ACTIVE;
+    computer->teamChoice = TEAM_2;
+    g_Team.isAvailable[computer->teamChoice] = false; 
+    g_Team.isActive[computer->teamChoice] = true;
     
-    player->_bg->spr_id = player->_bg->anim1.asset[1];
-    player->character.choice = g_Game.countofRounds +1;
-    characterAvailable[player->character.choice] = false;
+    computer->_bg->id = computer->_bg->anim[0].asset + 1;
+    
+    // need to handle what happens if you play as wuppy
+    computer->character.choice = g_Game.countofRounds;
+    if (!characterAvailable[computer->character.choice])
+    {
+        computer->character.choice += 1;
+    }
 
-    assignCharacterSprite(player);
-    assignCharacterStats(player);
+    assignCharacterSprite(computer);
+    assignCharacterStats(computer);
     
-    player->isPlaying = true;
-    player->objectState = OBJECT_STATE_ACTIVE;
-    player->subState = PLAYER_STATE_ACTIVE;
-    player->isAI = true;
+    player_bg.mesh = MESHoff;
+    
+    computer->isPlaying = true;
+    computer->isActivated = true;
+    computer->isDead = false;
+    computer->isAI = true;
     g_Team.numTeams = TWO_TEAMS;
 }
 
 void nextStoryCharacter(void)
 {
-    PPLAYER player = NULL;
-    player = &g_Players[1];
+    PPLAYER player = &g_Players[1];
     
     player->character.choice = g_Game.countofRounds + 1;
-    player->objectState = OBJECT_STATE_ACTIVE;
-    player->subState = PLAYER_STATE_ACTIVE;
+    player->isActivated = true;
+    player->isDead = false;
 
     assignCharacterSprite(player);
     initVsModePlayers();
@@ -407,15 +382,13 @@ void nextStoryCharacter(void)
 
 void initVsModePlayers(void)
 {
-    PPLAYER player = NULL;
-
-    for(unsigned int i = 0; i <= g_Game.numPlayers; i++)
+    for(int8_t i = 0; i <= g_Game.numPlayers; i++)
     {
-        player = &g_Players[i];
+        PPLAYER player = &g_Players[i];
         
-        player->_sprite->spr_id = player->_sprite->anim1.asset[0];
-        set_spr_scale(player->_portrait, 1.1, 1);
-        player->_bg->spr_id = player->_bg->anim1.asset[i];
+        set_spr_scale_fxp(player->_portrait, Fxp(1.1), Fxp_1);
+        player->_bg->id = player->_bg->anim[0].asset + i;
+        player_bg.mesh = MESHoff;
         player->_sprite->isColliding = false;
         assignCharacterStats(player);
         
@@ -514,19 +487,18 @@ void switchPlayerPosition(PPLAYER player)
 
 void initDemoPlayers(void)
 {
-    PPLAYER player = NULL;
-        
-    g_Game.numPlayers = my_random_range(ONE_PLAYER, FOUR_PLAYER);
+    g_Game.numPlayers = rnd.GetNumber(TWO_PLAYER, FOUR_PLAYER);
+    g_Team.maxTeams = g_Game.numPlayers + 1;
     g_Team.numTeams = 0;
     g_Game.gameMode = GAME_MODE_BATTLE;
     initPlayers();
     
-    for(unsigned int i = 0; i <= g_Game.numPlayers; i++)
+    for(int8_t i = 0; i <= g_Game.numPlayers; i++)
     {
-        player = &g_Players[i];
+        PPLAYER player = &g_Players[i];
         if (i == 0) {
-            player->_sprite = &macchi;
-            player->_sprite->spr_id = player->_sprite->anim1.asset[0];
+            player->_sprite = &paw[CHARACTER_MACCHI];
+            player->_sprite->id = player->_sprite->anim[0].asset;
             player->_sprite->flip = sprNoflip;
             player->onLeftSide = true;
             player->teamChoice = TEAM_1;
@@ -542,19 +514,19 @@ void initDemoPlayers(void)
             g_Game.currentNumPlayers++;
         }
         else if (i == 1) {
-            if (JO_MOD_POW2(jo_random(999), 2)) { // modulus
-                player->_sprite = &jelly;
+            if (rnd.GetNumber(0, 999) % 2) { // modulus
+                player->_sprite = &paw[CHARACTER_JELLY];
                 player->character.choice = 1;
             }
-            else if (JO_MOD_POW2(jo_random(999), 9)) { // modulus
-                player->_sprite = &garfield;
+            else if (rnd.GetNumber(0, 999) % 9) {
+                player->_sprite = &paw[CHARACTER_GARF];
                 player->character.choice = 10;
             }
             else {
-                player->_sprite = &sparta;
+                player->_sprite = &paw[CHARACTER_SPARTA];
                 player->character.choice = 4;
             }
-            player->_sprite->spr_id = player->_sprite->anim1.asset[0];
+            player->_sprite->id = player->_sprite->anim[0].asset;
             player->_sprite->flip = sprHflip;
             player->onLeftSide = false;
             player->teamChoice = TEAM_2;
@@ -570,19 +542,19 @@ void initDemoPlayers(void)
             g_Game.currentNumPlayers++;
         }
         else if (i == 2) { // set up player 3 last (we need to know the team count)
-            if (JO_MOD_POW2(jo_random(999), 2)) { // modulus
-                player->_sprite = &poppy;
+            if (rnd.GetNumber(0, 999) % 2) { // modulus
+                player->_sprite = &paw[CHARACTER_POPPY];
                 player->character.choice = 5;
             }
-            else if (JO_MOD_POW2(jo_random(999), 9)) { // modulus
-                player->_sprite = &stadler;
+            else if (rnd.GetNumber(0, 999) % 9) {
+                player->_sprite = &paw[CHARACTER_WALRUS];
                 player->character.choice = 9;
             }
             else {
-                player->_sprite = &penny;
+                player->_sprite = &paw[CHARACTER_PENNY];
                 player->character.choice = 2;
             }
-            player->_sprite->spr_id = player->_sprite->anim1.asset[0];
+            player->_sprite->id = player->_sprite->anim[0].asset;
             player->_sprite->flip = sprVflip;
             player->onLeftSide = true;
             player->teamChoice = TEAM_3;
@@ -592,19 +564,19 @@ void initDemoPlayers(void)
             g_Game.currentNumPlayers++;
         }
         else if (i == 3) {
-            if (JO_MOD_POW2(jo_random(999), 2)) { // modulus
-                player->_sprite = &potter;
+            if (rnd.GetNumber(0, 999) % 2) { // modulus
+                player->_sprite = &paw[CHARACTER_POTTER];
                 player->character.choice = 3;
             }
-            else if (JO_MOD_POW2(jo_random(999), 9)) { // modulus
-                player->_sprite = &wuppy;
+            else if (rnd.GetNumber(0, 999) % 9) {
+                player->_sprite = &paw[CHARACTER_WUPPY];
                 player->character.choice = 8;
             }
             else {
-                player->_sprite = &tj;
+                player->_sprite = &paw[CHARACTER_TJ];
                 player->character.choice = 6;
             }
-            player->_sprite->spr_id = player->_sprite->anim1.asset[0];
+            player->_sprite->id = player->_sprite->anim[0].asset;
             player->_sprite->flip = sprHVflip;
             player->onLeftSide = false;
             player->teamChoice = TEAM_4;
@@ -620,58 +592,32 @@ void initDemoPlayers(void)
 
         player->_sprite->pos.r = PLAYER_RADIUS;
         player->shield.activate = false;
-        
-        player->_portrait->spr_id = player->_portrait->anim1.asset[player->character.choice];
-        set_spr_scale(player->_portrait, 1.1, 1);
-        player->objectState = OBJECT_STATE_ACTIVE;
+        player_bg.mesh = MESHoff;
+        player->_portrait->id = player->_portrait->anim[0].asset + player->character.choice;
+        set_spr_scale_fxp(player->_portrait, Fxp(1.1), Fxp_1);
+        // player->isDead = false;
+        player->isActivated = true;
         player->isPlaying = true;
         player->isAI = true;
         player->_sprite->isColliding = false;
+        // g_Team.isActive[player->teamChoice] = true;
         boundPlayer(player);
     }
     resetTeamState();
 }
 
 void assignCharacterSprite(PPLAYER player) {
-    switch (player->character.choice)
+    player->_sprite = &paw[player->character.choice];
+    player->_sprite->anim[0].frame = 0;
+    player->_sprite->id = player->_sprite->anim[0].asset;
+    
+    if (player->character.choice == CHARACTER_WUPPY)
     {
-        case CHARACTER_MACCHI:
-            player->_sprite = &macchi;
-            break;
-        case CHARACTER_JELLY:
-            player->_sprite = &jelly;
-            break;
-        case CHARACTER_PENNY:
-            player->_sprite = &penny;
-            break;
-        case CHARACTER_POPPY:
-            player->_sprite = &poppy;
-            break;
-        case CHARACTER_POTTER:
-            player->_sprite = &potter;
-            break;
-        case CHARACTER_SPARTA:
-            player->_sprite = &sparta;
-            break;
-        case CHARACTER_TJ:
-            player->_sprite = &tj;
-            break;
-        case CHARACTER_GEORGE:
-            player->_sprite = &george;
-            break;
-        case CHARACTER_WUPPY:
-            player->_sprite = &wuppy;
-            break;
-        case CHARACTER_WALRUS:
-            player->_sprite = &stadler;
-            break;
-        case CHARACTER_GARF:
-            player->_sprite = &garfield;
-            break;
-        default:
-        break;
+        player->_sprite->scl = {Fxp(3), Fxp(3)};
     }
-    player_bg.mesh = MESHoff;
+    else {
+        player->_sprite->scl = {Fxp(2), Fxp(2)};
+    }
 }
 
 void assignCharacterStats(PPLAYER player) {
@@ -679,74 +625,75 @@ void assignCharacterStats(PPLAYER player) {
         switch(g_Game.gameDifficulty)
             {
                 case GAME_DIFFICULTY_EASY:
-                    player->maxSpeed = jo_fixed_mult(toFIXED(characterAttributes[player->character.choice].maxSpeed), toFIXED(0.06));
+                    player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.06);
                     break;
                 case GAME_DIFFICULTY_MEDIUM:
-                    player->maxSpeed = jo_fixed_mult(toFIXED(characterAttributes[player->character.choice].maxSpeed), toFIXED(0.08));
+                    player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.08);
                     break;
                 case GAME_DIFFICULTY_HARD:
-                    player->maxSpeed = jo_fixed_mult(toFIXED(characterAttributes[player->character.choice].maxSpeed), toFIXED(0.1));
+                    player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.1);
                     break;
                 default:
                     break;
             }
     }
     else {        
-        player->maxSpeed = jo_fixed_mult(toFIXED(characterAttributes[player->character.choice].maxSpeed), toFIXED(0.1));
+        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.1);
     }
-    player->acceleration = toFIXED(characterAttributes[player->character.choice].acceleration);
-    player->basePower = jo_fixed_mult(toFIXED(characterAttributes[player->character.choice].power), toFIXED(.05));
+    player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration);
+    player->basePower = Fxp(characterAttributes[player->character.choice].power) * Fxp(.05);
     player->power = player->basePower;
     
     if (player->isAI) {
         switch (g_Game.gameDifficulty) {
             case GAME_DIFFICULTY_EASY: {
-                player->acceleration = jo_fixed_mult(player->acceleration, EASY_AI_MOVEMENT_SPEED);
+                player->acceleration = player->acceleration * EASY_AI_MOVEMENT_SPEED;
                 break;
             }
             case GAME_DIFFICULTY_MEDIUM: {
-                player->acceleration = jo_fixed_mult(player->acceleration, MEDIUM_AI_MOVEMENT_SPEED);
+                player->acceleration = player->acceleration * MEDIUM_AI_MOVEMENT_SPEED;
                 break;
             }
             case GAME_DIFFICULTY_HARD: {
-                player->acceleration = jo_fixed_mult(player->acceleration, HARD_AI_MOVEMENT_SPEED);
+                player->acceleration = player->acceleration * HARD_AI_MOVEMENT_SPEED;
                 break;
             }
             default:
-                player->acceleration = jo_fixed_mult(player->acceleration, MEDIUM_AI_MOVEMENT_SPEED);
+                player->acceleration = player->acceleration * MEDIUM_AI_MOVEMENT_SPEED;
                 break;
         }
     }
     else {
-        player->acceleration = jo_fixed_mult(player->acceleration, PLAYER_MOVEMENT_SPEED);
+        player->acceleration = player->acceleration * PLAYER_MOVEMENT_SPEED;
     }
 }
 
 void getClassicModeInput(void)
 {
-    PPLAYER player = NULL;
-    for(unsigned int i = 0; i <= g_Game.numPlayers; i++)
+    for(int8_t i = 0; i <= g_Game.numPlayers; i++)
     {
-        player = &g_Players[i];
-        if(player->objectState == OBJECT_STATE_INACTIVE || player->subState == PLAYER_STATE_DEAD || player->isAI == true)
+        PPLAYER player = &g_Players[i];
+        Digital gamepad(player->input->id);
+        
+        if(!player->isActivated || player->isDead || player->isAI == true)
         {
             continue;
         }
         player->moveHorizontal = false;
         player->moveVertical = false;
         if (player->input->isAnalog) {
-            player->curPos.dy = jo_fixed_mult(player->input->axis_y, FIXED_HALF);
-            if (player->curPos.dy > FIXED_0 || player->curPos.dy < FIXED_0) {
+            player->curPos.dy = player->input->axis_y * Fxp_HALF;
+            if (player->curPos.dy > Fxp_0 || player->curPos.dy < Fxp_0) {
                 player->moveVertical = true;
             }
         }
         else {
-            if (jo_is_input_key_pressed(player->input->id, JO_KEY_UP))
+            if (gamepad.IsHeld(Digital::Button::Up))
             {
                 player->curPos.dy -= X_SPEED_INC;
                 player->moveVertical = true;
             }
-            if (jo_is_input_key_pressed(player->input->id, JO_KEY_DOWN))
+            if (gamepad.IsHeld(Digital::Button::Down))
             {
                 player->curPos.dy += X_SPEED_INC;
                 player->moveVertical = true;
@@ -764,11 +711,11 @@ void getClassicModeInput(void)
 
 void getPlayersInput(void)
 {
-    PPLAYER player = NULL;
-    for(unsigned int i = 0; i <= g_Game.numPlayers; i++)
+    for(int8_t i = 0; i <= g_Game.numPlayers; i++)
     {
-        player = &g_Players[i];
-        if(player->objectState == OBJECT_STATE_INACTIVE || player->subState == PLAYER_STATE_DEAD || player->isAI == true)
+        PPLAYER player = &g_Players[i];
+        Digital gamepad(player->input->id);
+        if(!player->isActivated || player->isDead || player->isAI == true)
         {
             continue;
         }
@@ -776,32 +723,32 @@ void getPlayersInput(void)
         player->moveVertical = false;
         if (player->input->isAnalog) {
             player->curPos.dx = player->input->axis_x;
-            player->curPos.dy = jo_fixed_mult(player->input->axis_y, FIXED_HALF);
-            if (player->curPos.dx > FIXED_0 || player->curPos.dx < FIXED_0) {
+            player->curPos.dy = player->input->axis_y * Fxp_HALF;
+            if (player->curPos.dx > Fxp_0 || player->curPos.dx < Fxp_0) {
                 player->moveHorizontal = true;
             }
-            if (player->curPos.dy > FIXED_0 || player->curPos.dy < FIXED_0) {
+            if (player->curPos.dy > Fxp_0 || player->curPos.dy < Fxp_0) {
                 player->moveVertical = true;
             }
         }
         else {
-            if (jo_is_input_key_pressed(player->input->id, JO_KEY_LEFT))
+            if (gamepad.IsHeld(Digital::Button::Left))
             {
                 player->curPos.dx -= X_SPEED_INC;
                 player->moveHorizontal = true;
             }
-            if (jo_is_input_key_pressed(player->input->id, JO_KEY_RIGHT))
+            if (gamepad.IsHeld(Digital::Button::Right))
             {
                 player->curPos.dx += X_SPEED_INC;
                 player->moveHorizontal = true;
             }
 
-            if (jo_is_input_key_pressed(player->input->id, JO_KEY_UP))
+            if (gamepad.IsHeld(Digital::Button::Up))
             {
                 player->curPos.dy -= X_SPEED_INC;
                 player->moveVertical = true;
             }
-            if (jo_is_input_key_pressed(player->input->id, JO_KEY_DOWN))
+            if (gamepad.IsHeld(Digital::Button::Down))
             {
                 player->curPos.dy += X_SPEED_INC;
                 player->moveVertical = true;
@@ -827,7 +774,8 @@ void playerAttack(PPLAYER player) {
             return;
         }        
         // ATTACK1
-        if (jo_is_input_key_down(player->input->id, JO_KEY_A) && player->shield.power > ATTACK1_COST && !player->attack1)
+        Digital gamepad(player->input->id);
+        if (gamepad.WasPressed(Digital::Button::A) && player->shield.power > ATTACK1_COST && !player->attack1)
         {
             if (player->onLeftSide) {
                 player->_sprite->pos.x += ATTACK1;
@@ -852,7 +800,7 @@ void playerAttack(PPLAYER player) {
             player->attack1Frames++;
         }
         // ATTACK2
-        if (jo_is_input_key_down(player->input->id, JO_KEY_C) && player->shield.power > ATTACK2_COST && !player->attack2)
+        if (gamepad.WasPressed(Digital::Button::C) && player->shield.power > ATTACK2_COST && !player->attack2)
         {
             if (player->onLeftSide) {
                 player->_sprite->pos.x += ATTACK2;
@@ -877,43 +825,41 @@ void playerAttack(PPLAYER player) {
             player->attack2Frames++;
         }
         // SHIELD
-        if (jo_is_input_key_pressed(player->input->id, JO_KEY_B) && player->shield.power > 0)
+        if (gamepad.WasPressed(Digital::Button::B) && player->shield.power > 0)
         {
             if (player->shield.power > 1) {
-                pcm_play(g_Assets.shieldPcm8, PCM_PROTECTED, 6);
-                if (!player->shield.activate) {                
-                    if (player->isBig) {
-                        player->_sprite->pos.r = SHIELD_RADIUS_LARGE;
-                    }
-                    else if (player->isSmall) {
-                        player->_sprite->pos.r = SHIELD_RADIUS_SMALL;
-                    }
-                    else {
-                        player->_sprite->pos.r = SHIELD_RADIUS;
-                    }
+                Pcm::Play(Sounds.Game[ShieldSnd], PlayMode::Protected, 6);
+                if (player->isBig) {
+                    player->_sprite->pos.r = SHIELD_RADIUS_LARGE;
+                }
+                else if (player->isSmall) {
+                    player->_sprite->pos.r = SHIELD_RADIUS_SMALL;
+                }
+                else {
+                    player->_sprite->pos.r = SHIELD_RADIUS;
                 }
                 player->shield.activate = true;
             }
-            player->shield.power--;
-        }
-        else {
-            if (player->shield.activate) {  
-                if (player->isBig) {
-                    player->_sprite->pos.r = PLAYER_RADIUS_LARGE;
-                }
-                else if (player->isSmall) {
-                    player->_sprite->pos.r = PLAYER_RADIUS_SMALL;
-                }
-                else {
-                    player->_sprite->pos.r = PLAYER_RADIUS;
-                }
+            if (!g_GameOptions.testCollision) {
+                player->shield.power--;
             }
-            player->shield.activate = false;
+        }
+        else if (!player->shield.activate) {  
+            if (player->isBig) {
+                player->_sprite->pos.r = PLAYER_RADIUS_LARGE;
+            }
+            else if (player->isSmall) {
+                player->_sprite->pos.r = PLAYER_RADIUS_SMALL;
+            }
+            else {
+                player->_sprite->pos.r = PLAYER_RADIUS;
+            }
         }
 }
 
 void regenPlayerPower(PPLAYER player)
 {
+    Digital gamepad(player->input->id);
     // TODO: draw some sort of visual effect when the shield is charging (maybe a sound effect)
     if (player->onLeftSide && player->_sprite->pos.x > -BOUNDARY_SHIELD_REGEN_SLOW) {
         return;
@@ -921,19 +867,19 @@ void regenPlayerPower(PPLAYER player)
     if (!player->onLeftSide && player->_sprite->pos.x < BOUNDARY_SHIELD_REGEN_SLOW) {
         return;
     }
-    Uint8 regen_speed = SHIELD_REGEN_SLOW;
+    uint8_t regen_speed = SHIELD_REGEN_SLOW;
     if (player->onLeftSide && player->_sprite->pos.x < -BOUNDARY_SHIELD_REGEN_FAST) {
         regen_speed = SHIELD_REGEN_FAST;
     }
     if (!player->onLeftSide && player->_sprite->pos.x > BOUNDARY_SHIELD_REGEN_FAST) {
         regen_speed = SHIELD_REGEN_FAST;
     }
-    if (!jo_is_input_key_pressed(player->input->id, JO_KEY_A) || 
-        !jo_is_input_key_pressed(player->input->id, JO_KEY_B) || 
-        !jo_is_input_key_pressed(player->input->id, JO_KEY_C)) {
+    if (!gamepad.IsHeld(Digital::Button::A) || 
+        !gamepad.IsHeld(Digital::Button::B) || 
+        !gamepad.IsHeld(Digital::Button::C)) {
         if (player->shield.power < SHIELD_POWER) {
-            if (JO_MOD_POW2(g_Game.frame, regen_speed) == 0) { // modulus
-                // pcm_play(g_Assets.rechargePcm8, PCM_PROTECTED, 6); // don't think this works because it keeps playing
+            if (g_Game.frame % regen_speed == 0) { // modulus
+                // Pcm::Play(Sounds.rechargePcm8, PlayMode::Protected, 6); // don't think this works because it keeps playing
                 player->shield.power++;
             }
         }
@@ -942,12 +888,10 @@ void regenPlayerPower(PPLAYER player)
 
 void updatePlayers(void)
 {
-    PPLAYER player = NULL;
-
-    for(unsigned int i = 0; i <= g_Game.numPlayers; i++)
+    for(int8_t i = 0; i <= g_Game.numPlayers; i++)
     {
-        player = &g_Players[i];
-        if(player->objectState == OBJECT_STATE_INACTIVE || player->subState == PLAYER_STATE_DEAD || player->isAI == true)
+        PPLAYER player = &g_Players[i];
+        if(!player->isActivated || player->isDead || player->isAI == true)
         {
             continue;
         }
@@ -975,9 +919,15 @@ void updatePlayers(void)
             handlePlayerItemCollision(player);
         }
         
+        // if (i == 0) {
+            // SRL::Debug::Print(2, 9, "Player isBig %i", player->isBig);
+            // SRL::Debug::Print(2, 10, "Player isSmall %i", player->isSmall);
+            // SRL::Debug::Print(2, 11, "Player scale %3d", player->_sprite->scl.x.As<int16_t>());
+        // }
+        
         if (player->isBig) {
             if (g_item.timer[i] == 0) {
-                pcm_play(g_Assets.shrinkPcm8, PCM_PROTECTED, 7);
+                Pcm::Play(Sounds.Game[ShrinkSnd]);
                 player->isBig = shrinkPlayerSprite(player, NORMAL_PLAYER_SPRITE);
             }
             else {
@@ -986,7 +936,7 @@ void updatePlayers(void)
         }
         if (player->isSmall) {
             if (g_item.timer[i] == 0) {
-                pcm_play(g_Assets.growPcm8, PCM_PROTECTED, 7);
+                Pcm::Play(Sounds.Game[GrowSnd]);
                 player->isSmall = growPlayerSprite(player, NORMAL_PLAYER_SPRITE);
             }
             else {
@@ -998,11 +948,11 @@ void updatePlayers(void)
 
 void speedLimitPlayer(PPLAYER player)
 {
-    FIXED bonusSpeed = FIXED_0;
-    FIXED y_up_speed;
-    FIXED y_dn_speed;
-    FIXED x_l_speed;
-    FIXED x_r_speed;
+    Fxp bonusSpeed = Fxp_0;
+    Fxp y_up_speed;
+    Fxp y_dn_speed;
+    Fxp x_l_speed;
+    Fxp x_r_speed;
     if (player->isAI == true) {
         y_up_speed = player->maxSpeed;
         y_dn_speed = -player->maxSpeed;
@@ -1040,7 +990,7 @@ void speedLimitPlayer(PPLAYER player)
 
 void boundPlayer(PPLAYER player)
 {       
-    FIXED boundary_middle;
+    Fxp boundary_middle;
     if (g_Game.isActive) {
         boundary_middle = PLAYER_BOUNDARY_MIDDLE;
     }
@@ -1105,7 +1055,7 @@ bool explodePLayer(PPLAYER player)
         if (player->numLives == 0) {
             // kill player
             player->score.continues--;
-            player->subState = PLAYER_STATE_DEAD;
+            player->isDead = true;
             g_Game.currentNumPlayers--;
             if (player->isAI && g_Game.gameMode == GAME_MODE_STORY) {
                 g_Game.countofRounds++; // for story mode only
@@ -1117,11 +1067,13 @@ bool explodePLayer(PPLAYER player)
     return true;
 }
 
-void killPlayer(Sint8 playerID) {
-    g_Players[playerID].score.continues--;
-    g_Players[playerID].subState = PLAYER_STATE_DEAD;
+void killPlayer(int8_t playerID) {
+    PPLAYER player = &g_Players[playerID];
+    
+    player->score.continues--;
+    player->isDead = true;
     g_Game.currentNumPlayers--;
-    if (g_Players[playerID].isAI && g_Game.gameMode == GAME_MODE_STORY) {
+    if (player->isAI && g_Game.gameMode == GAME_MODE_STORY) {
         g_Game.countofRounds++;
         // unlock character once you've beaten them
         if (!characterUnlocked[g_Game.countofRounds] && g_Game.gameDifficulty > GAME_DIFFICULTY_EASY) {
@@ -1136,20 +1088,22 @@ void killPlayer(Sint8 playerID) {
         g_Players[lastTouchedBy].score.stars++;
     }
     else {
-        for (Uint8 i = 0; i < TOUCHEDBY_BUFFER; i++) {
-            Sint8 id = previouslyTouchedBy[i];
+        for (uint8_t i = 0; i < TOUCHEDBY_BUFFER; i++) {
+            int8_t id = previouslyTouchedBy[i];
             if (id == -1) continue;
-            if (g_Players[id].subState == PLAYER_STATE_DEAD) continue;
-            if (g_Players[id].objectState == OBJECT_STATE_INACTIVE) continue;
+            
+            PPLAYER opponent = &g_Players[id];
+            if (opponent->isDead) continue;
+            if (!opponent->isActivated) continue;
             if (id == playerID) continue;
-            if (g_Players[playerID].onLeftSide == g_Players[id].onLeftSide) continue;
-            g_Players[id].score.stars++;
+            if (player->onLeftSide == opponent->onLeftSide) continue;
+            opponent->score.stars++;
             break;
         }
     }
 }
 
-void updatePlayerLives(Uint8 scoredOnPlayerID)
+void updatePlayerLives(uint8_t scoredOnPlayerID)
 {
     if (g_Players[scoredOnPlayerID].numLives > 0) {
         g_Players[scoredOnPlayerID].numLives--;

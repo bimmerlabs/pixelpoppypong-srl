@@ -1,5 +1,5 @@
 #pragma once
-#include "../palettefx/sprite_colors.h"
+#include "../vdp2/sprite_colors.h"
 #include "../objects/teams.h"
 
 #define TITLE_TIMER (30 * 60)
@@ -21,6 +21,12 @@
 #define LOGO_VELOCITY 12
 
 #define MENU_Y 150
+
+#define ARROW_X Fxp(120)
+#define LEFT_ARROW_UP 0
+#define LEFT_ARROW_DN 1
+#define RIGHT_ARROW_UP 2
+#define RIGHT_ARROW_DN 3
 
 #define POPPY_MAX_SCALE 6
 
@@ -49,6 +55,7 @@ typedef enum _OPTIONS
     OPTION_BIG_HEAD,
     OPTION_ITEMS,
     OPTION_MEOW,
+    OPTION_CDDA,
     OPTION_ANALOG,
     OPTION_EXIT,
     OPTION_MAX,
@@ -57,9 +64,9 @@ typedef enum _OPTIONS
 typedef struct _TITLESCREEN
 {
     unsigned int timer;
-    int menuChoice;
-    int menuLastChoice;
-    int optionChoice;
+    int8_t menuChoice;
+    int8_t menuLastChoice;
+    int8_t optionChoice;
     int logo1_pos;
     int logo2_pos;
     int logo_velocity;
@@ -79,7 +86,11 @@ typedef struct _TITLESCREEN
     int poppy_animation_id;
     float poppy_scale;
     float poppy_velocity;
+    unsigned char left_arrow_id;
+    unsigned char right_arrow_id;
 } TITLESCREEN;
+
+extern TITLESCREEN titleScreen;
 
 static inline void selectGameMode(void) {
     if (g_Game.gameMode == GAME_MODE_STORY) {
@@ -125,6 +136,7 @@ static inline void selectNumPlayers(void) {
 }
 
 void titleScreen_init(void);
+// void logoSphere_init(void);
 void titleMenu_init(void);
 void optionsScreen_init(void);
 void titleScreen_input(void);

@@ -1,27 +1,29 @@
-#include <jo/jo.h>
-#include <stdlib.h>
-#include <string.h>
+#include <srl.hpp>
 #include "../main.h"
 #include "input.h"
 #include "assets.h"
 #include "backup.h"
 #include "util.h"
 #include "screen_transition.h"
+#include "../game/gameplay.h"
 #include "../objects/player.h"
 
-static int pauseChoice = 0;
+using namespace SRL::Types;
+using namespace SRL::Math::Types;
 
-typedef enum _PAUSE_OPTIONS
-{
-    PAUSE_OPTIONS_RESUME = 0,
-    PAUSE_OPTIONS_RESTART,
-    PAUSE_OPTIONS_QUIT,
+int8_t pauseChoice = 0;
+
+#define PAUSE_OPTIONS_RESUME  (0)
+#define PAUSE_OPTIONS_RESTART (1)
+#define PAUSE_OPTIONS_QUIT    (2)
     #if ENABLE_DEBUG_MODE == 1
-    PAUSE_OPTIONS_DEBUG,
+#define PAUSE_OPTIONS_DEBUG   (3)
+#define PAUSE_OPTIONS_ANALOG  (4)
+#define PAUSE_OPTION_MAX      (5)
+    #else
+#define PAUSE_OPTIONS_ANALOG  (3)
+#define PAUSE_OPTION_MAX      (4)
     #endif
-    PAUSE_OPTIONS_ANALOG,
-    PAUSE_OPTION_MAX,
-} PAUSE_OPTIONS;
 
 static void drawPauseMenuCursor(void);
 static void drawPauseMenu(int options_y);
@@ -60,27 +62,23 @@ void pause_input(void)
     }
 }
 
+// need to add background switching for pause screen
 void pause_draw(void)
 {
-    if(g_Game.gameState != GAME_STATE_GAMEPLAY)
-    {
-        return;
-    }
-
     if(g_Game.isPaused == true)
     {
         int options_y = 6;
         if (g_Game.gameMode == GAME_MODE_STORY) {
-            jo_nbg0_printf(19, options_y, "PAWSED");
+            SRL::Debug::Print(19, options_y, "Pawsed");
             options_y += 2;
-            jo_nbg0_printf(15, options_y, "SCORE:%09d", g_Players[0].score.points + g_Players[0].score.total);
+            SRL::Debug::Print(15, options_y, "Score:%09d", g_Players[0].score.points + g_Players[0].score.total);
             options_y += 2;
-            jo_nbg0_printf(15, options_y, "CONTINUES:%i", g_Players[0].score.continues);
+            SRL::Debug::Print(15, options_y, "Continues:%i", g_Players[0].score.continues);
             options_y += 2;
         }
         else {
             options_y = 10; 
-            jo_nbg0_printf(19, options_y, "PAWSED");
+            SRL::Debug::Print(19, options_y, "Pawsed");
             options_y += 2;
         }            
         drawPauseMenu(options_y);
@@ -104,9 +102,11 @@ void pauseGame(void)
     if (g_GameOptions.mosaic_display) {
         g_Transition.mosaic_out = true;
     }
+    g_Game.vblankClearScreen = true;
     g_Game.isPaused = true;
     g_Transition.mosaic_in_rate = MOSAIC_FAST_RATE;
-    pcm_play(g_Assets.startPcm8, PCM_PROTECTED, 6);
+    Pcm::Play(Sounds.Core[StartSnd], PlayMode::Volatile, 6);
+    SRL::VDP2::NBG2::ScrollEnable();
 }
 
 // check if player 1 paused the game
@@ -116,7 +116,12 @@ static void checkForPausePress(void)
     {
         return;
     }
-    if (jo_is_pad1_key_down(JO_KEY_START))
+    
+    PPLAYER player = &g_Players[0];
+
+    Digital gamepad(player->input->id);
+    
+    if (gamepad.WasPressed(Digital::Button::START))
     {
         pauseGame();
     }
@@ -125,40 +130,46 @@ static void checkForPausePress(void)
 // pause menu options
 static void checkForPauseMenu(void)
 {
-    if (jo_is_pad1_key_down(JO_KEY_UP))
+    PPLAYER player = &g_Players[0];
+
+    Digital gamepad(player->input->id);
+    
+    if (gamepad.WasPressed(Digital::Button::Up))
     {
-        pcm_play(g_Assets.cursorPcm8, PCM_PROTECTED, 6);
+        Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
         pauseChoice--;
     }
 
-    if (jo_is_pad1_key_down(JO_KEY_DOWN))
+    if (gamepad.WasPressed(Digital::Button::Down))
     {
-        pcm_play(g_Assets.cursorPcm8, PCM_PROTECTED, 6);
+        Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
         pauseChoice++;
     } 
      
-    if (jo_is_pad1_key_down(JO_KEY_LEFT))
+    if (gamepad.WasPressed(Digital::Button::Left))
     {
         switch(pauseChoice)
         {
             #if ENABLE_DEBUG_MODE == 1
             case PAUSE_OPTIONS_DEBUG:
-                pcm_play(g_Assets.cursorPcm8, PCM_PROTECTED, 6);
+                Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                 g_GameOptions.debug_display = !g_GameOptions.debug_display;
+                g_Game.vblankClearScreen = true;
                 break;
             #endif
             default:
                 break;
         }
     }
-    else if (jo_is_pad1_key_down(JO_KEY_RIGHT))
+    else if (gamepad.WasPressed(Digital::Button::Right))
     {
         switch(pauseChoice)
         {
             #if ENABLE_DEBUG_MODE == 1
             case PAUSE_OPTIONS_DEBUG:
-                pcm_play(g_Assets.cursorPcm8, PCM_PROTECTED, 6);
+                Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                 g_GameOptions.debug_display = !g_GameOptions.debug_display;
+                g_Game.vblankClearScreen = true;
                 break;
             #endif
             default:
@@ -169,13 +180,15 @@ static void checkForPauseMenu(void)
     // keep pause screen choice in range
     sanitizeValue(&pauseChoice, 0, PAUSE_OPTION_MAX);
 
-    if (jo_is_pad1_key_down(JO_KEY_START) || jo_is_pad1_key_down(JO_KEY_A) || jo_is_pad1_key_down(JO_KEY_C))
+    if (gamepad.WasPressed(Digital::Button::START) || gamepad.WasPressed(Digital::Button::A)|| gamepad.WasPressed(Digital::Button::C))
     {
-        save_game_backup();
+        SRL::VDP2::NBG2::ScrollDisable();
+        // save_game_backup();
         switch(pauseChoice)
         {
             case PAUSE_OPTIONS_RESUME:
-                pcm_play(g_Assets.cancelPcm8, PCM_PROTECTED, 6);
+                SRL::Debug::PrintClearScreen();
+                Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
                 // simply unpause
                 g_Transition.mosaic_in_rate = MOSAIC_FAST_RATE;
                 if (g_GameOptions.mosaic_display) {
@@ -186,7 +199,8 @@ static void checkForPauseMenu(void)
                 break;
 
             case PAUSE_OPTIONS_RESTART:
-                pcm_play(g_Assets.nextPcm8, PCM_PROTECTED, 6);
+                SRL::Debug::PrintClearScreen();
+                Pcm::Play(Sounds.Core[NextSnd], PlayMode::Volatile, 6);
                 // start a new game without going to title or team select
                 g_Transition.mosaic_in_rate = MOSAIC_FAST_RATE;
                 if (g_GameOptions.mosaic_display) {
@@ -197,12 +211,13 @@ static void checkForPauseMenu(void)
                 break;
 
             case PAUSE_OPTIONS_QUIT:
-                pcm_play(g_Assets.cancelPcm8, PCM_PROTECTED, 6);
+                SRL::Debug::PrintClearScreen();
+                Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
                 transitionState(GAME_STATE_UNINITIALIZED);
                 break;
             #if ENABLE_DEBUG_MODE == 1
             case PAUSE_OPTIONS_DEBUG:
-                pcm_play(g_Assets.cancelPcm8, PCM_PROTECTED, 6);
+                Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
                 // simply unpause
                 g_Transition.mosaic_in_rate = MOSAIC_FAST_RATE;
                 if (g_GameOptions.mosaic_display) {
@@ -213,7 +228,7 @@ static void checkForPauseMenu(void)
                 break;
             #endif
             case PAUSE_OPTIONS_ANALOG:
-                pcm_play(g_Assets.cancelPcm8, PCM_PROTECTED, 6);
+                Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
                 // simply unpause
                 g_Transition.mosaic_in_rate = MOSAIC_FAST_RATE;
                 if (g_GameOptions.mosaic_display) {
@@ -227,10 +242,12 @@ static void checkForPauseMenu(void)
                 break;
         }
     }
-    else if (jo_is_pad1_key_down(JO_KEY_B))
+    else if (gamepad.WasPressed(Digital::Button::B))
     {
-        save_game_backup();
-        pcm_play(g_Assets.cancelPcm8, PCM_PROTECTED, 6);
+        SRL::VDP2::NBG2::ScrollDisable();
+        SRL::Debug::PrintClearScreen();
+        // save_game_backup();
+        Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
         // simply unpause
         g_Transition.mosaic_in_rate = MOSAIC_FAST_RATE;
         if (g_GameOptions.mosaic_display) {
@@ -245,29 +262,29 @@ static void checkForPauseMenu(void)
 static void drawPauseMenu(int options_y)
 {                
     int options_x = 15;
-    jo_nbg0_printf(options_x, options_y, "RESUME");
+    SRL::Debug::Print(options_x, options_y, "Resume");
     options_y += 2;
-    jo_nbg0_printf(options_x, options_y, "RESTART");
+    SRL::Debug::Print(options_x, options_y, "Restart");
     options_y += 2;
-    jo_nbg0_printf(options_x, options_y, "QUIT");
+    SRL::Debug::Print(options_x, options_y, "Quit");
     #if ENABLE_DEBUG_MODE == 1
     options_y += 2;
-    jo_nbg0_printf(options_x, options_y, g_GameOptions.debug_display ? "DEBUG:ON" : "DEBUG:OFF");
+    SRL::Debug::Print(options_x, options_y, g_GameOptions.debug_display ? "Debug:On " : "Debug:Off");
     #endif
     options_y += 2;
-    jo_nbg0_printf(options_x, options_y, "ANALOG ADJUSTMENT:");
+    SRL::Debug::Print(options_x, options_y, "Analog Adjustment:");
     options_y += 1;
     analogAdjustmentScreen_draw(options_x, options_y);    
 }
 
+const Angle cursorAngleAdder = Angle(0.0222222222222222);
+
 static void drawPauseMenuCursor(void)
 {
-    FIXED offset = jo_fixed_mult(jo_fixed_sin(jo_fixed_deg2rad(toFIXED(g_Game.cursor_angle))), toFIXED(8));
-    cursor.pos.x = toFIXED(-124) + offset;
-    cursor.pos.y = toFIXED(-32 + (pauseChoice * 32));
+    Fxp offset = SRL::Math::Trigonometry::Sin(g_Game.cursor_angle) * Fxp_8;
+    cursor.pos.x = Fxp(-124) + offset;
+    Fxp choice = Fxp::Convert(pauseChoice);
+    cursor.pos.y = Fxp(-32) + (choice * Fxp(32));
     my_sprite_draw(&cursor);
-    g_Game.cursor_angle += 8;
-    if (g_Game.cursor_angle > 360) {
-        g_Game.cursor_angle = 0;
-    }
+    g_Game.cursor_angle += cursorAngleAdder;
 }

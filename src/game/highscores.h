@@ -1,7 +1,7 @@
 #pragma once
-
-#include "physics.h"
-#include "gameplay.h"
+#include <srl.hpp>
+// #include "physics.h"
+// #include "gameplay.h"
 #include "../core/audio.h"
 #include "../objects/player.h"
 #include "../objects/goal.h"
@@ -14,8 +14,11 @@
 #define UNLOCK_CRAIG_SCORE 2500000
 #define UNLOCK_GARFIELD_SCORE 5000000
 
+using namespace SRL::Types;
+using namespace SRL::Math::Types;
+
 typedef struct {
-    unsigned int score;
+    uint32_t score;
     char initials[INITIALS_LENGTH + 1];  // +1 for null terminator
 } HighScoreEntry;
 
@@ -27,11 +30,11 @@ void display_scores(void);
 void score_input(void);
 
 void sortHighScores(HighScoreEntry scores[]);
-void addHighScore(unsigned int newScore, const char *initials);
+void addHighScore(uint32_t newScore, const char *initials);
 void update_bg_position(void);
 
 extern PLAYER g_Players[MAX_PLAYERS];
 
-void calculateScore(Sprite *ball, Uint8 playerID);
+void calculateScore(Sprite *ball, uint8_t playerID);
 
 void updateScore(Sprite *ball, int playerID);

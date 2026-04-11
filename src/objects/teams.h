@@ -5,11 +5,11 @@
 
 typedef enum _TEAM_SELECT
 {
-    TEAM_1 = 0,
-    TEAM_2,
-    TEAM_3,
-    TEAM_4,
-    TEAM_COUNT,
+    TEAM_1 = 1,
+    TEAM_2 = 2,
+    TEAM_3 = 3,
+    TEAM_4 = 4,
+    TEAM_COUNT = 5,
 } TEAM_SELECT;
 
 typedef enum _TEAMS_FOR_SCORING
@@ -26,8 +26,8 @@ typedef struct _TEAM_OBJECT
     short minTeams;
     short maxTeams;
     short numTeams;
-    bool isAvailable[MAX_TEAMS];
-    OBJECT_STATE objectState[MAX_TEAMS];
+    bool isAvailable[TEAM_COUNT];
+    bool isActive[TEAM_COUNT];
 } TEAM_OBJECT, *PTEAM_OBJECT;
 
 extern TEAM_OBJECT g_Team;

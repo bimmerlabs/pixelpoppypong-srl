@@ -1,305 +1,336 @@
-#include <jo/jo.h>
 #include "assets.h"
 #include "sprites.h"
 #include "util.h"
 
-// NOTE: Palette is loaded with the font and shared with all other sprites.
+ASSETS g_Assets = {};
+SoundAssets Sounds = {};
 
-Uint8 palette_transparent_index = 2;
-unsigned int paw_blank_id = 0;
-
-ASSETS g_Assets = {
-    .GameplaySoundsLoaded = false,
-    .NameEntrySoundsLoaded = false,
-};
-
-// tilesets
-jo_tile paw_tileset[NUM_PAW_SPRITES] = {0};
-
-jo_tile pixel_poppy1_tileset[NUM_POPPY_SPRITES] = {0};
-
-jo_tile goal_tileset[NUM_GOAL_SPRITES] = {0};
-
-jo_tile font_char_tileset[NUM_FONT_CHARS] = {0};
-
-jo_tile menu_text_tileset[NUM_TITLE_MENU_TEXT] = {0};
-
-jo_tile timer_tileset[NUM_TIMER_SPRITES] = {0};
-
-jo_tile heart_tileset[NUM_HEART_SPRITES] = {0};
-jo_tile shield_tileset[NUM_SHIELD_SPRITES] = {0};
-
-jo_tile menubg_tileset[NUM_MENUBG_SPRITES] = {0};
-
-jo_tile character_tileset[NUM_CHARACTER_SPRITES] = {0};
-jo_tile dead_tileset[NUM_X_SPRITES] = {0};
-jo_tile pcursor_tileset[NUM_PCURSOR_SPRITES] = {0};
-
-jo_tile bomb_tileset[NUM_BOMB_SPRITES] = {0};
-jo_tile explode_tileset[NUM_EXPLOD_SPRITES] = {0};
-jo_tile fishtank_tileset[NUM_FISH_SPRITES] = {0};
-jo_tile shroom_tileset[NUM_SHROOM_SPRITES] = {0};
-
-static void initTileset(jo_tile* tileset, unsigned int numSprites, unsigned int spritesPerRow, int width, int height)
-{
-    unsigned int col = 0;
-    unsigned int row = 0;
-
-    for(unsigned int i = 0; i < numSprites; i++)
-    {
-        col = i % spritesPerRow; // modulus
-        row = i / spritesPerRow;
-
-        tileset[i].x = col * width;
-        tileset[i].y = row * height;
-        tileset[i].height = height;
-        tileset[i].width = width;
-    }
-}
-
-void loadSprite(Sprite *sprite, int *asset, const char *file, jo_tile *tileset, unsigned int frames, int w, int h, bool asset1or2) {
-    initTileset(tileset, frames, 1, w, h);
-    asset[0] = jo_sprite_add_tga_tileset(NULL, file, palette_transparent_index, tileset, frames);
-        for(unsigned int i = 0; i < frames; i++)
-        {
-            asset[i] = asset[0] + i;
-        }
-        if (asset1or2) { // use asset1
-            sprite->anim1.asset = asset;
-            sprite->anim1.max = frames-1;
-            sprite->spr_id = sprite->anim1.asset[sprite->anim1.frame];
-        }
-        else { // use asset2
-            sprite->anim2.asset = asset;
-            sprite->anim2.max = frames-1;
-        }
-        sprite->pos.r = h; // is this needed?
-}
+TilemapObject* coreTiles = nullptr;
+TilemapObject* titleTiles = nullptr;
+TilemapObject* characterTiles = nullptr;
+TilemapObject* gameplayTiles = nullptr;
+TilemapObject* fontTiles = nullptr;
 
 void loadCoreSoundAssets(void)
 {
-    // load_8bit_pcm returns the ID of the sound loaded
-    // use pcm_reset, giving the id of the last sound you want to keep, to unload extra sounds
-    
     // CORE / MENU SOUNDS
-    g_Assets.cancelPcm8 = load_8bit_pcm((Sint8 *)"CANCEL.PCM", 15360);
-    g_Assets.cursorPcm8 = load_8bit_pcm((Sint8 *)"CURSOR.PCM", 15360);
-    g_Assets.nextPcm8 = load_8bit_pcm((Sint8 *)"NEXT.PCM", 15360);
-    g_Assets.startPcm8 = load_8bit_pcm((Sint8 *)"START.PCM", 15360);
-    g_Assets.tickPcm8 = load_8bit_pcm((Sint8 *)"TICK.PCM", 15360);
+    Pcm::LoadSound("CORE.SND", Sounds.Core, 5);
 }
 
 bool loadGameplaySoundAssets(void)
 {
     // GAMEPLAY SOUNDS
-    g_Assets.scoreTotalPcm8 = load_8bit_pcm((Sint8 *)"SCORET.PCM", 15360);
-    g_Assets.scoreAddPcm8 = load_8bit_pcm((Sint8 *)"SCOREA.PCM", 15360);
-    g_Assets.chain0Pcm8 = load_8bit_pcm((Sint8 *)"CHAIN0.PCM", 15360);
-    g_Assets.chain1Pcm8 = load_8bit_pcm((Sint8 *)"CHAIN1.PCM", 15360);
-    g_Assets.chain2Pcm8 = load_8bit_pcm((Sint8 *)"CHAIN2.PCM", 15360);
-    g_Assets.chain3Pcm8 = load_8bit_pcm((Sint8 *)"CHAIN3.PCM", 15360);
-    g_Assets.chain5Pcm8 = load_8bit_pcm((Sint8 *)"CHAIN5.PCM", 15360);
-    g_Assets.explod1Pcm8 = load_8bit_pcm((Sint8 *)"EXPLOD1.PCM", 15360);
-    g_Assets.growPcm8 = load_8bit_pcm((Sint8 *)"GROW.PCM", 15360);
-    g_Assets.shrinkPcm8 = load_8bit_pcm((Sint8 *)"SHRINK.PCM", 15360);
-    g_Assets.bloopPcm8 = load_8bit_pcm((Sint8 *)"BLOOP.PCM", 15360);
-    g_Assets.stadlerPcm8 = load_8bit_pcm((Sint8 *)"STADLER.PCM", 15360);
-    g_Assets.dropPcm8 = load_8bit_pcm((Sint8 *)"DROP.PCM", 15360);
-    g_Assets.bouncePcm8 = load_8bit_pcm((Sint8 *)"BOUNCE.PCM", 15360);
-    g_Assets.shieldPcm8 = load_8bit_pcm((Sint8 *)"SHIELD.PCM", 15360);
-    // g_Assets.rechargePcm8 = load_8bit_pcm((Sint8 *)"RECHARGE.PCM", 15360);
-    g_Assets.countdownPcm8 = load_8bit_pcm((Sint8 *)"C_DOWN.PCM", 15360);
-    g_Assets.bumpPcm16 = load_16bit_pcm((Sint8 *)"BUMP.PCM", 15360);
-    g_Assets.gameOverPcm8 = load_8bit_pcm((Sint8 *)"GMOVR8.PCM", 15360);
-    g_Assets.winPcm8 = load_8bit_pcm((Sint8 *)"WIN.PCM", 15360);
+    Pcm::LoadSound("GAMEPLAY.SND", Sounds.Game, 19);
     
     // CAT SOUNDS
-    g_Assets.meowPcm8[0] = load_8bit_pcm((Sint8 *)"MEOW1.PCM", 15360);
-    g_Assets.meowPcm8[1] = load_8bit_pcm((Sint8 *)"MEOW5.PCM", 15360);
-    g_Assets.meowPcm8[2] = load_8bit_pcm((Sint8 *)"MEOW2.PCM", 15360);
-    g_Assets.meowPcm8[3] = load_8bit_pcm((Sint8 *)"MEOW6.PCM", 15360);
-    g_Assets.meowPcm8[4] = load_8bit_pcm((Sint8 *)"MEOW3.PCM", 15360);
-    g_Assets.meowPcm8[5] = load_8bit_pcm((Sint8 *)"MEOW7.PCM", 15360);
-    g_Assets.meowPcm8[6] = load_8bit_pcm((Sint8 *)"MEOW4.PCM", 15360);
-    g_Assets.meowPcm8[7] = load_8bit_pcm((Sint8 *)"MEOW8.PCM", 15360);
-    g_Assets.meowPcm8[8] = load_8bit_pcm((Sint8 *)"MEOW9.PCM", 15360);
-    g_Assets.meowID = MEOW1;
+    Pcm::LoadSound("CAT.SND", Sounds.Meow, 9);
+    Sounds.MeowId = MEOW1;
     return true;
 }
 
 bool loadNameEntrySoundAssets(void)
 {   
     // NAME ENTRY SOUNDS
-    g_Assets.name_ketPcm8 = load_8bit_pcm((Sint8 *)"NAME_KET.PCM", 15360);
-    g_Assets.name_curPcm8 = load_8bit_pcm((Sint8 *)"NAME_CUR.PCM", 15360);
-    g_Assets.name_canPcm8 = load_8bit_pcm((Sint8 *)"NAME_CAN.PCM", 15360);
-    g_Assets.name_brkPcm8 = load_8bit_pcm((Sint8 *)"NAME_BRK.PCM", 15360);
+    Pcm::LoadSound("NAME.SND", Sounds.Name, 5);
     return true;
 }
 
-void loadCommonAssets(void)
+void loadCoreAssets(void)
 {
-    jo_sprite_free_all();
-    // pixel poppy
-    loadSprite(&pixel_poppy, g_Assets.pixel_poppy1, "POPPY.TGA", pixel_poppy1_tileset, NUM_POPPY_SPRITES, 64, 50, true);
-    // menu cursor
-    cursor.spr_id = jo_sprite_add_tga(NULL, "CURSOR.TGA", palette_transparent_index);
+    SRL::VDP1::ResetTextureHeap();
+    SRL::Bitmap::TGA::LoaderSettings settings;
+    settings.TransparentColorIndex = 0; // needs to always be index 0 for VDP1/VDP2 (maybe can be configured for VDP1 internally?)
     
-    // background / UI layers
-    loadSprite(&menu_bg1, g_Assets.menubg, "MENUBG.TGA", menubg_tileset, NUM_MENUBG_SPRITES, 2, 2, true);
-    menu_bg1.spr_id = menu_bg1.anim1.asset[6];
-    menu_bg2.anim1.asset = g_Assets.menubg;
-    menu_bg2.spr_id = menu_bg2.anim1.asset[5];
-    player_bg.anim1.asset = g_Assets.menubg;
-    meter.anim1.asset = g_Assets.menubg;
-    meter.spr_id = meter.anim1.asset[7];
-    
-    ppplogo.spr_id = jo_sprite_add_tga(NULL, "PPPLOGO.TGA", palette_transparent_index);
-    pppshadow.spr_id = jo_sprite_add_tga(NULL, "PPPSHDW.TGA", palette_transparent_index); 
-}
+    coreTiles = new TilemapObject("CORE.LZ", PaletteID, false, true);    
 
-void loadPPPLogoAssets(void)
-{        
-    ppplogo.spr_id = jo_sprite_add_tga(NULL, "PPPLOGO.TGA", palette_transparent_index);
-    pppshadow.spr_id = jo_sprite_add_tga(NULL, "PPPSHDW.TGA", palette_transparent_index);  
-    
-    g_Game.isLoading = false;
-}
+    pixel_poppy.id = coreTiles->sprite[CORE_SPRITE_POPPY].SpriteIndex;
+    pixel_poppy.anim[0].asset = pixel_poppy.id;
+    pixel_poppy.anim[0].max = coreTiles->sprite[CORE_SPRITE_POPPY].MaxFrames;
+    pixel_poppy.anim[0].frame = 0;
 
-void unloadPPPLogoAssets(void)
-{
-    g_Game.isLoading = true;
-    // unloads everything after this point
-    jo_sprite_free_from(ppplogo.spr_id);
-    
-}
+    cursor.id = coreTiles->sprite[CORE_SPRITE_CURSOR].SpriteIndex;
+    cursor.anim[0].asset = cursor.id;
 
-void loadNameEntryAssets(void)
-{
-    loadSprite(&font, g_Assets.font, "FONT2.TGA", font_char_tileset, NUM_FONT_CHARS, 24, 24, true);
-    if (!g_Assets.NameEntrySoundsLoaded) {
-            g_Game.isSoundLoading = true;
-            g_Assets.NameEntrySoundsLoaded = loadNameEntrySoundAssets();
-            g_Game.isSoundLoading = false;            
+    menu_bg1.id = coreTiles->sprite[CORE_SPRITE_MENUBG].SpriteIndex + 4;
+    menu_bg1.anim[0].asset = coreTiles->sprite[CORE_SPRITE_MENUBG].SpriteIndex;
+    menu_bg2.id = coreTiles->sprite[CORE_SPRITE_MENUBG].SpriteIndex + 5;
+    menu_bg2.anim[0].asset = coreTiles->sprite[CORE_SPRITE_MENUBG].SpriteIndex;
+
+    player_bg.id = coreTiles->sprite[CORE_SPRITE_MENUBG].SpriteIndex;
+    player_bg.anim[0].asset = player_bg.id;
+
+    
+    // HALLOWEEN
+    if (g_Game.timeSeason == S_HALLOWEEN && g_GameOptions.use_rtc)
+    {
+        pixel_poppy.id = coreTiles->sprite[CORE_SPRITE_PUMPKIN].SpriteIndex;
+        pixel_poppy.anim[0].asset = pixel_poppy.id;
+        pixel_poppy.anim[0].max = coreTiles->sprite[CORE_SPRITE_PUMPKIN].MaxFrames;
+        pixel_poppy.anim[0].frame = 0;
+        
+        cursor.id = cursor.anim[0].asset + 1;
     }
-    g_Game.isLoading = false;
-}
 
-void unloadNameEntryAssets(void)
-{
-    // unloads everything after this point
-    jo_sprite_free_from(font.spr_id);
-    
+    g_Game.isLoading = false;
+    SRL::Debug::PrintClearScreen();
 }
 
 void loadTitleScreenAssets(void)
-{        
-    logo1.spr_id = jo_sprite_add_tga(NULL, "LOGO1.TGA", palette_transparent_index);
-    logo2.spr_id = jo_sprite_add_tga(NULL, "LOGO2.TGA", palette_transparent_index);
-    loadSprite(&menu_text, g_Assets.menu, "TMENU.TGA", menu_text_tileset, NUM_TITLE_MENU_TEXT, 240, 22, true);    
+{ 
+    titleTiles = new TilemapObject("TITLESCR.LZ", PaletteID, false, true);
     
+    menu_arrow.id = titleTiles->sprite[TITLE_SPRITE_ARROWS].SpriteIndex;
+    menu_arrow.anim[0].asset = menu_arrow.id;
+    menu_arrow.anim[0].max = titleTiles->sprite[TITLE_SPRITE_ARROWS].MaxFrames;
+    menu_arrow.anim[0].frame = 0;
+    
+    logo1.id = titleTiles->sprite[TITLE_SPRITE_LOGO].SpriteIndex;
+    logo1.anim[0].asset = logo1.id;
+    logo1.anim[0].max = titleTiles->sprite[TITLE_SPRITE_LOGO].MaxFrames;
+    logo1.anim[0].frame = 0;
+    
+    ppplogo.id = titleTiles->sprite[TITLE_SPRITE_PPPLOGO].SpriteIndex;
+    pppshadow.id = titleTiles->sprite[TITLE_SPRITE_PPPLOGO].SpriteIndex + 1;
+    
+    menu_text.id = titleTiles->sprite[TITLE_SPRITE_TMENU].SpriteIndex;
+    menu_text.anim[0].asset = menu_text.id;
+    menu_text.anim[0].max = titleTiles->sprite[TITLE_SPRITE_TMENU].MaxFrames;
+    menu_text.anim[0].frame = 0;
+    
+    g_Assets.titleAssetsLoaded = true;
     g_Game.isLoading = false;
+    SRL::Debug::PrintClearScreen();
 }
 
-void unloadTitleScreenAssets(void)
-{
-    g_Game.isLoading = true;    
-    // unloads everything after this point
-    jo_sprite_free_from(logo1.spr_id);
-}
+// missing the meter
 
 void loadCharacterAssets(void)
 {
-    loadSprite(&macchi, g_Assets.paw1, "PAW1.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
-    loadSprite(&jelly, g_Assets.paw2, "PAW2.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
-    
-    loadSprite(&penny, g_Assets.paw3, "PAW3.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
-    loadSprite(&potter, g_Assets.paw4, "PAW4.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
-    
-    loadSprite(&sparta, g_Assets.paw5, "PAW5.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
-    
-    loadSprite(&poppy, g_Assets.paw6, "PAW6.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
-    loadSprite(&tj, g_Assets.paw7, "PAW7.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
-    loadSprite(&george, g_Assets.paw8, "PAW8.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
-    loadSprite(&wuppy, g_Assets.paw9, "PAW9.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
-         
-    loadSprite(&stadler, g_Assets.paw10, "PAW10.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
-    loadSprite(&garfield, g_Assets.paw11, "PAW11.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
-
-    paw_blank_id = 0;
-    paw_blank_id = jo_sprite_add_tga(NULL, "PAW0.TGA", palette_transparent_index);
-    paw_blank.spr_id = paw_blank_id; // not sure why this is needed - if I set directly, the id is 0
-    
-    loadSprite(&character_portrait, g_Assets.characters, "PORTRAIT.TGA", character_tileset, NUM_CHARACTER_SPRITES, 48, 48, true);
-    
-    loadSprite(&player_cursor, g_Assets.pcursor, "SELECT.TGA", pcursor_tileset, NUM_PCURSOR_SPRITES, 24, 24, true);
+    g_Game.isLoading = true;
         
-    g_Game.isLoading = false;
-}
+    characterTiles = new TilemapObject("TEAMSELE.LZ", PaletteID, false, true);
+    
+    uint8_t characterOffset = 0;
+    uint8_t maxFrames = characterTiles->sprite[TEAM_SPRITE_PAWS].MaxFrames;
+    uint16_t baseSpriteIndex = characterTiles->sprite[TEAM_SPRITE_PAWS].SpriteIndex;
 
+    for (uint8_t character = CHARACTER_MACCHI; character <= CHARACTER_NONE; ++character)
+    {
+        paw[character].id = baseSpriteIndex + characterOffset;
+        paw[character].anim[0].asset = paw[character].id;
+        paw[character].anim[0].max = maxFrames;
+        paw[character].anim[0].frame = 0;
+        characterOffset += maxFrames;
+    }
+    
+    character_portrait.id = characterTiles->sprite[TEAM_SPRITE_PORTRAIT].SpriteIndex;
+    character_portrait.anim[0].asset = character_portrait.id;
+    character_portrait.anim[0].max = CHARACTER_NONE;
+    character_portrait.anim[0].frame = 0;
+    shadow.id = character_portrait.anim[0].asset + CHARACTER_MAX;
+    
+    player_cursor1.id = characterTiles->sprite[TEAM_SPRITE_SELECT1].SpriteIndex;
+    player_cursor1.anim[0].asset = player_cursor1.id;
+    player_cursor1.anim[0].max = 3;
+    player_cursor1.anim[0].frame = 0;
+    player_cursor2.id = characterTiles->sprite[TEAM_SPRITE_SELECT2].SpriteIndex;
+    player_cursor2.anim[0].asset = player_cursor2.id;
+    player_cursor2.anim[0].max = 3;
+    player_cursor2.anim[0].frame = 0;
+    
+    meter.id = characterTiles->sprite[TEAM_SPRITE_METER].SpriteIndex;
+    meter.anim[0].asset = meter.id;
+    meter.anim[0].max = characterTiles->sprite[TEAM_SPRITE_METER].MaxFrames;
+    meter.anim[0].frame = 0;
+    
+    g_Game.isLoading = false;
+    g_Assets.characterAssetsLoaded = true;
+    SRL::Debug::PrintClearScreen();
+}
 
 void loadGameAssets(void)
 {
     g_Game.isLoading = true;
-    
-    // Items (load first so the explosion can be re-used for other elements)
-    loadSprite(&bomb_item, g_Assets.bomb, "BOMB.TGA", bomb_tileset, NUM_BOMB_SPRITES, 24, 24, true);
-    loadSprite(&bomb_item, g_Assets.explosion, "EXPLOD.TGA", explode_tileset, NUM_EXPLOD_SPRITES, 72, 72, false);
-    loadSprite(&fishtank_item, g_Assets.fishtank, "FISH.TGA", fishtank_tileset, NUM_FISH_SPRITES, 24, 24, true);
-    loadSprite(&shroom_item, g_Assets.shroom, "SHROOM.TGA", shroom_tileset, NUM_SHROOM_SPRITES, 24, 24, true);
-    
-    // UI elements
-    loadSprite(&timer, g_Assets.timer, "NUM1X1.TGA", timer_tileset, NUM_TIMER_SPRITES, 16, 16, true);
-
-    loadSprite(&goal[0], g_Assets.goal1, "GOAL1.TGA", goal_tileset, NUM_GOAL_SPRITES, 32, 12, true);
-    loadSprite(&goal[1], g_Assets.goal2, "GOAL2.TGA", goal_tileset, NUM_GOAL_SPRITES, 32, 12, true);
-    loadSprite(&goal[2], g_Assets.goal3, "GOAL3.TGA", goal_tileset, NUM_GOAL_SPRITES, 32, 12, true);
-    loadSprite(&goal[3], g_Assets.goal4, "GOAL4.TGA", goal_tileset, NUM_GOAL_SPRITES, 32, 12, true);
-    
-    goal[0].anim2.asset = g_Assets.explosion;
-    goal[0].anim2.max = bomb_item.anim2.max;   
-    goal[1].anim2.asset = g_Assets.explosion;
-    goal[1].anim2.max = bomb_item.anim2.max;   
-    goal[2].anim2.asset = g_Assets.explosion;
-    goal[2].anim2.max = bomb_item.anim2.max;   
-    goal[3].anim2.asset = g_Assets.explosion;
-    goal[3].anim2.max = bomb_item.anim2.max;
-    
-    loadSprite(&heart, g_Assets.heart, "HEARTS.TGA", heart_tileset, NUM_HEART_SPRITES, 8, 8, true);
-    star.anim1.asset = g_Assets.heart;
-    star.spr_id = star.anim1.asset[3];
-    
-    loadSprite(&shield[0], g_Assets.shield, "SHIELD.TGA", shield_tileset, NUM_SHIELD_SPRITES, 32, 64, true);
-    shield[1].anim1.asset = g_Assets.shield,
-    shield[1].anim1.max = 6,
-    shield[1].spr_id = shield[1].anim1.asset[6];
-    shield[2].anim1.asset = g_Assets.shield,
-    shield[2].anim1.max = 6,
-    shield[2].spr_id = shield[2].anim1.asset[6];
-    shield[3].anim1.asset = g_Assets.shield,
-    shield[3].anim1.max = 6,
-    shield[3].spr_id = shield[3].anim1.asset[6];
-    
-    loadSprite(&dead, g_Assets.dead, "X.TGA", dead_tileset, NUM_X_SPRITES, 24, 24, true);
         
-    pixel_poppy.anim2.asset = g_Assets.explosion;
-    pixel_poppy.anim2.max = bomb_item.anim2.max;
+    gameplayTiles = new TilemapObject("GAMEPLAY.LZ", PaletteID, false, true);
     
-    craig_item.spr_id = jo_sprite_add_tga(NULL, "CRAIG.TGA", palette_transparent_index);
-    garfield_item.spr_id = jo_sprite_add_tga(NULL, "GARFIELD.TGA", palette_transparent_index);
+    // GAME_SPRITE_EXPLOD
+    // used as 2nd asset in other sprites
+    uint8_t explosionSpr = gameplayTiles->sprite[GAME_SPRITE_EXPLOD].SpriteIndex;
+    uint8_t explosionMax = gameplayTiles->sprite[GAME_SPRITE_EXPLOD].MaxFrames; 
     
-    if (!g_Assets.GameplaySoundsLoaded) {
+    // poppy explosion
+    pixel_poppy.anim[1].asset = explosionSpr;
+    pixel_poppy.anim[1].max = explosionMax;
+    pixel_poppy.anim[1].frame = 0;
+    
+    // GAME_SPRITE_BOMB
+    bomb_item.id = gameplayTiles->sprite[GAME_SPRITE_BOMB].SpriteIndex;
+    bomb_item.anim[0].asset = bomb_item.id;
+    bomb_item.anim[0].max = gameplayTiles->sprite[GAME_SPRITE_BOMB].MaxFrames;
+    bomb_item.anim[0].frame = 0;
+    bomb_item.anim[1].asset = explosionSpr;
+    bomb_item.anim[1].max = explosionMax;
+    bomb_item.anim[1].frame = 0;
+
+    // GAME_SPRITE_CRAIG
+    craig_item.id = gameplayTiles->sprite[GAME_SPRITE_CRAIG].SpriteIndex;
+    craig_item.anim[0].asset = craig_item.id;
+
+    // GAME_SPRITE_FISH
+    fishtank_item.id = gameplayTiles->sprite[GAME_SPRITE_FISH].SpriteIndex;
+    fishtank_item.anim[0].asset = fishtank_item.id;
+    fishtank_item.anim[0].max = gameplayTiles->sprite[GAME_SPRITE_FISH].MaxFrames;
+    fishtank_item.anim[0].frame = 0;
+
+    // GAME_SPRITE_GARF
+    garfield_item.id = gameplayTiles->sprite[GAME_SPRITE_GARF].SpriteIndex;
+    garfield_item.anim[0].asset = garfield_item.id;
+
+    // GAME_SPRITE_GOAL
+    goals[0].id = gameplayTiles->sprite[GAME_SPRITE_GOAL].SpriteIndex;
+    goals[0].anim[0].asset = goals[0].id;
+    goals[0].anim[1].asset = explosionSpr;
+    goals[0].anim[1].max = explosionMax; 
+    
+    goals[1].id = goals[0].id;
+    goals[1].anim[0].asset = goals[1].id;
+    goals[1].anim[1].asset = explosionSpr;
+    goals[1].anim[1].max = explosionMax; 
+    
+    goals[2].id = goals[0].id;
+    goals[2].anim[0].asset = goals[2].id;
+    goals[2].anim[1].asset = explosionSpr;
+    goals[2].anim[1].max = explosionMax; 
+    
+    goals[3].id = goals[0].id;
+    goals[3].anim[0].asset = goals[0].id;
+    goals[3].anim[1].asset = explosionSpr;
+    goals[3].anim[1].max = explosionMax; 
+    
+    // GAME_SPRITE_HEARTS
+    heart.id = gameplayTiles->sprite[GAME_SPRITE_HEARTS].SpriteIndex;
+    heart.anim[0].asset = heart.id;
+    star.id = heart.id + 3;
+    star.anim[0].asset = star.id;
+    
+    // GAME_SPRITE_TIMER
+    timer.id = gameplayTiles->sprite[GAME_SPRITE_TIMER].SpriteIndex;
+    timer.anim[0].asset = timer.id;
+
+    // GAME_SPRITE_SHIELD
+    shield[0].id = gameplayTiles->sprite[GAME_SPRITE_SHIELD].SpriteIndex;
+    shield[0].anim[0].asset = shield[0].id;
+    shield[0].anim[0].max = gameplayTiles->sprite[GAME_SPRITE_SHIELD].MaxFrames;
+    shield[0].anim[0].frame = 0;           
+     
+    shield[1].id = shield[0].id;
+    shield[1].anim[0].asset = shield[1].id;
+    shield[1].anim[0].max = gameplayTiles->sprite[GAME_SPRITE_SHIELD].MaxFrames;
+    shield[1].anim[0].frame = 0;
+     
+    shield[2].id = shield[0].id;
+    shield[2].anim[0].asset = shield[2].id;
+    shield[2].anim[0].max = gameplayTiles->sprite[GAME_SPRITE_SHIELD].MaxFrames;
+    shield[2].anim[0].frame = 0;
+     
+    shield[3].id = shield[0].id;
+    shield[3].anim[0].asset = shield[3].id;
+    shield[3].anim[0].max = gameplayTiles->sprite[GAME_SPRITE_SHIELD].MaxFrames;
+    shield[3].anim[0].frame = 0;
+    
+    // GAME_SPRITE_SHROOM
+    shroom_item.id = gameplayTiles->sprite[GAME_SPRITE_SHROOM].SpriteIndex;
+    shroom_item.anim[0].asset = shroom_item.id;
+    shroom_item.anim[0].max = gameplayTiles->sprite[GAME_SPRITE_SHROOM].MaxFrames;
+    shroom_item.anim[0].frame = 0;
+    
+    // GAME_SPRITE_X
+    dead.id = gameplayTiles->sprite[GAME_SPRITE_X].SpriteIndex;
+    dead.anim[0].asset = dead.id;
+    
+    // HALLOWEEN
+    if (g_Game.timeSeason == S_HALLOWEEN && g_GameOptions.use_rtc)
+    {
+        craig_item.id = craig_item.anim[0].asset + 1; // VAMPIRE CRAIG
+        garfield_item.id = garfield_item.anim[0].asset + 1; // VAMPIRE GARF
+        heart.id = gameplayTiles->sprite[GAME_SPRITE_CORN].SpriteIndex; // CANDY CORN
+        heart.anim[0].asset = heart.id;
+    }        
+    
+    g_Assets.GameplayAssetsLoaded = true;
+    
+    if (!Sounds.GameplayFxLoaded) {
             g_Game.isSoundLoading = true;
-            g_Assets.GameplaySoundsLoaded = loadGameplaySoundAssets();
+            SRL::Debug::PrintClearLine(15);
+            Sounds.GameplayFxLoaded = loadGameplaySoundAssets();
             g_Game.isSoundLoading = false;            
     }
+    
     g_Game.isLoading = false;
+    SRL::Debug::PrintClearScreen();
+}
+
+void loadNameEntryAssets(void)
+{
+    g_Game.isLoading = true;
+    
+    fontTiles = new TilemapObject("NAMEENTR.LZ", PaletteID, false, true);
+    
+    font.id = fontTiles->sprite[0].SpriteIndex;
+    font.anim[0].asset = font.id;
+    
+    if (!Sounds.NameEntryFxLoaded) {
+        g_Game.isSoundLoading = true;
+        SRL::Debug::PrintClearLine(15);
+        Sounds.NameEntryFxLoaded = loadNameEntrySoundAssets();
+        g_Game.isSoundLoading = false;            
+    }
+    
+    g_Assets.NameEntryAssetsLoaded = true;
+    g_Game.isLoading = false;
+    SRL::Debug::PrintClearScreen();
+}
+
+void unloadTitleAssets(void)
+{
+    // titleTiles->~TilemapObject(); 
+    SRL::VDP1::ResetTextureHeap(menu_arrow.id);
+    g_Assets.titleAssetsLoaded = false;
 }
 
 void unloadGameAssets(void)
 {
-    g_Game.isLoading = true;
-    // unloads everything after this point
-    jo_sprite_free_from(macchi.anim1.asset[0]);
-    
+    // characterTiles->~TilemapObject();
+    SRL::VDP1::ResetTextureHeap(meter.id);
+    g_Assets.characterAssetsLoaded = false;
+    g_Assets.GameplayAssetsLoaded = false;
+}
+
+void unloadNameEntryAssets(void)
+{
+    SRL::VDP1::ResetTextureHeap(font.id);
+    g_Assets.NameEntryAssetsLoaded = false;
+}
+
+void switchCoreAssets(void)
+{
+    // HALLOWEEN
+    if (g_Game.timeSeason == S_HALLOWEEN && g_GameOptions.use_rtc)
+    {
+        pixel_poppy.id = coreTiles->sprite[CORE_SPRITE_PUMPKIN].SpriteIndex;
+        pixel_poppy.anim[0].asset = pixel_poppy.id;
+        pixel_poppy.anim[0].max = coreTiles->sprite[CORE_SPRITE_PUMPKIN].MaxFrames;
+        pixel_poppy.anim[0].frame = 0;
+        
+        cursor.id = cursor.anim[0].asset + 1;
+    }
+    else {
+        pixel_poppy.id = coreTiles->sprite[CORE_SPRITE_POPPY].SpriteIndex;
+        pixel_poppy.anim[0].asset = pixel_poppy.id;
+        pixel_poppy.anim[0].max = coreTiles->sprite[CORE_SPRITE_POPPY].MaxFrames;
+        pixel_poppy.anim[0].frame = 0;
+        
+        cursor.id = cursor.anim[0].asset;
+    }
 }

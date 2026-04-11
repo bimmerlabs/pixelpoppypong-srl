@@ -1,4 +1,3 @@
-#include <jo/jo.h>
 #include "physics.h"
 #include "gameplay.h"
 #include "../core/audio.h"
@@ -6,16 +5,18 @@
 #include "../core/screen_transition.h"
 #include "../objects/goal.h"
 
+using namespace SRL::Math;
+
 extern PLAYER g_Players[MAX_PLAYERS];
 
 BallTouchTracker touchedBy[MAX_PLAYERS];
 unsigned int ballTtouchTimer = 0;
-Sint8 lastTouchedBy = -1;
-Sint8 previouslyTouchedBy[TOUCHEDBY_BUFFER];
+int8_t lastTouchedBy = -1;
+int8_t previouslyTouchedBy[TOUCHEDBY_BUFFER];
     
-static FIXED maxBallVelocity = FIXED_0;
+static Fxp maxBallVelocity = Fxp_0;
 
-void initTouchCounter(Uint8 resetTouchCount) {
+void initTouchCounter(uint8_t resetTouchCount) {
     for(unsigned int i = 0; i < MAX_PLAYERS; i++)
     {
         touchedBy[i].onLeftSide = false;
@@ -33,8 +34,9 @@ void initTouchCounter(Uint8 resetTouchCount) {
 }
 
 void stopBallMovement(Sprite *ball) {
-    ball->vel.x = FIXED_0;
-    ball->vel.y = FIXED_0;
+    ball->vel.x = Fxp_0;
+    ball->vel.y = Fxp_0;
+    ball->vel.z = Fxp_0;
 }
 
 // Function to initialize the ball's movement
@@ -43,34 +45,44 @@ void start_ball_movement(Sprite *ball) {
     {
         case GAME_DIFFICULTY_EASY:
             maxBallVelocity = EASY_MAX_VELOCITY;
-            ball->vel.x = my_random_range(toFIXED(5), toFIXED(8));
-            ball->vel.y = my_random_range(toFIXED(1), toFIXED(8));
-            ball->vel.z = my_random_range(0, 5);
+            ball->vel.x = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(5, 8)));
+            ball->vel.y = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(1, 8)));
+            ball->vel.z = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(1, 10))); // originally 5
             break;
         case GAME_DIFFICULTY_MEDIUM:
             maxBallVelocity = MEDIUM_MAX_VELOCITY;
-            ball->vel.x = my_random_range(toFIXED(5), toFIXED(9));
-            ball->vel.y = my_random_range(toFIXED(1), toFIXED(9));
-            ball->vel.z = my_random_range(0, 10);
+            ball->vel.x = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(5, 9)));
+            ball->vel.y = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(1, 9)));
+            ball->vel.z = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(1, 20))); // originally 10
             break;
         case GAME_DIFFICULTY_HARD:
             maxBallVelocity = HARD_MAX_VELOCITY;
-            ball->vel.x = my_random_range(toFIXED(6), toFIXED(10));
-            ball->vel.y = my_random_range(toFIXED(1), toFIXED(10));
-            ball->vel.z = my_random_range(0, 20);
+            ball->vel.x = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(6, 10)));
+            ball->vel.y = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(1, 10)));
+            ball->vel.z = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(1, 40))); // originally 20
             break;
         default:
             maxBallVelocity = MEDIUM_MAX_VELOCITY;
-            ball->vel.x = my_random_range(toFIXED(6), toFIXED(10));
-            ball->vel.y = my_random_range(toFIXED(3), toFIXED(9));
-            ball->vel.z = my_random_range(0, 10);
+            ball->vel.x = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(6, 10)));
+            ball->vel.y = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(3, 9)));
+            ball->vel.z = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(1, 20))); // originally 10
             break;
     }
-               
+
     // Randomize direction
-    if (JO_MOD_POW2(jo_random(999 * ball->rot.z), 2)) ball->vel.x = -ball->vel.x; // modulus
-    if (JO_MOD_POW2(jo_random(999 * ball->rot.z), 2)) ball->vel.y = -ball->vel.y; // modulus
-    if (JO_MOD_POW2(jo_random(99999), 2)) ball->vel.z = -ball->vel.z; // modulus
+    Fxp rotZ = ball->rot.z.ToDegrees();
+    if (rnd.GetNumber(0, 999 * rotZ.As<int32_t>()) % 2 == 0) // modulus
+    {
+        ball->vel.x = -ball->vel.x;
+    }
+    if (rnd.GetNumber(0, 999 * rotZ.As<int32_t>()) % 2 == 0) // modulus
+    {
+        ball->vel.y = -ball->vel.y;
+    }
+    if (rnd.GetNumber(0, 99999 * rotZ.As<int32_t>()) % 2 == 0) // modulus
+    {
+        ball->vel.z = -ball->vel.z;
+    }
     
     // game is only active if ball is moving
     g_Game.isActive = true;
@@ -80,14 +92,17 @@ void start_ball_movement(Sprite *ball) {
 // inline?
 void adjust_xy_velocity_based_on_spin(Sprite *ball) {
     // Calculate tangential velocity
-    FIXED tangential_velocity = jo_fixed_mult(ball->pos.r, ball->vel.z);
+    Fxp tangential_velocity = ball->pos.r * ball->vel.z / Fxp_360;
 
     // Scale tangential velocity by friction
-    FIXED friction_effect = jo_fixed_mult(tangential_velocity, FRICTION_COEFFICIENT);
+    Fxp friction_effect = tangential_velocity * FRICTION_COEFFICIENT;
 
-    // Adjust x and y velocities
-    ball->vel.x += friction_effect; // Modify as per direction of spin
-    ball->vel.y -= friction_effect; // Modify as per direction of spin
+    // SRL::Debug::Print(2, 13, "TengentVel:%3d    ", tangential_velocity.As<int16_t>());
+    // SRL::Debug::Print(2, 14, "Friction:%3d    ", friction_effect.As<int16_t>());
+    
+    // // Adjust x and y velocities
+    ball->vel.x += friction_effect;
+    ball->vel.y -= friction_effect;
 }
 
 // Function to update the ball's position and check for collisions
@@ -96,42 +111,45 @@ void update_ball(Sprite *ball) {
     // Update position based on velocity
     ball->pos.x += ball->vel.x;
     ball->pos.y += ball->vel.y;
-    ball->rot.z += ball->vel.z;
+    Angle VelZ = Angle::FromDegrees( ball->vel.z);
+    ball->rot.z += VelZ;
     
     if (!g_Game.explodeBall) {
-        Uint8 spin = ABS(ball->vel.z);
+        auto spin = ABS(ball->vel.z.As<int16_t>());
         if (spin > 50) {
-            ball->spr_id = ball->anim1.asset[6];
+            ball->id = ball->anim[0].asset +6;
         }
         else if (spin > 40 && spin <= 50) {
-            ball->spr_id = ball->anim1.asset[5];
+            ball->id = ball->anim[0].asset + 5;
         }
         else if (spin > 30 && spin <= 40) {
-            ball->spr_id = ball->anim1.asset[4];
+            ball->id = ball->anim[0].asset + 4;
         }
         else if (spin > 20 && spin <= 30) {
-            ball->spr_id = ball->anim1.asset[3];
+            ball->id = ball->anim[0].asset + 3;
         }
         else if (spin > 10 && spin <= 20) {
-            ball->spr_id = ball->anim1.asset[1];
+            ball->id = ball->anim[0].asset + 1;
         }
         else if (spin > 0 && spin <= 10) {
-            ball->spr_id = ball->anim1.asset[0];
+            ball->id = ball->anim[0].asset;
         }
     }
     
-    // Check for collisions with goals
-    if (ball->pos.x >= GOAL_RIGHT_BOUNDS) {
-        checkRightGoalCollision(ball);
-    }
-    else if (ball->pos.x <= GOAL_LEFT_BOUNDS) {
-        checkLeftGoalCollision(ball);
+    if (!g_GameOptions.testCollision) {
+        // Check for collisions with goals
+        if (ball->pos.x >= GOAL_RIGHT_BOUNDS) {
+            checkRightGoalCollision(ball);
+        }
+        else if (ball->pos.x <= GOAL_LEFT_BOUNDS) {
+            checkLeftGoalCollision(ball);
+        }
     }
     
     // Check for collisions with walls
     if (ball->pos.x >= SCREEN_RIGHT) {
         ball->pos.x = SCREEN_RIGHT;
-        pcm_play(g_Assets.bumpPcm16, PCM_VOLATILE, 6);
+        Pcm::Play(Sounds.Game[BumpSnd], PlayMode::Volatile, 6);
         ball->vel.x = -ball->vel.x; // Reverse X velocity
         // moving right
         if (ball->vel.x > MIN_VELOCITY_X) {
@@ -151,7 +169,7 @@ void update_ball(Sprite *ball) {
     }
     if (ball->pos.x <= SCREEN_LEFT) {
         ball->pos.x = SCREEN_LEFT;
-        pcm_play(g_Assets.bumpPcm16, PCM_VOLATILE, 6);
+        Pcm::Play(Sounds.Game[BumpSnd], PlayMode::Volatile, 6);
         ball->vel.x = -ball->vel.x; // Reverse X velocity
         // moving right
         if (ball->vel.x > MIN_VELOCITY_X) {
@@ -171,7 +189,7 @@ void update_ball(Sprite *ball) {
     }
     if (ball->pos.y >= SCREEN_BOTTOM - ball->pos.r) {
         ball->pos.y = SCREEN_BOTTOM - ball->pos.r;
-        pcm_play(g_Assets.bumpPcm16, PCM_VOLATILE, 6);
+        Pcm::Play(Sounds.Game[BumpSnd], PlayMode::Volatile, 6);
         ball->vel.y = -ball->vel.y; // Reverse Y velocity
         // moving up
         if (ball->vel.y < -MIN_VELOCITY_Y) {
@@ -184,7 +202,7 @@ void update_ball(Sprite *ball) {
     }
     if (ball->pos.y <= SCREEN_TOP + ball->pos.r) {
         ball->pos.y = SCREEN_TOP + ball->pos.r;
-        pcm_play(g_Assets.bumpPcm16, PCM_VOLATILE, 6);
+        Pcm::Play(Sounds.Game[BumpSnd], PlayMode::Volatile, 6);
         ball->vel.y = -ball->vel.y; // Reverse Y velocity
         // moving down
         if (ball->vel.y > MIN_VELOCITY_Y) {
@@ -219,34 +237,41 @@ void update_ball(Sprite *ball) {
 }
 
 // SIMPLER / BETTER? (ball/circle)
-void handle_ball_player_reaction(Sprite *ball, PPLAYER player, int distance_squared, FIXED dx, FIXED dy) {
+void handle_ball_player_reaction(Sprite *ball, PPLAYER player, int32_t distance_squared, int32_t dx, int32_t dy) {
     if (g_Game.explodeBall && !player->isExploded) {
         player->isExploded = explodePLayer(player);
         player->_sprite->isColliding = false;
         return;
-    }    
+    }
+    
+    Fxp distance = Fxp::Convert(static_cast<int16_t>(ApproximateIntegerSqrt(distance_squared)));
+    
     // Calculate relative position vector    
-    FIXED collision_normal_x = jo_fixed_div(dx, toFIXED(ApproximateIntegerSqrt(distance_squared)));
-    FIXED collision_normal_y = jo_fixed_div(dy, toFIXED(ApproximateIntegerSqrt(distance_squared)));
+    Fxp collision_normal_x = Fxp::Convert(static_cast<int16_t>(dx)) / distance;
+    Fxp collision_normal_y = Fxp::Convert(static_cast<int16_t>(dy)) / distance;
 
     // Compute the dot product of relative velocity and collision normal
-    FIXED dot_product = jo_fixed_mult(ball->vel.x, collision_normal_x) +
-                        jo_fixed_mult(ball->vel.y, collision_normal_y);
+    Fxp dot_product = ball->vel.x * collision_normal_x + ball->vel.y * collision_normal_y;
 
-    if (dot_product > FIXED_0) { // remove?
+    if (dot_product > Fxp_0) { // remove?
         // Ball is moving away from the player; no need to adjust velocity
         return;
     }
 
     player->_sprite->isColliding = true;
     
+    // Fxp xNormal = dot_product * collision_normal_x * player->power;
+    // Fxp yNormal = dot_product * collision_normal_y * player->power;
+    // SRL::Debug::Print(2, 15, "xNormal:%3d    ", xNormal.As<int16_t>());
+    // SRL::Debug::Print(2, 16, "yNormal:%3d    ", yNormal.As<int16_t>());
+    
   if (!g_GameOptions.testCollision) {        
     // Reflect the ball's velocity along the collision normal, factoring in player's movement    
-    ball->vel.x -= jo_fixed_mult(jo_fixed_mult(dot_product, collision_normal_x), player->power);
-    ball->vel.y -= jo_fixed_mult(jo_fixed_mult(dot_product, collision_normal_y), player->power);
+    ball->vel.x -= dot_product * collision_normal_x * player->power;
+    ball->vel.y -= dot_product * collision_normal_y * player->power;
     
     // Apply player's movement influence
-    FIXED rel_vel_x = jo_fixed_mult(player->_sprite->vel.x, toFIXED(0.35));
+    Fxp rel_vel_x = player->_sprite->vel.x * Fxp(0.35);
     if ((player->onLeftSide && player->_sprite->vel.x > 0) || 
         (!player->onLeftSide && player->_sprite->vel.x < 0)) {
         ball->vel.x += rel_vel_x;
@@ -255,7 +280,7 @@ void handle_ball_player_reaction(Sprite *ball, PPLAYER player, int distance_squa
 }
 
 bool detect_player_ball_collision(Sprite *ball, PPLAYER player) {
-    if (player->subState == PLAYER_STATE_DEAD) {
+    if (player->isDead) {
         return false;
     }
     
@@ -279,28 +304,31 @@ bool detect_player_ball_collision(Sprite *ball, PPLAYER player) {
     // }
     
     // Relative position vector
-    FIXED dx = ball->pos.x - player->_sprite->pos.x;
-    FIXED dy = ball->pos.y - player->_sprite->pos.y;
+    int32_t dx = ball->pos.x.As<int32_t>() - player->_sprite->pos.x.As<int32_t>();
+    int32_t dy = ball->pos.y.As<int32_t>() - player->_sprite->pos.y.As<int32_t>();
+    
     // Distance squared between ball and player center
-    int distance_squared = (toINT(dx) * toINT(dx)) + (toINT(dy) * toINT(dy));
+    int32_t distance_squared = dx * dx + dy * dy;
+    
+    // SRL::Debug::Print(2, 13, "Distance Sqrd:%3d    ", distance_squared);
     
     // Radius of the player (used for the semicircle)
-    int player_radius = toINT(player->_sprite->pos.r);
+    Fxp player_radius = player->_sprite->pos.r;
     
     // **Step 1: Check collision with the rectangle (depends on player side)**
-    FIXED player_left, player_right, player_top, player_bottom;
+    Fxp player_left, player_right, player_top, player_bottom;
     if (player->onLeftSide) {
         // Rectangle extends to the **left** of the semicircle
         player_left   = player->_sprite->pos.x - player_radius;
         player_right  = player->_sprite->pos.x;
-        pcm_parameter_change(g_Assets.meowID, 1, PCM_PAN_RIGHT);
-        pcm_parameter_change(g_Assets.meowID, 7, PCM_PAN_LEFT);
+        // pcm_parameter_change(Sounds.MeowId, 1, PCM_PAN_RIGHT);
+        // pcm_parameter_change(Sounds.MeowId, 7, PCM_PAN_LEFT);
     } else {
         // Rectangle extends to the **right** of the semicircle
         player_left   = player->_sprite->pos.x;
         player_right  = player->_sprite->pos.x + player_radius;
-        pcm_parameter_change(g_Assets.meowID, 7, PCM_PAN_RIGHT);
-        pcm_parameter_change(g_Assets.meowID, 1, PCM_PAN_LEFT);
+        // pcm_parameter_change(Sounds.MeowId, 7, PCM_PAN_RIGHT);
+        // pcm_parameter_change(Sounds.MeowId, 1, PCM_PAN_LEFT);
     }
     player_top    = player->_sprite->pos.y - player_radius;
     player_bottom = player->_sprite->pos.y + player_radius;
@@ -312,29 +340,30 @@ bool detect_player_ball_collision(Sprite *ball, PPLAYER player) {
             updateBallTouch(player);
         }
         if (g_GameOptions.enableMeows && !player->_sprite->isColliding) {
-            pcm_play(g_Assets.meowPcm8[g_Assets.meowID], PCM_PROTECTED, 7);
-            g_Assets.meowID++;
-            if (g_Assets.meowID > MEOW9)
-                g_Assets.meowID = MEOW1;
+            Pcm::Play(Sounds.Meow[Sounds.MeowId]);
+            Sounds.MeowId++;
+            if (Sounds.MeowId > MEOW9)
+                Sounds.MeowId = MEOW1;
         }
         handle_ball_player_reaction(ball, player, distance_squared, dx, dy);
         return true;
     }    
     
     // **Step 2: Check collision with the semicircle**
-    int ball_radius = toINT(ball->pos.r);
-    int radius_sum = player_radius + ball_radius;
-    int radius_squared = radius_sum * radius_sum;
+    int32_t radius_sum = player_radius.As<int32_t>() + ball->pos.r.As<int32_t>();
+    int32_t radius_squared = radius_sum * radius_sum;
 
+    // SRL::Debug::Print(2, 14, "Radius Sqrd:%3d    ", radius_squared);
+    
     if (distance_squared <= radius_squared) {
         if (!g_Game.explodeBall) {
             updateBallTouch(player);
         }
         if (g_GameOptions.enableMeows && !player->_sprite->isColliding) {
-            pcm_play(g_Assets.meowPcm8[g_Assets.meowID], PCM_PROTECTED, 7);
-            g_Assets.meowID++;
-            if (g_Assets.meowID > MEOW9)
-                g_Assets.meowID = MEOW1;
+            Pcm::Play(Sounds.Meow[Sounds.MeowId]);
+            Sounds.MeowId++;
+            if (Sounds.MeowId > MEOW9)
+                Sounds.MeowId = MEOW1;
         }
         handle_ball_player_reaction(ball, player, distance_squared, dx, dy);
         return true;
@@ -352,13 +381,13 @@ bool checkItemDistance(Sprite *player, Sprite *item)
         return false;
     }
     
-    int total_radius = toINT(player->pos.r) + ITEM_RADIUS;
-    int dist = total_radius * total_radius;
+    int32_t total_radius = player->pos.r.As<int32_t>() + ITEM_RADIUS;
+    int32_t dist = total_radius * total_radius;
     
-    int x_dist = toINT(player->pos.x) - toINT(item->pos.x);
+    int32_t x_dist = player->pos.x.As<int32_t>() - item->pos.x.As<int32_t>();
     x_dist = x_dist * x_dist;
 
-    int y_dist = toINT(player->pos.y) - toINT(item->pos.y);
+    int32_t y_dist = player->pos.y.As<int32_t>() - item->pos.y.As<int32_t>();
     y_dist = y_dist * y_dist;
 
     if(dist > x_dist + y_dist)

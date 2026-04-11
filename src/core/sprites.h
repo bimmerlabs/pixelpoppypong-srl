@@ -1,48 +1,68 @@
 #pragma once
 
-#include <jo/jo.h>
+#include <srl.hpp>
 #include "../main.h"
 #include "math.h"
+#include "../objects/characters.h"
+// #include "../../modules/tmsf/tmsf.hpp"
+#include <tmsf.hpp>
+
+// SGL doesn't have these by default
+#define	    Pclpoff		(1 << 11)	/* No pre-clipping and no horizontal inversion */
+#define	    Pclpon		(0 << 11)	/* Pre-clipping with horizontal inversion (default) */
 
 #define FRAMERATE1 4 // for animation speed (power of 2)
 #define FRAMERATE2 6 // for animation speed
 #define FRAMERATE3 8 // for animation speed (power of 2)
-#define EASY_BALL_RADIUS toFIXED(56)
-#define NORMAL_BALL_RADIUS toFIXED(36)
+#define EASY_BALL_RADIUS Fxp(56)
+#define NORMAL_BALL_RADIUS Fxp(36)
+
+// #define MY_SPR_ATTRIBUTE(t, c, g, a, d)                 \
+    // {                                                   \
+        // (uint16_t)(t),                                  \
+        // (uint16_t)((a) | (((d) >> 24) & 0xc0)),         \
+        // (uint16_t)(c),                                  \
+        // (uint16_t)(g),                                  \
+        // (uint16_t)((d) & 0x0f3f)                        \
+    // }
+    
+using namespace SRL::Types;
+using namespace SRL::Math::Types;
+    
+extern int g_spriteDrawCount;
 
 typedef struct {
-    FIXED x, y, z;
-    FIXED r;
+    Fxp x, y, z;
+    Fxp r;
 } Position;
 
 typedef struct {
-    FIXED x, y;
+    Fxp x, y;
 } Scale;
 
 typedef struct {
-    int x, y, z;
+    Angle x, y, z;
 } Rotation;
 
 typedef struct {
-    FIXED x, y;
+    Fxp x, y;
 } Vector;
 
 typedef struct {
-    FIXED x, y;
-    int z;
+    Fxp x, y, z;
 } Velocity;
 
 typedef struct _BoundingBox
 {
-    FIXED min_x, min_y;
-    FIXED max_x, max_y;
-    FIXED width, height;
+    Fxp min_x, min_y;
+    Fxp max_x, max_y;
+    Fxp width, height;
 } BoundingBox;
 
 typedef struct {
-    int*  asset;
-    Uint8 frame;
-    Uint8 max;
+    uint16_t asset; // initial sprite index
+    uint8_t frame; // current frame
+    uint8_t max; // might not be needed
 } Animation;
 
 typedef struct {
@@ -52,16 +72,17 @@ typedef struct {
     Vector   vec2;
     Velocity vel;
     BoundingBox bbox;
-    FIXED mass;
+    Fxp mass;
     bool isColliding;
-    Uint8    spr_id;
+    uint8_t    id;
+    uint8_t    frame;
+    uint8_t    max;
     bool   visible;
     int    pal_id;
-    int    flip;
-    int    mesh;
-    int    zmode;
-    Animation anim1;
-    Animation anim2;
+    uint16_t    flip;
+    uint16_t    mesh;
+    uint16_t    zmode;
+    Animation anim[2];
 } Sprite;
 
 extern Sprite font; // VDP1 font
@@ -72,38 +93,29 @@ extern Sprite logo1;
 extern Sprite logo2;
 extern Sprite cursor;
 extern Sprite menu_text;
-extern Sprite menu_choices;
+extern Sprite menu_arrow;
 extern Sprite menu_bg1;
 extern Sprite menu_bg2;
 extern Sprite character_portrait;
+extern Sprite shadow;
 extern Sprite dead;
 extern Sprite player_bg;
-extern Sprite player_cursor;
+extern Sprite player_cursor1;
+extern Sprite player_cursor2;
 
 // game UI
 extern Sprite timer;
 extern Sprite meter;
 extern Sprite heart;
 extern Sprite star;
-extern Sprite goal[MAX_PLAYERS];
+extern Sprite goals[MAX_PLAYERS];
 
 extern Sprite shield[MAX_PLAYERS];
 
 // characters
 extern Sprite pixel_poppy;
 extern Sprite pixel_poppy_shadow;
-extern Sprite macchi;
-extern Sprite jelly;
-extern Sprite penny;
-extern Sprite potter;
-extern Sprite sparta;
-extern Sprite poppy;
-extern Sprite tj;
-extern Sprite george;
-extern Sprite wuppy;
-extern Sprite stadler;
-extern Sprite garfield;
-extern Sprite paw_blank;
+extern Sprite paw[CHARACTER_MAX];
 
 // items
 extern Sprite bomb_item;
@@ -113,31 +125,49 @@ extern Sprite craig_item;
 extern Sprite garfield_item;
 
 static inline void set_item_position(Sprite *sprite) {
-    sprite->pos.x = toFIXED(my_random_range(-240, 240));
-    sprite->pos.y = toFIXED(my_random_range(-160, 160));
-    if (JO_MOD_POW2(jo_random(9999), 2)) { // sprite flip
+    int16_t xPos = rnd.GetNumber(-240, 240);
+    int16_t yPos = rnd.GetNumber(-160, 160);
+    
+    // SRL::Debug::Print(2, 16, "X,Y:%4d,%4d", xPos, yPos);    
+    
+    sprite->pos.x = Fxp::Convert(yPos);
+    sprite->pos.y = Fxp::Convert(yPos);
+    
+    if (rnd.GetNumber(0, 9999) % 2) { // replace with SRL::MATH random function
         sprite->flip = sprHflip;
     }
     else {
+        // sprite->flip = sprNoflip & 0xFFFF; // if not using modified sl_def macros
         sprite->flip = sprNoflip;
     }
 }
 
 static inline void set_spr_position(Sprite *sprite, int px, int py, int pz) {
-    sprite->pos.x = toFIXED(px);
-    sprite->pos.y = toFIXED(py);
-    sprite->pos.z = toFIXED(pz);
+    sprite->pos.x = Fxp::Convert(static_cast<int16_t>(px)); // static_cast<int16_t>() to fix warnings (remove later?)
+    sprite->pos.y = Fxp::Convert(static_cast<int16_t>(py));
+    sprite->pos.z = Fxp::Convert(static_cast<int16_t>(pz));
 }
 
-static inline void set_shield_position(Sprite *_player, Sprite *_shield, FIXED shield_pos) {
+static inline void set_spr_position_fxp(Sprite *sprite, Fxp px, Fxp py, Fxp pz) {
+    sprite->pos.x = px;
+    sprite->pos.y = py;
+    sprite->pos.z = pz;
+}
+
+static inline void set_shield_position(Sprite *_player, Sprite *_shield, Fxp shield_pos) {
     _shield->pos.x = _player->pos.x + shield_pos;
     _shield->pos.y = _player->pos.y;
     _shield->pos.z = _player->pos.z;
 }
 
-static __jo_force_inline void set_spr_scale(Sprite *sprite, float sx, float sy) {
-    sprite->scl.x = toFIXED(sx);
-    sprite->scl.y = toFIXED(sy);
+static inline void set_spr_scale(Sprite *sprite, float sx, float sy) {
+    sprite->scl.x = Fxp::Convert(sx); // Use float directly
+    sprite->scl.y = Fxp::Convert(sy);
+}
+
+static inline void set_spr_scale_fxp(Sprite *sprite, Fxp sx, Fxp sy) {
+    sprite->scl.x = sx;
+    sprite->scl.y = sy;
 }
 
 
@@ -150,75 +180,102 @@ static __jo_force_inline void set_spr_scale(Sprite *sprite, float sx, float sy) 
 // sprHflip : Horizontally flipped display.
 // sprHVflip : Flip the display vertically and horizontally.
 
-static __jo_force_inline void	my_sprite_draw(Sprite *sprite) { // note: switched to using 256bnk mode, so all palette indexes are now 0
-	FIXED pos[XYZSS] = { sprite->pos.x, sprite->pos.y, sprite->pos.z, sprite->scl.x, sprite->scl.y };
-	SPR_ATTR attr = SPR_ATTRIBUTE( sprite->spr_id, 0, No_Gouraud, sprite->mesh | ECdis | CL256Bnk, sprite->flip | sprite->zmode );
-	slDispSpriteHV(pos, &attr, DEGtoANG(sprite->rot.z));
+// FUTURE: remove these commands and use SRL's custom Draw command?
+
+static inline void	my_sprite_draw_rot(Sprite *sprite) { // note: switched to using 256bnk mode, so all palette indexes are now 0
+	FIXED pos[XYZSS] = { sprite->pos.x.RawValue(), sprite->pos.y.RawValue(), sprite->pos.z.RawValue(), sprite->scl.x.RawValue(), sprite->scl.y.RawValue() };
+	SPR_ATTR attr = SPR_ATTRIBUTE( sprite->id, 0, No_Gouraud, sprite->mesh | HSSon | ECenb | CL256Bnk, sprite->flip | sprite->zmode );
+	slDispSpriteHV(pos, &attr, sprite->rot.z.RawValue());
+}
+
+static inline void	my_sprite_draw(Sprite *sprite) {
+	FIXED pos[XYZSS] = { sprite->pos.x.RawValue(), sprite->pos.y.RawValue(), sprite->pos.z.RawValue(), sprite->scl.x.RawValue(), sprite->scl.y.RawValue() };
+	SPR_ATTR attr = SPR_ATTRIBUTE( sprite->id, 0, No_Gouraud, sprite->mesh | Pclpon | HSSon | ECenb | CL256Bnk, sprite->flip | sprite->zmode );
+	slDispSpriteHV(pos, &attr, 0); // faster because it doesn't do a degree-to-angle conversion, which uses floats
 }
 
 // increments 1 frame
-static __jo_force_inline bool static_animation(Sprite *sprite) {
-    if (JO_MOD_POW2(g_Game.frame, FRAMERATE1) == 0) { // modulus
-        sprite->anim1.frame++;
-        sprite->spr_id = sprite->anim1.asset[sprite->anim1.frame];
+static inline bool static_animation(Sprite *sprite) {
+    // if (JO_MOD_POW2(g_Game.frame, FRAMERATE1) == 0) { // modulus
+    if (g_Game.frame % FRAMERATE1 == 0) { // modulus
+        sprite->anim[0].frame++;
+        sprite->id = sprite->anim[0].asset + sprite->anim[0].frame;
     }
-    if (sprite->anim1.frame > sprite->anim1.max) {
-        sprite->anim1.frame = 0;
-        sprite->spr_id = sprite->anim1.asset[sprite->anim1.frame];
+    if (sprite->anim[0].frame > sprite->anim[0].max) {
+        sprite->anim[0].frame = 0;
+        sprite->id = sprite->anim[0].asset;
         return false;
     }
     return true;
 }
 
 // loops through all frames based on powers of 2
-static __jo_force_inline void looped_animation_pow(Sprite *sprite, unsigned int framerate) {
+static inline void looped_animation_pow(Sprite *sprite, unsigned int framerate) {
         // move to an animation module
-        if (JO_MOD_POW2(g_Game.frame, framerate) == 0) { // modulus
-            sprite->anim1.frame++;
-            if (sprite->anim1.frame > sprite->anim1.max) {
-                sprite->anim1.frame = 0;
+        // if (JO_MOD_POW2(g_Game.frame, framerate) == 0) { // modulus
+        if (g_Game.frame % framerate == 0) { // modulus
+            sprite->anim[0].frame++;
+            if (sprite->anim[0].frame == sprite->anim[0].max) {
+                sprite->anim[0].frame = 0;
             }
-            sprite->spr_id = sprite->anim1.asset[sprite->anim1.frame];
+            sprite->id = sprite->anim[0].asset + sprite->anim[0].frame;
+            // SRL::Debug::Print(22, 11, "Frame:%3d", g_Game.frame);
         }
+        // SRL::Debug::Print(22, 13, "Asset:%3d", sprite->anim[0].asset);
+        // SRL::Debug::Print(22, 14, "Frame:%3d", sprite->anim[0].frame);
+        // SRL::Debug::Print(22, 15, "Max:%3d", sprite->anim[0].max);
 }
 
 // loops through second animation based on modulus
-static __jo_force_inline void looped_animation_mod(Sprite *sprite, unsigned int framerate) {
+static inline void looped_animation_mod(Sprite *sprite, unsigned int framerate) {
         // move to an animation module
         if (g_Game.frame % framerate == 0) { // modulus
-            sprite->anim2.frame++;
-            if (sprite->anim2.frame > sprite->anim2.max) {
-                sprite->anim2.frame = 0;
+            sprite->anim[1].frame++;
+            if (sprite->anim[1].frame == sprite->anim[1].max) {
+                sprite->anim[1].frame = 0;
             }
-            sprite->spr_id = sprite->anim2.asset[sprite->anim2.frame];
+            sprite->id = sprite->anim[1].asset + sprite->anim[1].frame;
         }
 }
 
-static __jo_force_inline bool explode_animation(Sprite *sprite) {
-    if (g_Game.frame % 6 == 0) { // modulus
-        sprite->anim2.frame++;
+static inline bool explode_animation(Sprite *sprite) {
+    sprite->id = sprite->anim[1].asset + sprite->anim[1].frame;
+    if (g_Game.frame % 5 == 0) { // modulus
+        sprite->anim[1].frame++;
     }
-    if (sprite->anim2.frame > sprite->anim2.max) {
-        sprite->spr_id = sprite->anim2.asset[sprite->anim2.max];
+    if (sprite->anim[1].frame == sprite->anim[1].max) {
+        sprite->anim[1].frame = 0;
         return false;
-    }
-    else {
-        sprite->spr_id = sprite->anim2.asset[sprite->anim2.frame];
     }
     return true;
 }
 
-static __jo_force_inline void sprite_frame_reset(Sprite *sprite) {
-    sprite->anim1.frame = 0;
-    sprite->spr_id = sprite->anim1.asset[sprite->anim1.frame];
-    sprite->anim2.frame = 0;
+// increments 1 frame
+static inline bool shield_animation(Sprite *sprite)
+{
+    if (g_Game.frame % 2 == 0) { // modulus
+        sprite->anim[0].frame++;
+        sprite->id = sprite->anim[0].asset + sprite->anim[0].frame;
+    }
+    if (sprite->anim[0].frame == sprite->anim[0].max) {
+        sprite->anim[0].frame = 0;
+        sprite->id = sprite->anim[0].asset;
+        return false;
+    }
+    return true;
+}
+
+static inline void sprite_frame_reset(Sprite *sprite) {
+    sprite->anim[0].frame = 0;
+    sprite->id = sprite->anim[0].asset + sprite->anim[0].frame;
+    sprite->anim[1].frame = 0;
 }
 
 void ball_animation_reset(Sprite *ball);
 
-void drawGoalSprites(Sprite *sprite, int sprite_id, int shadow_id, int zmode, int flip, int x, int y, int scale_y);
+void drawGoalSprites(Sprite *sprite, int player_id, int sprite_id, int shadow_id, int zmode, int flip, Fxp x, Fxp y, int scale_y);
 
-void resetSpriteColors(void);
+void resetPawScale(void);
 
 // SPR_ATTRIBUTE
 // Format

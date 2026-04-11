@@ -2,9 +2,9 @@
 //this file is compiled separately
 //hopefully somewhat portable
 //
-#include <sl_def.h> //Mostly to link us with SBL file system
+// #include <sl_def.h> //Mostly to link us with SBL file system
 #include "pcmsys.h"
-#include <SEGA_GFS.H>
+// #include <SEGA_GFS.H>
 #define true	(1)
 #define false	(0)
 
@@ -140,14 +140,14 @@ void	pcm_reset(short highest_pcm_number_to_keep)
 }
 	
 /**stolen from xl2**/
-#define     OPEN_MAX    (Sint32)5
-#define     DIR_MAX     (Sint32)1024
+#define     OPEN_MAX    (int32_t)5
+#define     DIR_MAX     (int32_t)1024
 #define     RD_UNIT     (10)
 #define     SECT_SIZE   (2048)
 GfsDirTbl gfsDirTbl;
 GfsDirName gfsDirName[DIR_MAX];
-Uint32 gfsLibWork[GFS_WORK_SIZE(OPEN_MAX)/sizeof(Uint32)];
-Sint32 gfsDirN;
+uint32_t gfsLibWork[GFS_WORK_SIZE(OPEN_MAX)/sizeof(uint32_t)];
+int32_t gfsDirN;
 void    cd_init(void)
 {
     GFS_DIRTBL_TYPE(&gfsDirTbl) = GFS_DIR_NAME;
@@ -175,22 +175,22 @@ void smpc_issue_command(unsigned char cmd)
 
 //////////////////////////////////////////////////////////////////////////////
 
-void	load_driver_binary(Sint8 * filename, void * buffer, int master_adx_frequency)
+void	load_driver_binary(int8_t * filename, void * buffer, int master_adx_frequency)
 {
 	cd_init();
 	GfsHn s_gfs;
-	Sint32 file_size;
+	int32_t file_size;
 	
-	Sint32 local_name = GFS_NameToId(filename);
+	int32_t local_name = GFS_NameToId(filename);
 
 	//Open GFS
-	s_gfs = GFS_Open((Sint32)local_name);
+	s_gfs = GFS_Open((int32_t)local_name);
 	//Get file information (mostly, the file size)
 	GFS_GetFileInfo(s_gfs, NULL, NULL, &file_size, NULL);
 	
 	GFS_Close(s_gfs);
 	
-	GFS_Load(local_name, 0, (Uint32 *)buffer, file_size);
+	GFS_Load(local_name, 0, (uint32_t *)buffer, file_size);
 	
 	//The immediacy of these commands is important.
 	//As per SEGA technical bulletin 51, the Sound CPU is not to be turned off for more than 0.5 seconds.
@@ -227,19 +227,22 @@ void			load_drv(int master_adx_frequency)
 	void * binary_buffer = (void*)2097152;
 	
 	// Copy driver over
-	load_driver_binary((Sint8*)"SDRV.BIN", binary_buffer, master_adx_frequency);
+	load_driver_binary((int8_t*)"SDRV.BIN", binary_buffer, master_adx_frequency);
 	m68k_com->start = 0xFFFF;
 	volatile int i = 0;
 	scsp_load = scsp_loading_start; // Re-set loading pointer.
-	for(i = 0; i < (int)scsp_load; i++)
+	
+	// avoid "depreciated increment operator on volatile" warning?
+	for(i = 0; i < (int)scsp_load;)
 	{
 		//This is to pop the stack here. Because GCC.
+		i = i + 1;
 	}
 	//Additionally, reset the number of PCMs.
 	numberPCMs = 0;
 }
 
-short			calculate_bytes_per_blank(int sampleRate, Bool is8Bit, Bool isPAL)
+short			calculate_bytes_per_blank(int sampleRate, bool is8Bit, bool isPAL)
 {
 	int frameCount = (isPAL == true) ? 50 : 60;
 	int sampleSize = (is8Bit == true) ? 8 : 16;
@@ -261,18 +264,18 @@ short			convert_bitrate_to_pitchword(short sampleRate)
 	return PCM_SET_PITCH_WORD(octr, fnsr);
 }
 
-short			load_16bit_pcm(Sint8 * filename, int sampleRate)
+short			load_16bit_pcm(int8_t * filename, int sampleRate)
 {
 	if( (int)scsp_load > 0x7F800) return -1; //Illegal PCM data address, exit
 	if( numberPCMs >= PCM_CTRL_MAX) return -1; //Maximum number of PCMs reached, exit
 
 	GfsHn s_gfs;
-	Sint32 file_size;
+	int32_t file_size;
 	
-	Sint32 local_name = GFS_NameToId(filename);
+	int32_t local_name = GFS_NameToId(filename);
 
 	//Open GFS
-	s_gfs = GFS_Open((Sint32)local_name);
+	s_gfs = GFS_Open((int32_t)local_name);
 	//Get file information (mostly, the file size)
 	GFS_GetFileInfo(s_gfs, NULL, NULL, &file_size, NULL);
 	
@@ -283,7 +286,7 @@ short			load_16bit_pcm(Sint8 * filename, int sampleRate)
 	file_size += ((unsigned int)file_size & 1) ? 1 : 0;
 	file_size += ((unsigned int)file_size & 3) ? 2 : 0;
 	
-	GFS_Load(local_name, 0, (Uint32 *)((unsigned int)scsp_load + SNDRAM), file_size);
+	GFS_Load(local_name, 0, (uint32_t *)((unsigned int)scsp_load + SNDRAM), file_size);
  
 	m68k_com->pcmCtrl[numberPCMs].hiAddrBits = (unsigned short)( (unsigned int)scsp_load >> 16);
 	m68k_com->pcmCtrl[numberPCMs].loAddrBits = (unsigned short)( (unsigned int)scsp_load & 0xFFFF);
@@ -301,18 +304,18 @@ short			load_16bit_pcm(Sint8 * filename, int sampleRate)
 	return (numberPCMs-1); //Return the PCM # this sound recieved
 }
 
-short			load_8bit_pcm(Sint8 * filename, int sampleRate)
+short			load_8bit_pcm(int8_t * filename, int sampleRate)
 {
 	if( (int)scsp_load > 0x7F800) return -1; //Illegal PCM data address, exit
 	if( numberPCMs >= PCM_CTRL_MAX) return -1; //Maximum number of PCMs reached, exit
 
 	GfsHn s_gfs;
-	Sint32 file_size;
+	int32_t file_size;
 
-	Sint32 local_name = GFS_NameToId(filename);
+	int32_t local_name = GFS_NameToId(filename);
 
 	//Open GFS
-	s_gfs = GFS_Open((Sint32)local_name);
+	s_gfs = GFS_Open((int32_t)local_name);
 	//Get file information (mostly, the file size)
 	GFS_GetFileInfo(s_gfs, NULL, NULL, &file_size, NULL);
 	
@@ -325,7 +328,7 @@ short			load_8bit_pcm(Sint8 * filename, int sampleRate)
 	file_size += ((unsigned int)file_size & 1) ? 1 : 0;
 	file_size += ((unsigned int)file_size & 3) ? 2 : 0;
 	
-	GFS_Load(local_name, 0, (Uint32 *)((unsigned int)scsp_load + SNDRAM), file_size);
+	GFS_Load(local_name, 0, (uint32_t *)((unsigned int)scsp_load + SNDRAM), file_size);
  
 	m68k_com->pcmCtrl[numberPCMs].hiAddrBits = (unsigned short)( (unsigned int)scsp_load >> 16);
 	m68k_com->pcmCtrl[numberPCMs].loAddrBits = (unsigned short)( (unsigned int)scsp_load & 0xFFFF);
@@ -358,19 +361,19 @@ short lcm(short a, short b)
     return (a / gcd(a, b)) * b;
 } 
 
-short		load_adx(Sint8 * filename)
+short		load_adx(int8_t * filename)
 {
 	static adx_header adx;
 	
 	if( (int)scsp_load > 0x7F800) return -1; //Illegal PCM data address, exit
 	if( numberPCMs >= PCM_CTRL_MAX) return -1; //Maximum number of PCMs reached, exit
 
-	Sint32 local_name = GFS_NameToId(filename);
+	int32_t local_name = GFS_NameToId(filename);
 
 //////////////////////////
 // Step 1: Load the size of the header from the file to the header's location
 //////////////////////////
-	GFS_Load(local_name, 0, (Uint32 *)&adx, sizeof(adx_header));
+	GFS_Load(local_name, 0, (uint32_t *)&adx, sizeof(adx_header));
 //////////////////////////
 // Step 2: Check the data we just loaded and make sure it's an ADX file.
 // If the data does not match what the decompression routine expects, this function will return -1.
@@ -394,7 +397,7 @@ short		load_adx(Sint8 * filename)
 	short bpb = calculate_bytes_per_blank((int)adx.sample_rate, false, PCM_SYS_REGION); //Iniitalize as max volume
 	if(bpb != 768 && bpb != 512 && bpb != 384 && bpb != 256 && bpb != 192 && bpb != 128)
 	{
-		slPrint("!(ADX INVALID BYTE-RATE)!", slLocate(0, 1));
+		// slPrint("!(ADX INVALID BYTE-RATE)!", slLocate(0, 1)); // replace with SRL assert print
 		return -2;
 	}
 	m68k_com->pcmCtrl[numberPCMs].bytes_per_blank = bpb;
@@ -412,7 +415,7 @@ short		load_adx(Sint8 * filename)
 	unsigned int number_of_bytes_to_load = (adx.sample_ct / 32) * 18;
 	number_of_bytes_to_load += ((unsigned int)number_of_bytes_to_load & 1) ? 1 : 0;
 	number_of_bytes_to_load += ((unsigned int)number_of_bytes_to_load & 3) ? 2 : 0;
-	GFS_Load(local_name, 0, (Uint32 *)((unsigned int)scsp_load + SNDRAM), number_of_bytes_to_load);
+	GFS_Load(local_name, 0, (uint32_t *)((unsigned int)scsp_load + SNDRAM), number_of_bytes_to_load);
 	scsp_load = (unsigned int *)((unsigned int )scsp_load + number_of_bytes_to_load);
 	return (numberPCMs-1); //Return the PCM # this sound recieved
 }
@@ -456,7 +459,7 @@ void CDDA_SetChannelVolPan(unsigned char left_channel, unsigned char right_chann
 	m68k_com->cdda_right_channel_vol_pan = right_channel;
 }
 
-void CDDA_Play(int fromTrack, int toTrack, Bool loop)
+void CDDA_Play(int fromTrack, int toTrack, bool loop)
 {
     CdcPly ply;
     CDC_PLY_STYPE(&ply) = CDC_PTYPE_TNO; // track number
@@ -478,7 +481,7 @@ void CDDA_Play(int fromTrack, int toTrack, Bool loop)
     CDC_CdPlay(&ply);
 }
 
-void CDDA_PlaySingle(int track, Bool loop)
+void CDDA_PlaySingle(int track, bool loop)
 {
     CDDA_Play(track, track, loop);
 }
