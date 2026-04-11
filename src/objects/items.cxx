@@ -33,7 +33,7 @@ void animateBombColor(bool *_do_update) {
 }
 
 void setItemPositions(void) {
-    if (g_GameOptions.debug_mode || !g_GameOptions.enableItems) {
+    if (g_GameOptions.debug_mode && !g_GameOptions.enableItems) {
         // TODO: make this an option in the menu (need a debug menu)
         // g_item.id = GAME_ITEM_BOMB;
         // g_item.id = GAME_ITEM_FISH;
@@ -251,8 +251,7 @@ void handlePlayerItemCollision(PPLAYER player) {
         }
         case GAME_ITEM_FISH:
         {
-            pcm_play(g_Assets.bloopPcm8, PCM_PROTECTED, 7);
-            // int missing = player->totalLives - player->numLives;
+            Pcm::Play(Sounds.Game[BloopSnd]);
             if ((player->totalLives - player->numLives) > 1) {
                 player->numLives += (player->totalLives - player->numLives) / 2;
             }
@@ -274,14 +273,14 @@ void handlePlayerItemCollision(PPLAYER player) {
             g_item.timer[player->playerID] = SHROOM_TIMER;
             // affect the player depending on the color of the shroom
             if ((shroom_angle > 0 && shroom_angle <= 90) || (shroom_angle > 270 && shroom_angle <= 360)) {
-                pcm_play(g_Assets.growPcm8, PCM_PROTECTED, 7);
+                Pcm::Play(Sounds.Game[GrowSnd]);
                 player->_sprite->pos.r = PLAYER_RADIUS_LARGE;
                 player->isBig = true;
                 player->isSmall = false;
                 g_GameOptions.redShroomTouchCounter++;
             }
             if (shroom_angle > 90 && shroom_angle <= 270) {
-                pcm_play(g_Assets.shrinkPcm8, PCM_PROTECTED, 7);
+                Pcm::Play(Sounds.Game[ShrinkSnd]);
                 player->_sprite->pos.r = PLAYER_RADIUS_SMALL;
                 player->isBig = false;
                 player->isSmall = true;
@@ -308,10 +307,10 @@ void handlePlayerItemCollision(PPLAYER player) {
             }
             g_GameOptions.garfTouchCounter++;
             if (g_GameOptions.craigTouchCounter == 200) {
-                pcm_play(g_Assets.stadlerPcm8, PCM_PROTECTED, 7);
+                Pcm::Play(Sounds.Game[StadlerSnd]);
             }
             else {
-                pcm_play(g_Assets.chain5Pcm8, PCM_PROTECTED, 7);
+                Pcm::Play(Sounds.Game[Chain5Snd]);
             }
             break;
         }
@@ -322,10 +321,10 @@ void handlePlayerItemCollision(PPLAYER player) {
             player->score.points += 100000;
             g_GameOptions.craigTouchCounter++;
             if (g_GameOptions.craigTouchCounter == 100) {
-                pcm_play(g_Assets.chain5Pcm8, PCM_PROTECTED, 7);
+                Pcm::Play(Sounds.Game[Chain5Snd]);
             }
             else {
-                pcm_play(g_Assets.stadlerPcm8, PCM_PROTECTED, 7);
+                Pcm::Play(Sounds.Game[StadlerSnd]);
             }
             break;
         }

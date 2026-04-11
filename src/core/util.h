@@ -41,7 +41,6 @@ extern "C" {
 #endif
 
 void sanitizeValue(int8_t* value, int8_t min, int8_t max);
-// void shuffleArray(unsigned int* array, unsigned int size);
 
 int minmumValue(int min, int value);
 

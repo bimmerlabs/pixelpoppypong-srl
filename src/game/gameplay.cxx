@@ -235,7 +235,7 @@ void demo_init(void) {
     if (g_Gameplay.GameTimer > 0 && g_Game.frame % 60 == 0) { // modulus
         g_Gameplay.GameTimer--;
         if (g_Gameplay.GameTimer <= 10)
-            pcm_play(g_Assets.countdownPcm8, PCM_PROTECTED, 7);
+            Pcm::Play(Sounds.Game[CntDownSnd]);
     }
     else if (g_Gameplay.GameTimer == 0) {
         g_Game.time_over = true;
@@ -309,7 +309,7 @@ void demo_init(void) {
         }
         else {
             if (g_Game.isRoundOver) {
-                pcm_play(g_Assets.gameOverPcm8, PCM_PROTECTED, 7); // play different sound if player wins vs loses?
+                Pcm::Play(Sounds.Game[GmOverSnd]); // play different sound if player wins vs loses?
                 g_Game.isRoundOver = false;
                 g_Gameplay.isGameOver = true;
             }
@@ -746,7 +746,7 @@ bool ball_bounce = false;
 bool drop_ball_animation(Sprite *ball) {
     // ball is falling
     if (ball_falling && !ball_bounce) {
-        pcm_play(g_Assets.dropPcm8, PCM_PROTECTED, 6);
+        Pcm::Play(Sounds.Game[DropSnd], PlayMode::Protected, 6);
         if (ball_velocity < BALL_VELOCITY) {
             if (g_Game.frame  % 2 == 0) { // modulus
                 ball_velocity += Fxp_1;
@@ -769,8 +769,7 @@ bool drop_ball_animation(Sprite *ball) {
             ball_velocity -= Fxp(1.5);
         }
         else {
-            // // ball_velocity = 0;
-            pcm_play(g_Assets.bouncePcm8, PCM_VOLATILE, 5);
+            Pcm::Play(Sounds.Game[BounceSnd], PlayMode::Volatile, 6);
             ball_falling = true;
             ball_bounce = true;
         }
@@ -795,7 +794,7 @@ bool drop_ball_animation(Sprite *ball) {
             ball->pos.y += ball_velocity;
         }
         else {
-            pcm_play(g_Assets.bouncePcm8, PCM_VOLATILE, 5);
+            Pcm::Play(Sounds.Game[BounceSnd], PlayMode::Volatile, 5);
             g_Game.dropBallTimer = DROP_BALL_TIME_NORMAL;
             return true;
         }

@@ -1,7 +1,4 @@
-// #include <jo/jo.h>
 #include "util.h"
-
-// using namespace SRL::Math;
 
 // ARE ANY OF THESE USED?
 
@@ -14,20 +11,6 @@ TIME g_Timer = {
     .sec_tens = 0,
     .sec_ones = 0,
 };
-
-// // shuffles an array of integers
-// void shuffleArray(unsigned int* array, unsigned int size)
-// {
-    // unsigned int i = 0;
-
-    // for (i = 0; i < size - 1; i++)
-    // {
-        // unsigned int j = i + rnd.GetNumber(0, 0xFFFF) / (0xFFFF / (size - i) + 1);
-        // int t = array[j];
-        // array[j] = array[i];
-        // array[i] = t;
-    // }
-// }
 
 // bound integer value between min - max-1;
 void sanitizeValue(int8_t* value, int8_t min, int8_t max)
@@ -85,6 +68,7 @@ void convertSecondsToTime(int totalSeconds)
     g_Timer.sec_ones = seconds % 10;
 }
 
+// why is this still here?
 unsigned int        jo_sqrt(unsigned int value)
 {
     unsigned int    start;
@@ -98,17 +82,13 @@ unsigned int        jo_sqrt(unsigned int value)
         return 1 << (__builtin_ctz(value) / 2);
     JO_ZERO(res);
     start = 1;
-    // start = value >> 2; // doesn't work
-    // end = value;
     end = value >> 1; // adjust the end variable to be smaller than value based on rough estimates of square roots
     while (start <= end)
     {
         mid = JO_DIV_BY_2(start + end);
         unsigned int mid_squared = mid * mid; // avoid squaring mid multiple times
-        // if (mid * mid == value)
         if (mid_squared == value)
             return (mid);
-        // if (mid * mid < value)
         if (mid_squared < value)
         {
             start = mid + 1;

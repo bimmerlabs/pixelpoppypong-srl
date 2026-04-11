@@ -217,8 +217,7 @@ bool musicOut(void) {
         if (g_Audio.masterVolume < MIN_VOLUME) {
             g_Audio.masterVolume = MIN_VOLUME;
         }
-        // SRL::Sound::Cdda::SetVolume(volume_shift(g_Audio.masterVolume));
-        CDDA_SetVolume(volume_shift(g_Audio.masterVolume));
+        CD::SetVolume(volume_shift(g_Audio.masterVolume));
         return true;
     }
     else {
@@ -232,8 +231,7 @@ bool musicIn(void) {
         if (g_Audio.masterVolume > MAX_VOLUME) {
             g_Audio.masterVolume = MAX_VOLUME;
         }
-        // SRL::Sound::Cdda::SetVolume(volume_shift(g_Audio.masterVolume));
-        CDDA_SetVolume(volume_shift(g_Audio.masterVolume));
+        CD::SetVolume(volume_shift(g_Audio.masterVolume));
         return true;
     }
     else {
@@ -242,7 +240,7 @@ bool musicIn(void) {
 }
 
 bool explosionEffect(void) {
-    pcm_play(g_Assets.explod1Pcm8, PCM_PROTECTED, 7);
+    Pcm::Play(Sounds.Game[ExplodeSnd]);
     g_Transition.fade_out = true;
     g_Transition.fade_out_rate = 2;
     nbg1_rate = MAXIMUM_FADE;

@@ -92,19 +92,19 @@ static inline void updateBallTouch(PPLAYER player) {
         touchedBy[player->playerID].touchCount++;
         switch (touchedBy[player->playerID].touchCount) {
             case 20:
-                pcm_play(g_Assets.chain0Pcm8, PCM_PROTECTED, 7);
+                Pcm::Play(Sounds.Game[Chain0Snd]);
                 break;
             case 40:
-                pcm_play(g_Assets.chain1Pcm8, PCM_PROTECTED, 7);
+                Pcm::Play(Sounds.Game[Chain1Snd]);
                 break;
             case 60:
-                pcm_play(g_Assets.chain2Pcm8, PCM_PROTECTED, 7);
+                Pcm::Play(Sounds.Game[Chain2Snd]);
                 break;
             case 80:
-                pcm_play(g_Assets.chain3Pcm8, PCM_PROTECTED, 7);
+                Pcm::Play(Sounds.Game[Chain3Snd]);
                 break;
             case 99:
-                pcm_play(g_Assets.chain5Pcm8, PCM_PROTECTED, 7);
+                Pcm::Play(Sounds.Game[Chain5Snd]);
                 break;
             default:
                 break;

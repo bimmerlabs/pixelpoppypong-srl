@@ -26,7 +26,8 @@ void resetPlayerScores(void)
         player->score.lastMillion = 0;
         player->totalLives = getLives(player);
         player->numLives = player->totalLives;
-        set_spr_scale(player->_sprite, 2, 2);
+        assignCharacterSprite(player);
+        // set_spr_scale(player->_sprite, 2, 2);
         set_spr_scale(&shield[i], 2, 2);
         player->isBig = false;
         player->isSmall = false;
@@ -260,7 +261,7 @@ void initPlayers(bool resetInputs)
         player->_bg->scl.y = PLAYER_BG_Y;
         player->_bg->zmode = _ZmLC;
         assignCharacterSprite(player);
-        set_spr_scale(player->_sprite, 2, 2);
+        // set_spr_scale(player->_sprite, 2, 2);
         player->_sprite->isColliding = false;
         
         // cursors
@@ -609,7 +610,14 @@ void assignCharacterSprite(PPLAYER player) {
     player->_sprite = &paw[player->character.choice];
     player->_sprite->anim[0].frame = 0;
     player->_sprite->id = player->_sprite->anim[0].asset;
-
+    
+    if (player->character.choice == CHARACTER_WUPPY)
+    {
+        player->_sprite->scl = {Fxp(3), Fxp(3)};
+    }
+    else {
+        player->_sprite->scl = {Fxp(2), Fxp(2)};
+    }
 }
 
 void assignCharacterStats(PPLAYER player) {
@@ -820,7 +828,7 @@ void playerAttack(PPLAYER player) {
         if (gamepad.WasPressed(Digital::Button::B) && player->shield.power > 0)
         {
             if (player->shield.power > 1) {
-                pcm_play(g_Assets.shieldPcm8, PCM_PROTECTED, 6);
+                Pcm::Play(Sounds.Game[ShieldSnd], PlayMode::Protected, 6);
                 if (player->isBig) {
                     player->_sprite->pos.r = SHIELD_RADIUS_LARGE;
                 }
@@ -871,7 +879,7 @@ void regenPlayerPower(PPLAYER player)
         !gamepad.IsHeld(Digital::Button::C)) {
         if (player->shield.power < SHIELD_POWER) {
             if (g_Game.frame % regen_speed == 0) { // modulus
-                // pcm_play(g_Assets.rechargePcm8, PCM_PROTECTED, 6); // don't think this works because it keeps playing
+                // Pcm::Play(Sounds.rechargePcm8, PlayMode::Protected, 6); // don't think this works because it keeps playing
                 player->shield.power++;
             }
         }
@@ -919,7 +927,7 @@ void updatePlayers(void)
         
         if (player->isBig) {
             if (g_item.timer[i] == 0) {
-                pcm_play(g_Assets.shrinkPcm8, PCM_PROTECTED, 7);
+                Pcm::Play(Sounds.Game[ShrinkSnd]);
                 player->isBig = shrinkPlayerSprite(player, NORMAL_PLAYER_SPRITE);
             }
             else {
@@ -928,7 +936,7 @@ void updatePlayers(void)
         }
         if (player->isSmall) {
             if (g_item.timer[i] == 0) {
-                pcm_play(g_Assets.growPcm8, PCM_PROTECTED, 7);
+                Pcm::Play(Sounds.Game[GrowSnd]);
                 player->isSmall = growPlayerSprite(player, NORMAL_PLAYER_SPRITE);
             }
             else {

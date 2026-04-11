@@ -85,11 +85,11 @@ void check_inputs(void) {
         if (Management::GetType(i) == PeripheralType::Analog3dPad) {
             Analog gamepad(i);
             if (gamepad.WasPressed(Digital::Button::Left) && input->sensitivity > ANALOG_MIN) {
-                pcm_play(g_Assets.tickPcm8, PCM_PROTECTED, 6);
+                Pcm::Play(Sounds.Core[TickSnd], PlayMode::Protected, 6);
                 input->sensitivity -= Fxp(0.01);
             }
             if (gamepad.WasPressed(Digital::Button::Right) && input->sensitivity < ANALOG_MAX) {
-                pcm_play(g_Assets.tickPcm8, PCM_PROTECTED, 6);
+                Pcm::Play(Sounds.Core[TickSnd], PlayMode::Protected, 6);
                 input->sensitivity += Fxp(0.01);
             }
         }

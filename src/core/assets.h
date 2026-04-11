@@ -1,9 +1,9 @@
 #pragma once
 
 #include <srl.hpp>
+#include <ponesound.hpp>
 #include "../main.h"
 #include "sprites.h"
-#include "pcmsys.h"
 #include "../vdp2/palette.h"
 #include "../vdp2/nbg2.h"
 #include <tmsf.hpp>
@@ -34,6 +34,7 @@
 
 using namespace SRL::Types;
 using namespace SRL::Math::Types;
+using namespace SRL::Ponesound;
 
 // tmsf format loads in alphabetical order
 typedef enum
@@ -81,7 +82,39 @@ typedef enum
     GAME_SPRITE_MAX,
 } GAME_SPRITES;
 
-typedef enum _MEOW
+typedef enum _CORE_SND
+{
+    CancelSnd = 0,
+    CursorSnd,
+    NextSnd,
+    StartSnd,
+    TickSnd,
+} CORE_SND;
+
+typedef enum _GAME_SND
+{
+    BloopSnd = 0,
+    BounceSnd,
+    BumpSnd,
+    CntDownSnd,
+    Chain0Snd,
+    Chain1Snd,
+    Chain2Snd,
+    Chain3Snd,
+    Chain5Snd,
+    DropSnd,
+    ExplodeSnd,
+    GmOverSnd,
+    GrowSnd,
+    ScoreAddSnd,
+    ScoreTotalSnd,
+    ShieldSnd,
+    ShrinkSnd,
+    StadlerSnd,
+    WinSnd,
+} GAME_SND;
+
+typedef enum _CAT_SND
 {
     MEOW1 = 0,
     MEOW2,
@@ -93,7 +126,16 @@ typedef enum _MEOW
     MEOW8,
     MEOW9,
     MEOW_MAX,
-} MEOW;
+} CAT_SND;
+
+typedef enum _NAME_SND
+{
+    LoadOkSnd = 0,
+    NameBrkSnd,
+    NameCanSnd,
+    NameCurSnd,
+    NameKetSnd,
+} NAME_SND;
 
 // holds sprite and audio assets
 typedef struct _assets
@@ -104,54 +146,31 @@ typedef struct _assets
     bool characterAssetsLoaded;    
     bool NameEntryAssetsLoaded;
     bool GameplayAssetsLoaded;
-    
-    // audio assets
-    // CORE / MENU SOUNDS
-    short cancelPcm8; // b button
-    short cursorPcm8; // d-pad
-    short nextPcm8;   // normal menu selection
-    short startPcm8;  // start button first press
-    short tickPcm8;   // analog adjustment
-    
-    // GAMEPLAY SOUNDS
-    short gameOverPcm8;
-    short scoreAddPcm8;
-    short scoreTotalPcm8;
-    short chain0Pcm8;
-    short chain1Pcm8;
-    short chain2Pcm8;
-    short chain3Pcm8;
-    short chain5Pcm8;
-    short explod1Pcm8;
-    short growPcm8;
-    short shrinkPcm8;
-    short bloopPcm8;
-    short stadlerPcm8;
-    short dropPcm8;
-    short bouncePcm8;
-    short shieldPcm8;
-    // short rechargePcm8;
-    short countdownPcm8;
-    short winPcm8;
-    short bumpPcm16;
-    
-    // CAT SOUNDS
-    short meowPcm8[9];
-    short meowID;
-    
-    bool GameplaySoundsLoaded;
-    
-    // NAME ENTRY SOUNDS
-    short name_ketPcm8;
-    short name_curPcm8;
-    short name_canPcm8;
-    short name_brkPcm8;
-    short load_okPcm8;
-    bool NameEntrySoundsLoaded;
-
 } ASSETS, *PASSETS;
 
 extern ASSETS g_Assets;
+
+
+// audio assets
+typedef struct _SoundAssets
+{    
+    // CORE / MENU SOUNDS
+    short Core[5];
+
+    // GAMEPLAY SOUNDS
+    short Game[19];    
+    // CAT SOUNDS
+    short Meow[9];
+    short MeowId;
+    bool GameplayFxLoaded;
+    
+    // NAME ENTRY SOUNDS
+    short Name[5];
+    bool NameEntryFxLoaded;
+
+} SoundAssets;
+
+extern SoundAssets Sounds;
 
 extern TilemapObject* coreTiles;
 extern TilemapObject* titleTiles;

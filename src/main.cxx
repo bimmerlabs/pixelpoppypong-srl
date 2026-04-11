@@ -77,7 +77,6 @@ void initGame(void) {
     g_Game.BeginTimer = 0;
     g_Game.roundBeginTimer = 0;
     g_Game.dropBallTimer = 0;
-    // g_Game.transitionOutTimer = 0;
     g_Game.time_over = false;
 
     // is the game loading?
@@ -122,7 +121,7 @@ void loading_screen(void)
         if (g_Game.isSoundLoading) {
             #if ENABLE_DEBUG_MODE == 1
             if (g_GameOptions.debug_mode) {
-                SRL::Debug::Print(15, 14, "SoundFX:%d  ", numberPCMs);
+                SRL::Debug::Print(15, 14, "SoundFX:%d  ", Sound::GetNumberOfPCMs());
             }
             else {
             #endif
@@ -131,7 +130,7 @@ void loading_screen(void)
             }
             #endif
             // Generate dot string
-            uint16_t sfx_count = numberPCMs + 6; // currently 37+6 = 43
+            uint16_t sfx_count = Sound::GetNumberOfPCMs() + 6; // currently 37+6 = 43
             if (sfx_count >= 44) {
                 sfx_count = 43; // Reserve 1 byte for null-terminator
             }
@@ -391,18 +390,18 @@ void run_once(void) {
 
 int main()
 {
-    SRL::Core::Initialize(HighColor(0,0,0));
+    SRL::Core::Initialize(HighColor(0,0,0), SRL::TV::Resolutions::Normal704x240 );
     
-    slZdspLevel(10);
+    slZdspLevel(3);
     
-    // pone-sound
-    load_drv(ADX_MASTER_2304);
-    SRL::Core::OnVblank += sdrv_vblank_rq;
+    // Ponesound
+    Sound::Driver::Initialize(ADXMode::ADX2304);
 
     SRL::TV::TVOff();
     
     #ifdef SRL_HIGH_RES_NON_INTERLACED
         slSetSprTVMode(RESOLUTION_HIGH);
+        // slSetSprTVMode(<uint16_t>(SRL::TV::Resolutions::Interlaced704x480));
     #endif
     // CRAM mode 0 - required for VDP2 transparency in high-res
     slColRAMMode ( CRM16_1024 ); // must be set before loading any palettes

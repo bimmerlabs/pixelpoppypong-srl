@@ -53,7 +53,7 @@ void check_player_inputs(void) {
             if (gamepad.WasPressed(Digital::Button::START))
             {
                 g_Game.vblankClearScreen = true;
-                pcm_play(g_Assets.startPcm8, PCM_VOLATILE, 6);
+                Pcm::Play(Sounds.Core[StartSnd], PlayMode::Volatile, 6);
                 player->input = &g_Inputs[inp];
                 player->input->id = inp;
                 player->input->isSelected = true;

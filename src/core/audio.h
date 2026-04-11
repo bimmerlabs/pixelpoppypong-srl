@@ -1,6 +1,8 @@
 #pragma once
 #include "../main.h"
-#include "pcmsys.h"
+#include <ponesound.hpp>
+
+using namespace SRL::Ponesound;
 
 // CD sound tracks
 typedef enum

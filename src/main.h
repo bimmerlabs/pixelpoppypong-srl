@@ -9,7 +9,7 @@
     #include "core/debug.h"
 #endif
 
-#define VERSION "0.88.78"
+#define VERSION "0.88.81"
 #define MAX_PLAYERS 4
 
 // Screen position
@@ -116,7 +116,6 @@ typedef struct _GAME
     uint16_t BeginTimer;
     uint16_t roundBeginTimer;
     uint16_t dropBallTimer;
-    // uint16_t transitionOutTimer;
     bool time_over;
 
     bool selectStoryCharacter;

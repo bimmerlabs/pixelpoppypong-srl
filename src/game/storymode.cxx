@@ -204,7 +204,7 @@ void tallyScore(void) {
     for (uint8_t i = 0; i < 5; i++) {
         unsigned int threshold = thresholds[i];
         if (player->score.points > threshold) {
-            pcm_play(g_Assets.scoreAddPcm8, PCM_PROTECTED, 7);
+            Pcm::Play(Sounds.Game[ScoreAddSnd]);
             player->score.points -= threshold;
             player->score.total += threshold;
             return;
@@ -246,16 +246,16 @@ void tallyScore(void) {
         SRL::Debug::Print(14, 18, "Extra Time:%d ", addedTime);
     }
     if (g_Game.endDelayTimer == LIFE_COUNT_DELAY_TIMEOUT && g_Game.countofRounds < MAX_ROUNDS) {
-        pcm_play(g_Assets.startPcm8, PCM_PROTECTED, 7);
+        Pcm::Play(Sounds.Core[StartSnd]);
         SRL::Debug::PrintClearScreen();
     }  
     else if (g_Game.endDelayTimer == WIN_GAME_DELAY_TIMEOUT && g_Game.countofRounds == MAX_ROUNDS) {
-        pcm_play(g_Assets.winPcm8, PCM_PROTECTED, 7);
+        Pcm::Play(Sounds.Game[WinSnd]);
         SRL::Debug::PrintClearScreen();
     }  
 
     if (player->score.points > 0) {
-        pcm_play(g_Assets.scoreTotalPcm8, PCM_PROTECTED, 7);
+        Pcm::Play(Sounds.Game[ScoreTotalSnd]);
         player->score.points--;
         player->score.total++;
     } 
