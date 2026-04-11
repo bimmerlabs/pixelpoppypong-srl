@@ -1,13 +1,18 @@
 #pragma once
+#include <srl.hpp>
 #include "player.h"
 #include "../core/assets.h"
 
-#define GOAL_X_POS 330
-#define GOAL_X_BOUNDS toFIXED(GOAL_X_POS - 40) // goal width is 64px
-#define GOAL_LEFT_BOUNDS -toFIXED(GOAL_X_POS - 40) // goal width is 64px
-#define GOAL_RIGHT_BOUNDS toFIXED(GOAL_X_POS - 40) // goal width is 64px
-#define GOAL_CENTER_POS 0
-#define GOAL_MARGIN toFIXED(20)
+#define GOAL_X_POS Fxp(330)
+#define GOAL_WIDTH Fxp(40)
+#define GOAL_X_BOUNDS     GOAL_X_POS - GOAL_WIDTH
+#define GOAL_LEFT_BOUNDS -(GOAL_X_POS - GOAL_WIDTH)
+#define GOAL_RIGHT_BOUNDS GOAL_X_POS - GOAL_WIDTH
+#define GOAL_CENTER_POS Fxp(0)
+#define GOAL_MARGIN Fxp(20)
+
+using namespace SRL::Types;
+using namespace SRL::Math::Types;
 
 extern bool g_AnimateGoal;
 extern bool g_ExplodeGoal;
@@ -20,23 +25,23 @@ typedef enum _GOAL_SCALE
     GOAL_SCALE_VS_MODE = 10,
 } GOAL_SCALE;
 
-typedef enum _GOAL_Y_POS
-{
-    GOAL_Y_POS_EASY = 140,
-    GOAL_Y_POS_MEDIUM = 140, // 120
-    GOAL_Y_POS_HARD = 140, // 100
-    GOAL_Y_POS_MID = 0,
-    GOAL_Y_POS_TOP_VS_MODE = 160,
-    GOAL_Y_POS_MID_VS_MODE = 79,
-    GOAL_Y_POS_BOT_VS_MODE = 2,
-} GOAL_Y_POS;
+// typedef enum _GOAL_Y_POS
+// {
+#define GOAL_Y_POS_EASY Fxp(140)
+#define GOAL_Y_POS_MEDIUM Fxp(140) // 120
+#define GOAL_Y_POS_HARD = Fxp(140) // 100
+#define GOAL_Y_POS_MID = Fxp(0)
+#define GOAL_Y_POS_TOP_VS_MODE Fxp(160)
+#define GOAL_Y_POS_MID_VS_MODE Fxp(79)
+#define GOAL_Y_POS_BOT_VS_MODE Fxp(2)
+// } GOAL_Y_POS;
 
 typedef struct _GOAL_POSITION
 {
-    int x;
-    int top;
-    int bot;
-    int mid;
+    Fxp x;
+    Fxp top;
+    Fxp bot;
+    Fxp mid;
     int top_flip;
     int bot_flip;
     int top_zmode;
@@ -51,13 +56,17 @@ typedef struct _GOAL_OBJECT
     bool onLeftSide; // is this needed? (use player as proxy)
     int scale;
     GOAL_POSITION pos;
-    Uint8 id;
+    uint8_t id;
     Sprite *sprite;
     PPLAYER player;
     bool drawSingleGoal;
 } GOAL, *PGOAL;
 
 extern GOAL g_Goal[MAX_PLAYERS];
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void initGoalColors(void);
 void animateGoalColor(bool *_do_update);
@@ -69,3 +78,7 @@ void explodeGoals(void);
 
 void checkRightGoalCollision(Sprite *ball);
 void checkLeftGoalCollision(Sprite *ball);
+
+#ifdef __cplusplus
+}
+#endif

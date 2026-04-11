@@ -1,10 +1,11 @@
-#include <jo/jo.h>
 #include "goal.h"
 #include "../main.h"
+#include "../core/screen_transition.h"
+#include "../game/physics.h"
 #include "../game/highscores.h"
-#include "../palettefx/sprite_colors.h"
+#include "../vdp2/sprite_colors.h"
 
-GOAL g_Goal[MAX_PLAYERS] = {0};
+GOAL g_Goal[MAX_PLAYERS] = {};
 bool g_AnimateGoal = false;
 bool g_ExplodeGoal = false;
 
@@ -19,7 +20,7 @@ void initGoalColors(void)
     goal_increasing = false;
     goal_h_value = 0;
     goal_animation_cycles = 0;
-    for(unsigned int i = 0; i < MAX_PLAYERS; i++)
+    for (unsigned int i = 1; i < MAX_PLAYERS; i++)
     {
         // set initial player colors (player 0 uses the default)
         if (i == 1) {
@@ -71,184 +72,181 @@ void animateGoalColor(bool *_do_update) {
 
 void initGoals(void)
 {
-    PGOAL _goal = NULL;
     for(unsigned int i = 0; i < MAX_PLAYERS; i++)
     {
-        _goal = &g_Goal[i];
-        _goal->isColliding = false;
-        _goal->onLeftSide = false;
-        _goal->drawSingleGoal = true;
-        _goal->scale = 0;
-        _goal->pos.x = 0;
-        _goal->pos.top = 0;
-        _goal->pos.mid = 0;
-        _goal->pos.bot = 0;
-        _goal->pos.top_flip = 0;
-        _goal->pos.bot_flip = 0;
-        _goal->pos.top_zmode = 0;
-        _goal->pos.mid_zmode = 0;
-        _goal->pos.bot_zmode = 0;
-        _goal->id = -1; // is this needed?
-        _goal->sprite = &goal[i];
+        PGOAL goal = &g_Goal[i];
+        goal->isColliding = false;
+        goal->onLeftSide = false;
+        goal->drawSingleGoal = true;
+        goal->scale = 0;
+        goal->pos.x = Fxp_0;
+        goal->pos.top = Fxp_0;
+        goal->pos.mid = Fxp_0;
+        goal->pos.bot = Fxp_0;
+        goal->pos.top_flip = 0;
+        goal->pos.bot_flip = 0;
+        goal->pos.top_zmode = 0;
+        goal->pos.mid_zmode = 0;
+        goal->pos.bot_zmode = 0;
+        goal->id = -1; // is this needed?
+        goal->sprite = &goals[i];
     }
 }
 
 void setGoalSize(void)
 {
-    PGOAL _goal = NULL;
-    for(unsigned int i = 0; i < MAX_PLAYERS; i++)
+    for (int8_t i = 0; i <= g_Game.numPlayers; i++)
     {
-        _goal = &g_Goal[i];
-        _goal->player = &g_Players[i];
-        if (_goal->player->objectState == OBJECT_STATE_INACTIVE) {
+        PGOAL goal = &g_Goal[i];
+        goal->player = &g_Players[i];
+        if (!goal->player->isActivated) {
             continue;
         }
-        _goal->id = i;
+        goal->id = i;
         
-        switch (_goal->player->teamChoice) 
+        switch (goal->player->teamChoice) 
         {
             case TEAM_1: {
-                if (g_Team.objectState[TEAM_3] == OBJECT_STATE_ACTIVE && (g_Team.objectState[TEAM_2] == OBJECT_STATE_ACTIVE || g_Team.objectState[TEAM_4] == OBJECT_STATE_ACTIVE)) { // 3-4 player mode
-                    _goal->pos.x = -GOAL_X_POS;
-                    _goal->pos.top = -GOAL_Y_POS_TOP_VS_MODE;
-                    _goal->pos.mid = -GOAL_Y_POS_MID_VS_MODE;
-                    _goal->pos.bot = -GOAL_Y_POS_BOT_VS_MODE;
-                    _goal->scale = GOAL_SCALE_VS_MODE;
-                    _goal->drawSingleGoal = false;
+                if (g_Team.isActive[TEAM_3] == true && (g_Team.isActive[TEAM_2] == true || g_Team.isActive[TEAM_4] == true)) { // 3-4 player mode
+                    goal->pos.x = -GOAL_X_POS;
+                    goal->pos.top = -GOAL_Y_POS_TOP_VS_MODE;
+                    goal->pos.mid = -GOAL_Y_POS_MID_VS_MODE;
+                    goal->pos.bot = -GOAL_Y_POS_BOT_VS_MODE;
+                    goal->scale = GOAL_SCALE_VS_MODE;
+                    goal->drawSingleGoal = false;
                 }
                 else { // 2-3 player mode
-                    _goal->pos.x = -GOAL_X_POS;
-                    _goal->pos.top = -GOAL_Y_POS_MEDIUM;
-                    _goal->pos.mid = GOAL_CENTER_POS;
-                    _goal->pos.bot = GOAL_Y_POS_MEDIUM;
-                    _goal->scale = GOAL_SCALE_MEDIUM;
-                    _goal->drawSingleGoal = true;
+                    goal->pos.x = -GOAL_X_POS;
+                    goal->pos.top = -GOAL_Y_POS_MEDIUM;
+                    goal->pos.mid = GOAL_CENTER_POS;
+                    goal->pos.bot = GOAL_Y_POS_MEDIUM;
+                    goal->scale = GOAL_SCALE_MEDIUM;
+                    goal->drawSingleGoal = true;
                 }
-                _goal->pos.top_flip = sprNoflip;
-                _goal->pos.bot_flip = sprVflip;
-                _goal->pos.top_zmode = _ZmLT;
-                _goal->pos.mid_zmode = _ZmLC;
-                _goal->pos.bot_zmode = _ZmLB;
+                goal->pos.top_flip = sprNoflip;
+                goal->pos.bot_flip = sprVflip;
+                goal->pos.top_zmode = _ZmLT;
+                goal->pos.mid_zmode = _ZmLC;
+                goal->pos.bot_zmode = _ZmLB;
                 break;
             }
             case TEAM_2: {
-                if (g_Team.objectState[TEAM_4] == OBJECT_STATE_ACTIVE && (g_Team.objectState[TEAM_1] == OBJECT_STATE_ACTIVE || g_Team.objectState[TEAM_3] == OBJECT_STATE_ACTIVE)) { // 3-4 player mode
-                    _goal->pos.x = GOAL_X_POS;
-                    _goal->pos.top = -GOAL_Y_POS_TOP_VS_MODE;
-                    _goal->pos.mid = -GOAL_Y_POS_MID_VS_MODE;
-                    _goal->pos.bot = -GOAL_Y_POS_BOT_VS_MODE;
-                    _goal->scale = GOAL_SCALE_VS_MODE;
-                    _goal->drawSingleGoal = false;
+                if (g_Team.isActive[TEAM_4] == true && (g_Team.isActive[TEAM_1] == true || g_Team.isActive[TEAM_3] == true)) { // 3-4 player mode
+                    goal->pos.x = GOAL_X_POS;
+                    goal->pos.top = -GOAL_Y_POS_TOP_VS_MODE;
+                    goal->pos.mid = -GOAL_Y_POS_MID_VS_MODE;
+                    goal->pos.bot = -GOAL_Y_POS_BOT_VS_MODE;
+                    goal->scale = GOAL_SCALE_VS_MODE;
+                    goal->drawSingleGoal = false;
                 }
                 else { // 2-3 player mode
-                    _goal->pos.x = GOAL_X_POS;
-                    _goal->pos.top = -GOAL_Y_POS_MEDIUM;
-                    _goal->pos.mid = GOAL_CENTER_POS;
-                    _goal->pos.bot = GOAL_Y_POS_MEDIUM;
-                    _goal->scale = GOAL_SCALE_MEDIUM;
-                    _goal->drawSingleGoal = true;
+                    goal->pos.x = GOAL_X_POS;
+                    goal->pos.top = -GOAL_Y_POS_MEDIUM;
+                    goal->pos.mid = GOAL_CENTER_POS;
+                    goal->pos.bot = GOAL_Y_POS_MEDIUM;
+                    goal->scale = GOAL_SCALE_MEDIUM;
+                    goal->drawSingleGoal = true;
                 }
-                _goal->pos.top_flip = sprHflip;
-                _goal->pos.bot_flip = sprHVflip;
-                _goal->pos.top_zmode = _ZmRT;
-                _goal->pos.mid_zmode = _ZmRC;
-                _goal->pos.bot_zmode = _ZmRB;
+                goal->pos.top_flip = sprHflip;
+                goal->pos.bot_flip = sprHVflip;
+                goal->pos.top_zmode = _ZmRT;
+                goal->pos.mid_zmode = _ZmRC;
+                goal->pos.bot_zmode = _ZmRB;
                 break;
             }
             case TEAM_3: {
-                _goal->pos.top_flip = sprNoflip;
-                _goal->pos.bot_flip = sprVflip;
-                _goal->pos.top_zmode = _ZmLT;
-                _goal->pos.mid_zmode = _ZmLC;
-                _goal->pos.bot_zmode = _ZmLB;
-                if (g_Team.objectState[TEAM_1] == OBJECT_STATE_ACTIVE && (g_Team.objectState[TEAM_2] == OBJECT_STATE_ACTIVE || g_Team.objectState[TEAM_4] == OBJECT_STATE_ACTIVE)) { // 3-4 player mode
-                    _goal->pos.x = -GOAL_X_POS;
-                    _goal->pos.top = GOAL_Y_POS_BOT_VS_MODE;
-                    _goal->pos.mid = GOAL_Y_POS_MID_VS_MODE;
-                    _goal->pos.bot = GOAL_Y_POS_TOP_VS_MODE;
-                    _goal->scale = GOAL_SCALE_VS_MODE;
-                    _goal->drawSingleGoal = false;
+                goal->pos.top_flip = sprNoflip;
+                goal->pos.bot_flip = sprVflip;
+                goal->pos.top_zmode = _ZmLT;
+                goal->pos.mid_zmode = _ZmLC;
+                goal->pos.bot_zmode = _ZmLB;
+                if (g_Team.isActive[TEAM_1] == true && (g_Team.isActive[TEAM_2] == true || g_Team.isActive[TEAM_4] == true)) { // 3-4 player mode
+                    goal->pos.x = -GOAL_X_POS;
+                    goal->pos.top = GOAL_Y_POS_BOT_VS_MODE;
+                    goal->pos.mid = GOAL_Y_POS_MID_VS_MODE;
+                    goal->pos.bot = GOAL_Y_POS_TOP_VS_MODE;
+                    goal->scale = GOAL_SCALE_VS_MODE;
+                    goal->drawSingleGoal = false;
                 }
-                else if (g_Team.objectState[TEAM_1] == OBJECT_STATE_ACTIVE) { // 2 player mode
-                    switchPlayerPosition(_goal->player); // move to right side
-                    _goal->pos.x = GOAL_X_POS;
-                    _goal->pos.top = -GOAL_Y_POS_MEDIUM;
-                    _goal->pos.mid = GOAL_CENTER_POS;
-                    _goal->pos.bot = GOAL_Y_POS_MEDIUM;
-                    _goal->scale = GOAL_SCALE_MEDIUM;
-                    _goal->pos.top_flip = sprHflip;
-                    _goal->pos.bot_flip = sprHVflip;
-                    _goal->pos.top_zmode = _ZmRT;
-                    _goal->pos.mid_zmode = _ZmRC;
-                    _goal->pos.bot_zmode = _ZmRB;
-                    _goal->drawSingleGoal = true;
+                else if (g_Team.isActive[TEAM_1] == true) { // 2 player mode
+                    switchPlayerPosition(goal->player); // move to right side
+                    goal->pos.x = GOAL_X_POS;
+                    goal->pos.top = -GOAL_Y_POS_MEDIUM;
+                    goal->pos.mid = GOAL_CENTER_POS;
+                    goal->pos.bot = GOAL_Y_POS_MEDIUM;
+                    goal->scale = GOAL_SCALE_MEDIUM;
+                    goal->pos.top_flip = sprHflip;
+                    goal->pos.bot_flip = sprHVflip;
+                    goal->pos.top_zmode = _ZmRT;
+                    goal->pos.mid_zmode = _ZmRC;
+                    goal->pos.bot_zmode = _ZmRB;
+                    goal->drawSingleGoal = true;
                 }
                 else { // 2-3 player mode
-                    _goal->pos.x = -GOAL_X_POS;
-                    _goal->pos.top = -GOAL_Y_POS_MEDIUM;
-                    _goal->pos.mid = GOAL_CENTER_POS;
-                    _goal->pos.bot = GOAL_Y_POS_MEDIUM;
-                    _goal->scale = GOAL_SCALE_MEDIUM;
-                    _goal->drawSingleGoal = true;
+                    goal->pos.x = -GOAL_X_POS;
+                    goal->pos.top = -GOAL_Y_POS_MEDIUM;
+                    goal->pos.mid = GOAL_CENTER_POS;
+                    goal->pos.bot = GOAL_Y_POS_MEDIUM;
+                    goal->scale = GOAL_SCALE_MEDIUM;
+                    goal->drawSingleGoal = true;
                 }
                 break;
             }
             case TEAM_4: {
-                _goal->pos.top_flip = sprHflip;
-                _goal->pos.bot_flip = sprHVflip;
-                _goal->pos.top_zmode = _ZmRT;
-                _goal->pos.mid_zmode = _ZmRC;
-                _goal->pos.bot_zmode = _ZmRB; 
-                if (g_Team.objectState[TEAM_2] == OBJECT_STATE_ACTIVE && (g_Team.objectState[TEAM_1] == OBJECT_STATE_ACTIVE || g_Team.objectState[TEAM_3] == OBJECT_STATE_ACTIVE)) { // 3-4 player mode
-                    _goal->pos.x = GOAL_X_POS;
-                    _goal->pos.top = GOAL_Y_POS_BOT_VS_MODE;
-                    _goal->pos.mid = GOAL_Y_POS_MID_VS_MODE;
-                    _goal->pos.bot = GOAL_Y_POS_TOP_VS_MODE;
-                    _goal->scale = GOAL_SCALE_VS_MODE; 
-                    _goal->drawSingleGoal = false;
+                goal->pos.top_flip = sprHflip;
+                goal->pos.bot_flip = sprHVflip;
+                goal->pos.top_zmode = _ZmRT;
+                goal->pos.mid_zmode = _ZmRC;
+                goal->pos.bot_zmode = _ZmRB; 
+                if (g_Team.isActive[TEAM_2] == true && (g_Team.isActive[TEAM_1] == true || g_Team.isActive[TEAM_3] == true)) { // 3-4 player mode
+                    goal->pos.x = GOAL_X_POS;
+                    goal->pos.top = GOAL_Y_POS_BOT_VS_MODE;
+                    goal->pos.mid = GOAL_Y_POS_MID_VS_MODE;
+                    goal->pos.bot = GOAL_Y_POS_TOP_VS_MODE;
+                    goal->scale = GOAL_SCALE_VS_MODE; 
+                    goal->drawSingleGoal = false;
                 }
-                else if (g_Team.objectState[TEAM_2] == OBJECT_STATE_ACTIVE) { // 3-4 player mode
-                    switchPlayerPosition(_goal->player); // move to left side
-                    _goal->pos.x = -GOAL_X_POS;
-                    _goal->pos.top = -GOAL_Y_POS_MEDIUM;
-                    _goal->pos.mid = GOAL_CENTER_POS;
-                    _goal->pos.bot = GOAL_Y_POS_MEDIUM;
-                    _goal->scale = GOAL_SCALE_MEDIUM;
-                    _goal->pos.top_flip = sprNoflip;
-                    _goal->pos.bot_flip = sprVflip;
-                    _goal->pos.top_zmode = _ZmLT;
-                    _goal->pos.mid_zmode = _ZmLC;
-                    _goal->pos.bot_zmode = _ZmLB;
-                    _goal->drawSingleGoal = true;
+                else if (g_Team.isActive[TEAM_2] == true) { // 3-4 player mode
+                    switchPlayerPosition(goal->player); // move to left side
+                    goal->pos.x = -GOAL_X_POS;
+                    goal->pos.top = -GOAL_Y_POS_MEDIUM;
+                    goal->pos.mid = GOAL_CENTER_POS;
+                    goal->pos.bot = GOAL_Y_POS_MEDIUM;
+                    goal->scale = GOAL_SCALE_MEDIUM;
+                    goal->pos.top_flip = sprNoflip;
+                    goal->pos.bot_flip = sprVflip;
+                    goal->pos.top_zmode = _ZmLT;
+                    goal->pos.mid_zmode = _ZmLC;
+                    goal->pos.bot_zmode = _ZmLB;
+                    goal->drawSingleGoal = true;
                 }
                 else {
-                    _goal->pos.x = GOAL_X_POS;
-                    _goal->pos.top = -GOAL_Y_POS_MEDIUM;
-                    _goal->pos.mid = GOAL_CENTER_POS;
-                    _goal->pos.bot = GOAL_Y_POS_MEDIUM;
-                    _goal->scale = GOAL_SCALE_MEDIUM;
-                    _goal->drawSingleGoal = true;
+                    goal->pos.x = GOAL_X_POS;
+                    goal->pos.top = -GOAL_Y_POS_MEDIUM;
+                    goal->pos.mid = GOAL_CENTER_POS;
+                    goal->pos.bot = GOAL_Y_POS_MEDIUM;
+                    goal->scale = GOAL_SCALE_MEDIUM;
+                    goal->drawSingleGoal = true;
                 } 
                 break;
             }
             default:
                 break;
         }
-        _goal->onLeftSide = _goal->player->onLeftSide;
+        goal->onLeftSide = goal->player->onLeftSide;
     }
 }
 
 void drawGoals(void) {
-    PGOAL _goal = NULL;
-    for(unsigned int i = 0; i < MAX_PLAYERS; i++)
+    for (int8_t i = 0; i <= g_Game.numPlayers; i++)
     {
-        _goal = &g_Goal[i];
-        if (_goal->player->objectState == OBJECT_STATE_INACTIVE || _goal->player->subState == PLAYER_STATE_DEAD) {
+        PGOAL goal = &g_Goal[i];
+        if (!goal->player->isActivated || goal->player->isDead) {
             continue;
         }
-        drawGoalSprites(_goal->sprite, 0, 2, _goal->pos.top_zmode, _goal->pos.top_flip, _goal->pos.x, _goal->pos.top, 2);
-        drawGoalSprites(_goal->sprite, 1, 3, _goal->pos.mid_zmode, _goal->pos.top_flip, _goal->pos.x, _goal->pos.mid, _goal->scale);
-        drawGoalSprites(_goal->sprite, 0, 2, _goal->pos.bot_zmode, _goal->pos.bot_flip, _goal->pos.x, _goal->pos.bot, 2);
+        drawGoalSprites(goal->sprite, i*2, 0, 8, goal->pos.top_zmode, goal->pos.top_flip, goal->pos.x, goal->pos.top, 2);
+        drawGoalSprites(goal->sprite, i*2, 1, 9, goal->pos.mid_zmode, goal->pos.top_flip, goal->pos.x, goal->pos.mid, goal->scale);
+        drawGoalSprites(goal->sprite, i*2, 0, 8, goal->pos.bot_zmode, goal->pos.bot_flip, goal->pos.x, goal->pos.bot, 2);
     }
 }
 
@@ -256,28 +254,27 @@ void explodeGoals(void) {
     if (!g_ExplodeGoal) {
         return;
     }
-    PGOAL _goal = NULL;
-    for(unsigned int i = 0; i < MAX_PLAYERS; i++)
+    for (int8_t i = 0; i <= g_Game.numPlayers; i++)
     {
-        _goal = &g_Goal[i];
-        if (_goal->player->isAI && g_Game.gameMode == GAME_MODE_STORY) {
+        PGOAL goal = &g_Goal[i];
+        if (goal->player->isAI && g_Game.gameMode == GAME_MODE_STORY) {
             continue;
         }
-        if (g_Team.objectState[_goal->player->teamChoice] == OBJECT_STATE_ACTIVE && _goal->player->subState == PLAYER_STATE_DEAD) {
-            _goal->sprite->rot.z += 1;
+        if (g_Team.isActive[goal->player->teamChoice] == true && goal->player->isDead) {
+            goal->sprite->rot.z += 1;
             if (g_Transition.explosion_flash) {
                 g_Transition.explosion_flash = explosionEffect();
-                set_spr_scale(_goal->sprite, 3, 3);
-                _goal->sprite->pos.y = toFIXED(_goal->pos.mid);
-                _goal->sprite->zmode = _ZmCC;
+                set_spr_scale(goal->sprite, 3, 3);
+                goal->sprite->pos.y = goal->pos.mid;
+                goal->sprite->zmode = _ZmCC;
             }
             else {
-                my_sprite_draw(_goal->sprite);
-                g_ExplodeGoal = explode_animation(_goal->sprite);
+                my_sprite_draw(goal->sprite);
+                g_ExplodeGoal = explode_animation(goal->sprite);
                 if (!g_ExplodeGoal) {
-                    _goal->sprite->rot.z = 0;
+                    goal->sprite->rot.z = 0;
                     if (g_Game.gameMode != GAME_MODE_STORY && g_Game.currentNumPlayers > 1) {
-                        g_Team.objectState[_goal->player->teamChoice] = OBJECT_STATE_INACTIVE;
+                        g_Team.isActive[goal->player->teamChoice] = false;
                         setGoalSize(); // not in story mode
                     }
                 }
@@ -288,26 +285,25 @@ void explodeGoals(void) {
 
 void checkRightGoalCollision(Sprite *ball) {
     // iterate through goals on right side, check bounds
-    PGOAL _goal;
-    for(unsigned int i = 0; i < MAX_PLAYERS; i++)
+    for (int8_t i = 0; i <= g_Game.numPlayers; i++)
     {
-        _goal = &g_Goal[i];
-        if (_goal->player->objectState == OBJECT_STATE_INACTIVE || _goal->player->subState == PLAYER_STATE_DEAD || _goal->onLeftSide) {
+        PGOAL goal = &g_Goal[i];
+        if (!goal->player->isActivated || goal->player->isDead || goal->onLeftSide) {
             continue;
         }
-        if (ball->pos.y - GOAL_MARGIN > toFIXED(_goal->pos.top) && ball->pos.y + GOAL_MARGIN < toFIXED(_goal->pos.bot)) { // removed ball radius - need another solution
-            g_Game.goalID = _goal->id;
+        if (ball->pos.y - GOAL_MARGIN > goal->pos.top && ball->pos.y + GOAL_MARGIN < goal->pos.bot) { // removed ball radius - need another solution
+            g_Game.goalID = goal->id;
             g_AnimateGoal = true;
             if (g_Game.gameMode == GAME_MODE_STORY) {
                 g_Game.isGoalScored = true;
                 calculateScore(ball, 0);
                 updatePlayerLives(1);
-                playCDTrack(g_Audio.goalScoredTrack, false);
-                nextGoalScoredTrack();
+                playCDTrack(g_Audio.currentTrack, false);
+                nextcurrentTrack();
                 break;
             }
             else if (!g_Game.isGoalScored) { // scored on TEAM_2 or TEAM_4
-                updateScore(ball, _goal->id);
+                updateScore(ball, goal->id);
                 break;
             }
         }
@@ -316,26 +312,25 @@ void checkRightGoalCollision(Sprite *ball) {
 
 void checkLeftGoalCollision(Sprite *ball) {
     // iterate through goals on left side, check bounds
-    PGOAL _goal;
-    for(unsigned int i = 0; i < MAX_PLAYERS; i++)
+    for (int8_t i = 0; i <= g_Game.numPlayers; i++)
     {
-        _goal = &g_Goal[i];
-        if (_goal->player->objectState == OBJECT_STATE_INACTIVE || _goal->player->subState == PLAYER_STATE_DEAD || !_goal->onLeftSide) {
+        PGOAL goal = &g_Goal[i];
+        if (!goal->player->isActivated || goal->player->isDead || !goal->onLeftSide) {
             continue;
         }
-        if (ball->pos.y - GOAL_MARGIN > toFIXED(_goal->pos.top) && ball->pos.y + GOAL_MARGIN < toFIXED(_goal->pos.bot)) { // removed ball radius - need another solution
-            g_Game.goalID = _goal->id;
+        if (ball->pos.y - GOAL_MARGIN > goal->pos.top && ball->pos.y + GOAL_MARGIN < goal->pos.bot) { // removed ball radius - need another solution
+            g_Game.goalID = goal->id;
             g_AnimateGoal = true;
             if (g_Game.gameMode == GAME_MODE_STORY) {
                 g_Game.isGoalScored = true;
                 ballTtouchTimer = 0;
                 updatePlayerLives(0);
-                playCDTrack(g_Audio.goalScoredTrack, false);
-                nextGoalScoredTrack();
+                playCDTrack(g_Audio.currentTrack, false);
+                nextcurrentTrack();
                 break;
             }
             else if (!g_Game.isGoalScored) { // scored on TEAM_2 or TEAM_4
-                updateScore(ball, _goal->id);
+                updateScore(ball, goal->id);
                 break;
             }
         }

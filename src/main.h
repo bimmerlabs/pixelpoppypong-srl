@@ -1,24 +1,27 @@
 #pragma once
 
-#include <jo/jo.h>
+#include <srl.hpp>
 #include "core/state.h"
 #include "core/util.h"
+#include "core/math.h"
 #include "core/audio.h"
 #if ENABLE_DEBUG_MODE == 1
     #include "core/debug.h"
 #endif
 
-#define VERSION "0.88"
+#define VERSION "0.88.78"
 #define MAX_PLAYERS 4
 
 // Screen position
-#define SCREEN_RIGHT  toFIXED(352.0)
-#define SCREEN_LEFT  toFIXED(-352.0)
-#define SCREEN_MIDDLE  toFIXED(0)
-#define SCREEN_WIDTH  toFIXED(704.0)
-#define SCREEN_HEIGHT  toFIXED(480.0)
-#define SCREEN_TOP toFIXED(-240.0)
-#define SCREEN_BOTTOM toFIXED(240.0)
+#define HORIZONTAL_RES (704)
+#define VERTICAL_RES (480)
+#define SCREEN_WIDTH  Fxp(HORIZONTAL_RES)
+#define SCREEN_HEIGHT  Fxp(VERTICAL_RES)
+#define SCREEN_RIGHT  Fxp(HORIZONTAL_RES/2)
+#define SCREEN_LEFT  Fxp(-HORIZONTAL_RES/2)
+#define SCREEN_MIDDLE  Fxp(0)
+#define SCREEN_TOP Fxp(-VERTICAL_RES/2)
+#define SCREEN_BOTTOM Fxp(VERTICAL_RES/2)
 
 typedef struct {
     bool debug_mode;
@@ -43,33 +46,34 @@ typedef struct {
 
 extern GameOptions g_GameOptions;
 
+extern SRL::Math::Random<int32_t> rnd;
+
 // 1-4 players
-typedef enum _NUMBER_OF_PLAYERS
-{
-    ONE_PLAYER = 0,
-    TWO_PLAYER = 1,
-    THREE_PLAYER = 2,
-    FOUR_PLAYER = 3,
-    GAME_PLAYERS_MAX,
-} NUMBER_OF_PLAYERS;
+#define ONE_PLAYER       (0)
+#define TWO_PLAYER       (1)
+#define THREE_PLAYER     (2)
+#define FOUR_PLAYER      (3)
 
 // supported game types
-typedef enum _GAME_MODE
-{
-    GAME_MODE_STORY = 0, // STORY MODE?
-    GAME_MODE_BATTLE = 1, // BATTLE MODE (2 OR 4 PLAYER MODE ONLY)
-    GAME_MODE_CLASSIC = 2, // JUST PONG
-    GAME_MODE_MAX,
-} GAME_MODE;
+#define GAME_MODE_STORY   (0)
+#define GAME_MODE_BATTLE  (1) // BATTLE MODE (2 OR 4 PLAYER MODE ONLY)
+#define GAME_MODE_CLASSIC (2) // JUST PONG
+#define GAME_MODE_MAX     (3)
 
 // supported game difficulty
-typedef enum _GAME_DIFFICULTY
+#define GAME_DIFFICULTY_EASY    (0)
+#define GAME_DIFFICULTY_MEDIUM  (1)
+#define GAME_DIFFICULTY_HARD    (2)
+#define GAME_DIFFICULTY_MAX     (3)
+
+#define OCTOBER 10
+
+// seasons (for special modes)
+typedef enum _SEASON
 {
-    GAME_DIFFICULTY_EASY = 0,
-    GAME_DIFFICULTY_MEDIUM = 1,
-    GAME_DIFFICULTY_HARD = 2,
-    GAME_DIFFICULTY_MAX,
-} GAME_DIFFICULTY;
+    S_NORMAL = 0,
+    S_HALLOWEEN = 1,
+} SEASON;
 
 // game resolutions (for testing)
 typedef enum _GAME_RESOLUTION
@@ -82,33 +86,37 @@ typedef enum _GAME_RESOLUTION
 // represents game state
 typedef struct _GAME
 {
-    Uint8 frame; // frame counter
-    jo_datetime now;
-    Uint16 cursor_angle; // for title & pawsed menus
+    int frame; // frame counter
+    
+    Angle cursor_angle; // for title & pawsed menus
     
     // current game state
     GAME_STATE gameState;
     GAME_STATE nextState;
     GAME_STATE lastState;
 
-    // number of players
-    NUMBER_OF_PLAYERS minPlayers;
-    NUMBER_OF_PLAYERS maxPlayers;
-    NUMBER_OF_PLAYERS numPlayers;
-    Uint8 currentNumPlayers;
+    // number of players (I think this needs to be signed)
+    int8_t minPlayers;
+    int8_t maxPlayers;
+    int8_t numPlayers;
+    int8_t currentNumPlayers;
     
     // classic, story, battle
-    GAME_MODE gameMode;
+    int8_t gameMode;
 
     // easy, medium, hard
-    GAME_DIFFICULTY gameDifficulty;
+    int8_t gameDifficulty;
+    
+    // real time clock
+    uint8_t timeSlot;
+    uint8_t timeSeason;
     
     // TIMERS
-    Uint16 endDelayTimer;
-    Uint16 BeginTimer;
-    Uint16 roundBeginTimer;
-    Uint16 dropBallTimer;
-    // Uint16 transitionOutTimer;
+    uint16_t endDelayTimer;
+    uint16_t BeginTimer;
+    uint16_t roundBeginTimer;
+    uint16_t dropBallTimer;
+    // uint16_t transitionOutTimer;
     bool time_over;
 
     bool selectStoryCharacter;
@@ -126,7 +134,7 @@ typedef struct _GAME
 
     // is the game finished?
     bool isRoundOver;
-    Uint8 countofRounds;
+    int countofRounds;
     
     int winner;
     
@@ -136,9 +144,18 @@ typedef struct _GAME
     
     bool explodeBall;
     
+    bool vblankClearScreen;
+    
 } GAME, *PGAME;
 
-// globals
 extern GAME g_Game;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void initGame(void);
+
+#ifdef __cplusplus
+}
+#endif

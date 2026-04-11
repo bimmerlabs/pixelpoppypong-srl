@@ -1,14 +1,25 @@
 #pragma once
-
+#include <srl.hpp>
 #include "../core/assets.h"
-#include "../palettefx/sprite_colors.h"
+#include "../vdp2/sprite_colors.h"
+
+using namespace SRL::Types;
+using namespace SRL::Math::Types;
 
 #define NAME_ENTRY_TIMER 99
-#define NAME_X_RADIUS toFIXED(140)
-#define NAME_Y_RADIUS toFIXED(50)
+#define NAME_X_RADIUS Fxp(140)
+#define NAME_Y_RADIUS Fxp(50)
 #define NAME_Y_POS 170
-#define END_RADIUS toFIXED(-1400)
+#define END_RADIUS Fxp(-1400)
+
+#define TO_TURNS (1.0f/360.0f)
+
 #define GAP_ANGLE 12
+
+#define FIRST_INITIAL  (0)
+#define SECOND_INITIAL (1)
+#define THIRD_INITIAL  (2)
+#define MAX_INITIAL    (3)
 
 typedef struct _NAME_ENTRY
 {
@@ -19,9 +30,9 @@ typedef struct _NAME_ENTRY
     char initials[4];  // 3 letters + null terminator
     int char_id[3];
     
-    FIXED xRadius;
-    FIXED yRadius;
-    FIXED yPos;
+    Fxp xRadius;
+    Fxp yRadius;
+    Fxp yPos;
     int angle;
     int gapAngle;
     bool pressedLeft;
@@ -31,18 +42,14 @@ typedef struct _NAME_ENTRY
     bool end;
 } NAME_ENTRY;
 
-extern unsigned int g_NameEntryTimer;
-
+extern NAME_ENTRY nameEntry;
 extern bool rotateLeft;
 extern bool rotateRight;
 
-typedef enum _INITIALS
-{
-    FIRST_INITIAL = 0,
-    SECOND_INITIAL,
-    THIRD_INITIAL,
-    MAX_INITIAL,
-} INITIALS;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void nameEntryInit(void);
 void nameEntryInput(void);
@@ -53,3 +60,7 @@ void nameEntryPositionUpdate(int angle, int sprAngle);
 int snap_to_nearest_12(int angle);
 
 int snap_to_end(int angle);
+
+#ifdef __cplusplus
+}
+#endif

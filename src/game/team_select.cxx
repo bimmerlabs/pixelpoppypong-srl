@@ -1,76 +1,40 @@
-#include <jo/jo.h>
 #include "../main.h"
 #include "team_select.h"
 #include "physics.h"
+#include "player_setup.h"
 #include "../core/assets.h"
+#include "../core/input.h"
 #include "../core/screen_transition.h"
 #include "../objects/player.h"
-#include "../palettefx/nbg1.h"
-#include "../palettefx/sprite_colors.h"
+#include "../objects/characters.h"
+#include "../vdp2/nbg1.h"
+#include "../vdp2/sprite_colors.h"
+
+using namespace SRL::Input;
 
 extern PLAYER g_Players[MAX_PLAYERS];
 
 int g_StartGameFrames = 0;
-Uint8 currentNumPlayers = 0;
+uint8_t currentNumPlayers = 0;
 bool g_TeamSelectPressedStart = false;
 bool draw_cursor = false;
 bool draw_portrait = false;
 bool all_players_ready = false;
 
-// TODO: move to characters.h?
-const char *characterNames[] = {
-    "MACCHI",
-    "JELLY",
-    "PENNY",
-    "POTTER",
-    "SPARTA",
-    "POPPY",
-    "T.J.",
-    "GEORGE",
-    "WUPPY",
-    "CRAIG",
-    "GARF.",
-    "CPU"
-};
-
-// need to test/fix so debug mode doesn't have to be turned on
-void initUnlockedCharacters(void) {
-    // Unlock the first four characters by default, others remain locked
-    for (int i = 0; i < TOTAL_CHARACTERS; i++) {
-        if (i <= CHARACTER_POTTER || i == CHARACTER_NONE) {
-            characterUnlocked[i] = true;
-        }
-        else {
-            characterUnlocked[i] = false;
-        }
-    }
-}
-
-void initAvailableCharacters(void) {
-    #if ENABLE_DEBUG_MODE == 1
-    if (g_GameOptions.debug_mode) {
-        for (int i = 0; i < TOTAL_CHARACTERS; i++) {
-            characterAvailable[i] = true;
-        }
-    }
-    // Copy values from characterUnlocked to characterAvailable
-    else {
-    #endif
-        for (int i = 0; i < TOTAL_CHARACTERS; i++) {
-            characterAvailable[i] = characterUnlocked[i];
-        }
-    #if ENABLE_DEBUG_MODE == 1
-    }
-    #endif
-}
-
 void teamSelect_init(void)
 {
     g_Game.lastState = GAME_STATE_TEAM_SELECT;
-    unloadTitleScreenAssets();
-    loadCharacterAssets();
+    if (g_Assets.titleAssetsLoaded) {
+        unloadTitleAssets();
+    }
+    if (!g_Assets.characterAssetsLoaded) {
+        loadCharacterAssets();
+    }
+        
+    init_nbg2_img();
+    
     reset_inputs();
-    initPlayers();
+    initPlayers(true);
     initAvailableCharacters();
 
     initTeams();
@@ -89,17 +53,17 @@ void teamSelect_init(void)
         menu_bg1.mesh = MESHoff;
         menu_bg2.mesh = MESHoff;
         player_bg.mesh = MESHoff;
-    }       
-    
-    jo_set_displayed_screens(JO_NBG0_SCREEN | JO_SPRITE_SCREEN | JO_NBG1_SCREEN);
+    }
     
     // some assets don't change in scale
-    menu_bg1.spr_id = menu_bg1.anim[0].asset[4];
+    menu_bg1.id = menu_bg1.anim[0].asset + 4;
     set_spr_scale(&menu_bg1, 48, 48);
-    menu_bg2.spr_id = menu_bg2.anim[0].asset[5];
+    menu_bg2.id = menu_bg2.anim[0].asset + 5;
     menu_bg2.zmode = _ZmCC;
-    set_spr_position(&menu_bg2, MENU_BG2_X, 0, MENU_BG2_DEPTH);
-    set_spr_scale(&menu_bg2, MENU_BG2_WIDTH, MENU_BG2_HEIGHT);
+    set_spr_position_fxp(&menu_bg2, MENU_BG2_X, Fxp_0, MENU_BG2_DEPTH);
+    set_spr_scale_fxp(&menu_bg2, MENU_BG2_WIDTH, MENU_BG2_HEIGHT);
+    
+    SRL::VDP2::NBG2::ScrollEnable();
     
     g_Transition.mosaic_in = true;
     g_Transition.music_in = true;
@@ -110,10 +74,7 @@ void teamSelect_init(void)
 // main logic loop
 void teamSelect_update(void)
 {
-    if(g_Game.gameState != GAME_STATE_TEAM_SELECT)
-    {
-        return;
-    }
+    check_player_inputs();
     
     // EVERYONE PRESSED START
     if(g_TeamSelectPressedStart == true)
@@ -132,134 +93,123 @@ void teamSelect_update(void)
                     }
                     else {
                         // player didn't pick a team and thus isn't playing
-                        player->objectState = OBJECT_STATE_INACTIVE;
+                        player->isActivated = false;
                     }
                 }
             }
+            SRL::Debug::PrintClearScreen();
+            SRL::VDP2::NBG2::ScrollDisable(); // should fade out instead
             transitionState(GAME_STATE_GAMEPLAY);
         }
+    }
+    
+    if(g_StartGameFrames > 0)
+    {
+        teamSelect_draw();
     }
 }
 
 // main draw routine
 void teamSelect_draw(void)
 {
-    if(g_Game.gameState != GAME_STATE_TEAM_SELECT)
-    {
-        return;
-    }
-        
-    if (attrNbg1.x_scroll > FIXED_0) {
+    if (attrNbg1.x_scroll > Fxp(0)) {
         attrNbg1.x_pos += attrNbg1.x_scroll;
-        if (attrNbg1.x_pos > toFIXED(512.0))
-            attrNbg1.x_pos = FIXED_0;
+        if (attrNbg1.x_pos > Fxp(512.0))
+            attrNbg1.x_pos = Fxp(0);
     }
-    slScrPosNbg1(attrNbg1.x_pos, attrNbg1.y_pos);
+    slScrPosNbg1(attrNbg1.x_pos.RawValue(), attrNbg1.y_pos.RawValue());
     
     drawCharacterSelectGrid();
 }
 
 void drawCharacterSelectGrid(void)
 {    
-    int portrait_x = PORTRAIT_X;
-    int portrait_y = PORTRAIT_Y;
-    int paw_x = PAW_X;
+
+    Fxp portrait_y = PORTRAIT_Y;
+
     int text_x = 2;
     int text_y = 2;
     
     if (g_Game.numPlayers == ONE_PLAYER) {
-        portrait_y = -6;
+        portrait_y = Fxp(-6);
         text_y = 12;
     }
     else if (g_Game.numPlayers == TWO_PLAYER) {
-        portrait_y = -70;
+        portrait_y = Fxp(-70);
         text_y = 8;
     }
     else if (g_Game.numPlayers == THREE_PLAYER) {
-        portrait_y = -118;
+        portrait_y = Fxp(-118);
         text_y = 5;
     }
-    if (JO_MOD_POW2(g_Game.frame, 2) == 0) { // modulus
+    if (g_Game.frame % 2 == 0) { // modulus
         draw_cursor = !draw_cursor;
     }
-    if (JO_MOD_POW2(g_Game.frame, 16) == 0) { // modulus
+    if (g_Game.frame % 16 == 0) { // modulus
         draw_portrait = !draw_portrait;
     }
     
-    // looped_animation_pow(&paws, 4);
     looped_animation_pow(&paw[CHARACTER_NONE], 4);
     
-    for(unsigned int i = 0; i < (g_Game.numPlayers+1); i++)
+    for(int8_t i = 0; i < (g_Game.numPlayers+1); i++)
     {
         PPLAYER player = &g_Players[i];
         
-        // if (!g_GameOptions.debug_display) {
-            jo_nbg0_printf(text_x, text_y, "PLAYER %i:", i+1);
+        if (!g_GameOptions.debug_display) {
+            SRL::Debug::Print(text_x, text_y, "Player %d:   ", i+1);
             if (player->character.choice != CHARACTER_NONE || g_Game.numPlayers > ONE_PLAYER) {
-                jo_nbg0_printf(text_x, text_y+CHARACTER_TEXT_Y, "%s", characterNames[player->character.choice]);
+                SRL::Debug::Print(text_x, text_y+CHARACTER_TEXT_Y, "%s", characterNames[player->character.choice]);
             }           
             if (player->teamSelected && g_Game.numPlayers > ONE_PLAYER) {
-                jo_nbg0_printf(text_x, text_y+CHARACTER_TEXT_Y+2, "TEAM %i", player->teamChoice+1);
+                SRL::Debug::Print(text_x, text_y+CHARACTER_TEXT_Y+2, "Team %d ", player->teamChoice);
             }
-        // }
-            
-        if (player->character.selected) {
+        }
+        if (player->character.selected && !g_GameOptions.debug_display) {
             if (player->isReady) {
-                jo_nbg0_printf(text_x+TEAM_TEXT_X1, text_y, "READY");
+                SRL::Debug::Print(text_x+TEAM_TEXT_X1, text_y, "Ready");
             }
             else if (player->teamSelected && g_Team.numTeams >= g_Team.minTeams && !player->isReady && !draw_portrait) {
-                jo_nbg0_printf(text_x+TEAM_TEXT_X1, text_y, "PRESS");
+                SRL::Debug::Print(text_x+TEAM_TEXT_X1, text_y, "Press");
+            }
+            else if (player->teamSelected && g_Team.numTeams >= g_Team.minTeams && !player->isReady && draw_portrait) {
+                SRL::Debug::Print(text_x+TEAM_TEXT_X1, text_y, "     ");
             }
             else if (!player->teamSelected && g_Game.numPlayers > ONE_PLAYER) {
                 validateTeam(player);
-                jo_nbg0_printf(text_x+TEAM_TEXT_X1, text_y, "TEAM:");
+                SRL::Debug::Print(text_x+TEAM_TEXT_X1, text_y, "Team: ");
             }
 
             if (player->teamSelected && g_Team.numTeams >= g_Team.minTeams && !player->isReady && !draw_portrait) {
-                jo_nbg0_printf(text_x+TEAM_TEXT_X1, text_y+TEAM_TEXT_Y, "START");
+                SRL::Debug::Print(text_x+TEAM_TEXT_X1, text_y+TEAM_TEXT_Y, "Start ");
+            }
+            else if (player->teamSelected && g_Team.numTeams >= g_Team.minTeams && !player->isReady && draw_portrait) {
+                SRL::Debug::Print(text_x+TEAM_TEXT_X1, text_y+TEAM_TEXT_Y, "     ");
             }
             else if (player->teamSelected && g_Team.numTeams < g_Team.minTeams) {
-                jo_nbg0_printf(text_x+TEAM_TEXT_X1, text_y+TEAM_TEXT_Y, "WAIT.");
+                SRL::Debug::Print(text_x+TEAM_TEXT_X1, text_y+TEAM_TEXT_Y, "Wait. ");
             }
             else if (!player->teamSelected && g_Game.numPlayers > ONE_PLAYER) {
-                jo_nbg0_printf(text_x+TEAM_TEXT_X2, text_y+TEAM_TEXT_Y, "%i", player->teamChoice+1);
+                SRL::Debug::Print(text_x+TEAM_TEXT_X2, text_y+TEAM_TEXT_Y, "%d        ", player->teamChoice);
             }
         }
-        
-        // HORIZONTAL STRIPE
-        // WARNING: doesn't work on hardware (VDP1 is too slow)
-        // alternatives: create new bg? use second bg layer?
-        if (g_Game.numPlayers < THREE_PLAYER) { // only draw for up to 2 players
-            player->_bg->spr_id = player->_bg->anim[0].asset[i];
-            // LEFT
-            set_spr_position(player->_bg, MENU_BG2_X-MENU_BG2_WIDTH, portrait_y, PLAYER_BG_DEPTH);
-            player->_bg->scl.x = PLAYER_BG_X1;
-            player->_bg->zmode = _ZmRC;
-            my_sprite_draw(player->_bg);
-            // RIGHT
-            set_spr_position(player->_bg, MENU_BG2_X+MENU_BG2_WIDTH, portrait_y, PLAYER_BG_DEPTH);
-            player->_bg->scl.x = PLAYER_BG_X2;
-            player->_bg->zmode = _ZmLC;
-            my_sprite_draw(player->_bg);
-        }
-                
         // SELECTION BOX
         switch (player->character.selected) {
             case false: // SELECT CHARACTER
-                set_spr_position(player->_cursor[0], portrait_x, portrait_y, CURSOR_DEPTH);
-                set_spr_position(player->_cursor[1], portrait_x+46, portrait_y, CURSOR_DEPTH);
+                set_spr_position_fxp(player->_cursor[0], PORTRAIT_X, portrait_y, CURSOR_DEPTH);
+                set_spr_position_fxp(player->_cursor[1], PORTRAIT_X+Fxp(46), portrait_y, CURSOR_DEPTH);
                 // PAW
-                set_spr_position(player->_sprite, paw_x, portrait_y, PORTRAIT_DEPTH);
+                set_spr_position_fxp(player->_sprite, PAW_X, portrait_y, PORTRAIT_DEPTH);
                 my_sprite_draw(player->_sprite);
                 break;
             case true: // SELECT TEAM
-                set_spr_position(player->_cursor[0], paw_x, portrait_y, CURSOR_DEPTH);                
-                set_spr_position(player->_cursor[1], paw_x+46, portrait_y, CURSOR_DEPTH);                
+                set_spr_position_fxp(player->_cursor[0], PAW_X, portrait_y, CURSOR_DEPTH);                
+                set_spr_position_fxp(player->_cursor[1], PAW_X+Fxp(46), portrait_y, CURSOR_DEPTH);                
                 // CURSOR BACKGROUND
-                set_spr_position(&menu_bg1, paw_x, portrait_y, MENU_BG1_DEPTH);
+                set_spr_position_fxp(&menu_bg1, PAW_X, portrait_y, MENU_BG1_DEPTH);
+                menu_bg1.mesh = MESHon;
                 my_sprite_draw(&menu_bg1);
                 // PAW
-                set_spr_position(player->_sprite, paw_x, portrait_y, PORTRAIT_DEPTH);
+                set_spr_position_fxp(player->_sprite, PAW_X, portrait_y, PORTRAIT_DEPTH);
                 looped_animation_pow(player->_sprite, 4);
                 my_sprite_draw(player->_sprite);
                 break;
@@ -274,22 +224,26 @@ void drawCharacterSelectGrid(void)
             player->_cursor[0]->mesh = MESHoff;
             player->_cursor[1]->mesh = MESHoff;
         }
-        player->_cursor[0]->spr_id = player->_cursor[0]->anim[0].asset[i];
+        player->_cursor[0]->id = player->_cursor[0]->anim[0].asset + i;
         my_sprite_draw(player->_cursor[0]);
-        player->_cursor[1]->spr_id = player->_cursor[1]->anim[0].asset[i];
+        player->_cursor[1]->id = player->_cursor[1]->anim[0].asset + i ;
         my_sprite_draw(player->_cursor[1]);
         
         // PORTRAIT
-        player->_portrait->spr_id = player->_portrait->anim[0].asset[player->character.choice];
-        set_spr_position(player->_portrait, portrait_x, portrait_y, PORTRAIT_DEPTH);
-        if (player->character.choice == CHARACTER_NONE) {
+        player->_portrait->id = player->_portrait->anim[0].asset + player->character.choice;
+        set_spr_position_fxp(player->_portrait, PORTRAIT_X, portrait_y, PORTRAIT_DEPTH);
+        if (player->character.choice == CHARACTER_NONE && !g_GameOptions.debug_display) {
             if (draw_portrait) {                
-                jo_nbg0_printf(text_x+10, text_y+1, "PRESS");
-                jo_nbg0_printf(text_x+10, text_y+3, "START");
-                // my_sprite_draw(player->_portrait);
+                SRL::Debug::Print(text_x+10, text_y+1, "Press");
+                SRL::Debug::Print(text_x+10, text_y+3, "Start");
+            }
+            else {                
+                SRL::Debug::Print(text_x+10, text_y+1, "     ");
+                SRL::Debug::Print(text_x+10, text_y+3, "     ");
             }
             // CURSOR BACKGROUND
-            set_spr_position(&menu_bg1, portrait_x, portrait_y, MENU_BG1_DEPTH);
+            set_spr_position_fxp(&menu_bg1, PORTRAIT_X, portrait_y, MENU_BG1_DEPTH);
+            menu_bg1.mesh = MESHoff;
             my_sprite_draw(&menu_bg1);
         }
         else {
@@ -299,91 +253,93 @@ void drawCharacterSelectGrid(void)
         // CHARACTER METER
         if (player->startSelection) {
             // SPEED
-            #if ENABLE_DEBUG_MODE == 1
-            if (g_GameOptions.debug_mode) {
-                jo_nbg0_printf(text_x+METER_TEXT_X, text_y,   "SPEED:%i", player->maxSpeed);
+            if (!g_GameOptions.debug_display) {
+                if (g_GameOptions.debug_mode) {
+                    SRL::Debug::Print(text_x+METER_TEXT_X, text_y,   "Speed:%d    ", player->maxSpeed.As<uint8_t>());
+                }
+                else {
+                    SRL::Debug::Print(text_x+METER_TEXT_X, text_y,   "Speed    ");
+                }
             }
-            else {
-            #endif
-                jo_nbg0_printf(text_x+METER_TEXT_X, text_y,   "SPEED");
-            #if ENABLE_DEBUG_MODE == 1
-            }
-            #endif
             // yellow
-            meter.spr_id = meter.anim[0].asset[7];
-            set_spr_scale(&meter, player->maxSpeed, METER_HEIGHT);
-            set_spr_position(&meter, METER_X, portrait_y-METER_Y1, PORTRAIT_DEPTH);
+            meter.id = meter.anim[0].asset;
+            Fxp speed = player->maxSpeed / 4;
+            set_spr_scale_fxp(&meter, speed, METER_HEIGHT);
+            set_spr_position_fxp(&meter, METER_X, portrait_y-METER_Y1, PORTRAIT_DEPTH);
             my_sprite_draw(&meter);
             // red
-            meter.spr_id = meter.anim[0].asset[8];
-            set_spr_scale(&meter, (METER_WIDTH-player->maxSpeed), METER_HEIGHT);
-            set_spr_position(&meter, (METER_X+(2*player->maxSpeed)), portrait_y-METER_Y1, PORTRAIT_DEPTH);
+            meter.id = meter.anim[0].asset + 1;
+            set_spr_scale_fxp(&meter, (METER_WIDTH-speed), METER_HEIGHT);
+            set_spr_position_fxp(&meter, (METER_X+(Fxp_2 * player->maxSpeed)), portrait_y-METER_Y1, PORTRAIT_DEPTH);
             my_sprite_draw(&meter);
             // ACCELERATION
-            Uint8 acceleration = JO_FIXED_TO_INT(player->acceleration);
-            #if ENABLE_DEBUG_MODE == 1
-            if (g_GameOptions.debug_mode) {
-                jo_nbg0_printf(text_x+METER_TEXT_X, text_y+METER_TEXT_Y2, "ACCEL:%i", acceleration); 
+            if (!g_GameOptions.debug_display) {
+                if (g_GameOptions.debug_mode) {
+                    SRL::Debug::Print(text_x+METER_TEXT_X, text_y+METER_TEXT_Y2, "Accel:%d    ", player->acceleration.As<uint8_t>()); 
+                }
+                else {
+                    SRL::Debug::Print(text_x+METER_TEXT_X, text_y+METER_TEXT_Y2, "Accel.    "); 
+                }
             }
-            else {
-            #endif
-                jo_nbg0_printf(text_x+METER_TEXT_X, text_y+METER_TEXT_Y2, "ACCEL."); 
-            #if ENABLE_DEBUG_MODE == 1
-            }
-            #endif
             // yellow       
-            meter.spr_id = meter.anim[0].asset[7];
-            set_spr_scale(&meter, acceleration, METER_HEIGHT);
-            set_spr_position(&meter, METER_X, portrait_y-METER_Y2, PORTRAIT_DEPTH);
+            meter.id = meter.anim[0].asset;
+            Fxp acceleration = player->acceleration / 4;
+            set_spr_scale_fxp(&meter, acceleration, METER_HEIGHT);
+            set_spr_position_fxp(&meter, METER_X, portrait_y-METER_Y2, PORTRAIT_DEPTH);
             my_sprite_draw(&meter);
             // red
-            meter.spr_id = meter.anim[0].asset[8];
-            set_spr_scale(&meter, (METER_WIDTH-acceleration), METER_HEIGHT);
-            set_spr_position(&meter, (METER_X+(2*acceleration)), portrait_y-METER_Y2, PORTRAIT_DEPTH);
+            meter.id = meter.anim[0].asset + 1;
+            set_spr_scale_fxp(&meter, (METER_WIDTH-acceleration), METER_HEIGHT);
+            set_spr_position_fxp(&meter, (METER_X+(Fxp_2 * player->acceleration)), portrait_y-METER_Y2, PORTRAIT_DEPTH);
             my_sprite_draw(&meter);
             // POWER
-            if (g_GameOptions.debug_mode) {
-                jo_nbg0_printf(text_x+METER_TEXT_X, text_y+METER_TEXT_Y3, "POWER:%i", player->power);
-            }
-            else {
-                jo_nbg0_printf(text_x+METER_TEXT_X, text_y+METER_TEXT_Y3, "POWER");
+            if (!g_GameOptions.debug_display) {
+                if (g_GameOptions.debug_mode) {
+                    SRL::Debug::Print(text_x+METER_TEXT_X, text_y+METER_TEXT_Y3, "Power:%d    ", player->power.As<uint8_t>());
+                }
+                else {
+                    SRL::Debug::Print(text_x+METER_TEXT_X, text_y+METER_TEXT_Y3, "Power    ");
+                }
             }
             // yellow
-            meter.spr_id = meter.anim[0].asset[7];
-            set_spr_scale(&meter, player->power, METER_HEIGHT);
-            set_spr_position(&meter, METER_X, portrait_y+METER_Y3, PORTRAIT_DEPTH);
+            meter.id = meter.anim[0].asset;
+            Fxp power = player->power / 4;
+            set_spr_scale_fxp(&meter, power, METER_HEIGHT);
+            set_spr_position_fxp(&meter, METER_X, portrait_y+METER_Y3, PORTRAIT_DEPTH);
             my_sprite_draw(&meter);
             // red
-            meter.spr_id = meter.anim[0].asset[8];
-            set_spr_scale(&meter, (METER_WIDTH-player->power), METER_HEIGHT);
-            set_spr_position(&meter, (METER_X+(2*player->power)), portrait_y+METER_Y3, PORTRAIT_DEPTH);
+            meter.id = meter.anim[0].asset + 1;
+            set_spr_scale_fxp(&meter, (METER_WIDTH-power), METER_HEIGHT);
+            set_spr_position_fxp(&meter, (METER_X+(Fxp_2 * player->power)), portrait_y+METER_Y3, PORTRAIT_DEPTH);
             my_sprite_draw(&meter);
         }
         
         portrait_y += PLAYER_OFFSET_Y;
         text_y += PLAYER_TEXT_OFFSET_Y;
-        
-        // VERTICAL STRIPE
-        my_sprite_draw(&menu_bg2);
     }
 }
 
 void characterSelect_input(void)
-{    
+{   
     // ONLY PLAYER 1 CAN EXIT TO TITLE SCREEN
-    if (jo_is_pad1_key_down(JO_KEY_B) && g_Players[0].startSelection == false && g_Players[0].pressedB == false)
+    Digital player1(0);
+    if (player1.WasPressed(Digital::Button::B) && g_Players[0].startSelection == false && g_Players[0].pressedB == false)
     {
+        g_Game.vblankClearScreen = true;
+        SRL::VDP2::NBG2::ScrollDisable();
         g_Game.lastState = GAME_STATE_TEAM_SELECT;
         transitionState(GAME_STATE_TITLE_SCREEN);
     }
     
-    for(unsigned int i = 0; i < (g_Game.numPlayers+1); i++)
+    for(int8_t i = 0; i < (g_Game.numPlayers+1); i++)
     {
         PPLAYER player = &g_Players[i];
-      
+        
+        Digital port(player->input->id);
+        
         if (player->startSelection && !player->character.selected) {
             // CHOOSE CHARACTER
-            if (jo_is_input_key_down(player->input->id, JO_KEY_LEFT))
+            if (port.WasPressed(Digital::Button::Left))
             {
                 pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
                 do
@@ -391,50 +347,54 @@ void characterSelect_input(void)
                     player->character.choice--;
                     if (player->character.choice < CHARACTER_MACCHI)
                     {
-                        player->character.choice = TOTAL_CHARACTERS;
+                        player->character.choice = CHARACTER_GARF;
                     }
                 } while (!characterAvailable[player->character.choice]);
             }
-            if (jo_is_input_key_down(player->input->id, JO_KEY_RIGHT))
+            if (port.WasPressed(Digital::Button::Right))
             {
                 pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
                 do
                 {
                     player->character.choice++;
-                    if (player->character.choice > TOTAL_CHARACTERS)
+                    if (player->character.choice > CHARACTER_GARF)
                     {
                         player->character.choice = CHARACTER_MACCHI;
                     }
                 } while (!characterAvailable[player->character.choice]);
             }
+
             // ASSIGN STATS
-            player->maxSpeed = characterAttributes[player->character.choice].maxSpeed;
-            player->acceleration = toFIXED(characterAttributes[player->character.choice].acceleration);
-            player->power = characterAttributes[player->character.choice].power;
+            assignPlayerStats(player);
             
             // GO BACK
-            if (jo_is_input_key_down(player->input->id, JO_KEY_B) && player->pressedB == false)
+            if (port.WasPressed(Digital::Button::B) && player->pressedB == false)
             {
+                g_Game.vblankClearScreen = true;
                 pcm_play(g_Assets.cancelPcm8, PCM_VOLATILE, 6);
                 player->teamChoice = TEAM_COUNT;
                 player->startSelection = false;
                 characterAvailable[player->character.choice] = true;
                 player->character.choice = CHARACTER_NONE;
-                player->maxSpeed = 0;
-                player->acceleration = 0;
-                player->power = 0;
+                player->maxSpeed = Fxp_0;
+                player->acceleration = Fxp_0;
+                player->power = Fxp_0;
+                player->input->id = 32;
+                player->input->isSelected = false;
+                player->input = nullptr;
                 assignCharacterSprite(player);
                 return;
             }
             
             // SELECT CHARACTER
-            if (jo_is_input_key_down(player->input->id, JO_KEY_START) ||
-                jo_is_input_key_down(player->input->id, JO_KEY_A) ||
-                jo_is_input_key_down(player->input->id, JO_KEY_C))
+            if (port.WasPressed(Digital::Button::START) ||
+                port.WasPressed(Digital::Button::A) ||
+                port.WasPressed(Digital::Button::C))
             {
+                g_Game.vblankClearScreen = true;
                 pcm_play(g_Assets.nextPcm8, PCM_VOLATILE, 6);
                 // assign to a default team (left vs right)
-                if (i %2 == 0) { // modulus (replace with jo function)
+                if (i %2 == 0) { // modulus
                     player->teamChoice = TEAM_1;
                     player->_sprite->flip = sprNoflip;
                 }
@@ -452,7 +412,8 @@ void characterSelect_input(void)
         // BEGIN CHARACTER SELECTION
         if (!player->startSelection) {
             // Once a player starts selection, they shouldn't be able to assign a new id
-            if (player->input->isSelected && jo_is_input_key_down(player->input->id, JO_KEY_START)) {
+            if (player->input->isSelected && port.WasPressed(Digital::Button::START)) {
+                g_Game.vblankClearScreen = true;
                 pcm_play(g_Assets.startPcm8, PCM_VOLATILE, 6);
                 player->startSelection = true;
                 player->character.choice = CHARACTER_MACCHI;
@@ -466,8 +427,9 @@ void characterSelect_input(void)
                     if (g_Inputs[ip].isSelected) {
                         continue;
                     }
-                    if (jo_is_input_key_down(ip, JO_KEY_START))
+                    if (port.WasPressed(Digital::Button::START))
                     {
+                        g_Game.vblankClearScreen = true;
                         pcm_play(g_Assets.startPcm8, PCM_VOLATILE, 6);
                         player->input = &g_Inputs[ip];
                         player->input->id = ip;
@@ -495,21 +457,22 @@ void characterSelect_input(void)
         }
     }
     g_Players[0].pressedB = false; // button press expires
-}
-
+}            
 
 // once a character has been selected all players can select their teams
 void teamSelect_input(void)
-{
+{    
     // already pressed start, nothing to do
     if(g_TeamSelectPressedStart == true)
     {
         return;
     }
 
-    for(unsigned int i = 0; i <= g_Game.numPlayers; i++)
+    for(int8_t i = 0; i <= g_Game.numPlayers; i++)
     {
         PPLAYER player = &g_Players[i];
+        
+        Digital port(player->input->id);
         
         player->pressedB = false; // button press expires
         
@@ -520,7 +483,7 @@ void teamSelect_input(void)
                 g_Team.numTeams++;
             }
             // CHOOSE A TEAM
-            if (jo_is_input_key_down(player->input->id, JO_KEY_LEFT) && g_Game.numPlayers != ONE_PLAYER) {
+            if (port.WasPressed(Digital::Button::Left) && g_Game.numPlayers != ONE_PLAYER) {
                 pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
                 do {
                     player->teamChoice--;
@@ -538,7 +501,7 @@ void teamSelect_input(void)
 
                 return;
             }
-            if (jo_is_input_key_down(player->input->id, JO_KEY_RIGHT) && g_Game.numPlayers != ONE_PLAYER) {
+            if (port.WasPressed(Digital::Button::Right) && g_Game.numPlayers != ONE_PLAYER) {
                 pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
                 do {
                     player->teamChoice++;
@@ -558,8 +521,9 @@ void teamSelect_input(void)
             }
 
             // GO BACK
-            if (jo_is_input_key_down(player->input->id, JO_KEY_B))
+            if (port.WasPressed(Digital::Button::B))
             {
+                g_Game.vblankClearScreen = true;
                 pcm_play(g_Assets.cancelPcm8, PCM_VOLATILE, 6);
                 player->pressedB = true;
                 player->teamChoice = TEAM_COUNT;
@@ -569,16 +533,15 @@ void teamSelect_input(void)
             }
             
             // SELECT TEAM
-            if (jo_is_input_key_down(player->input->id, JO_KEY_START) ||
-                jo_is_input_key_down(player->input->id, JO_KEY_A) ||
-                jo_is_input_key_down(player->input->id, JO_KEY_C))
+            if (port.WasPressed(Digital::Button::START) ||
+                port.WasPressed(Digital::Button::A) ||
+                port.WasPressed(Digital::Button::C))
             {
+                g_Game.vblankClearScreen = true;
                 pcm_play(g_Assets.nextPcm8, PCM_VOLATILE, 6);
-                // assign_team(player->teamOldTeam, player->teamChoice);
-                // player->teamOldTeam = player->teamChoice;
                 player->teamSelected = true;
                 g_Team.isAvailable[player->teamChoice] = false;
-                g_Team.objectState[player->teamChoice] = OBJECT_STATE_ACTIVE;
+                g_Team.isActive[player->teamChoice] = true;
                 g_Team.numTeams++;
                 return;
             }
@@ -589,25 +552,28 @@ void teamSelect_input(void)
             if (playerReadyState())
             {
                 g_TeamSelectPressedStart = true;
+                SRL::Debug::PrintClearScreen();
                 return;
             }
             
             // PRESS START TO BE "READY"
-            if (jo_is_input_key_down(player->input->id, JO_KEY_START))
+            if (port.WasPressed(Digital::Button::START))
             {
                 if(!validateTeamCount() || player->isReady)
                 {
                     return;
                 }
-                 pcm_play(g_Assets.nextPcm8, PCM_VOLATILE, 7);
-                 player->isReady = true;
-                 g_Game.currentNumPlayers++;
-                 return;
+                g_Game.vblankClearScreen = true;
+                pcm_play(g_Assets.nextPcm8, PCM_VOLATILE, 7);
+                player->isReady = true;
+                g_Game.currentNumPlayers++;
+                return;
             }
             
             // GO BACK
-            if (jo_is_input_key_down(player->input->id, JO_KEY_B))
+            if (port.WasPressed(Digital::Button::B))
             {   
+                g_Game.vblankClearScreen = true;
                 pcm_play(g_Assets.cancelPcm8, PCM_VOLATILE, 6);
                 resetReadyState();
                 all_players_ready = false;
@@ -615,9 +581,7 @@ void teamSelect_input(void)
                 player->isPlaying = false;
                 player->teamSelected = false;
                 g_Team.isAvailable[player->teamChoice] = true;
-                g_Team.objectState[player->teamChoice] = OBJECT_STATE_INACTIVE;
-                // player->teamChoice = TEAM_1;
-                // player->teamOldTeam = TEAM_COUNT;
+                g_Team.isActive[player->teamChoice] = true;
                 player->pressedB = true;
                 g_Team.numTeams--;
                 if (g_Game.currentNumPlayers > 0)
@@ -628,38 +592,9 @@ void teamSelect_input(void)
     }
 }
 
-// VALIDATION CHECKS
-
-// only select available characters 
-void validateCharacters(PLAYER *player) {
-    while (!characterAvailable[player->character.choice]) {
-        player->character.choice++;
-        if (player->character.choice > TOTAL_CHARACTERS)
-        {
-            player->character.choice = CHARACTER_MACCHI;
-        }
-    }
-}
-
-void validateTeam(PLAYER *player)
-{
-    while (!g_Team.isAvailable[player->teamChoice])
-    {
-        player->teamChoice++;
-        if (player->teamChoice >= TEAM_COUNT)
-            player->teamChoice = TEAM_1;
-    }
-    if (player->teamChoice == TEAM_2 || player->teamChoice == TEAM_4) {
-        player->_sprite->flip = sprHflip;
-    }
-    else {
-        player->_sprite->flip = sprNoflip;
-    }
-}
-
 // DON'T START GAME UNTIL EVERONE IS READY
 bool playerReadyState(void) {
-     for(unsigned int i = 0; i <= g_Game.numPlayers; i++)
+     for(int8_t i = 0; i <= g_Game.numPlayers; i++)
     {
         PPLAYER player = &g_Players[i];
 
@@ -674,23 +609,12 @@ bool playerReadyState(void) {
 }
 
 void resetReadyState(void) {
-    for(unsigned int i = 0; i <= g_Game.numPlayers; i++)
+    for(int8_t i = 0; i <= g_Game.numPlayers; i++)
     {
         PPLAYER player = &g_Players[i];
         player->isReady = false;
     }
 }
-
-// // ENSURES THAT AT LEAST 1 PERSON IS ON A DIFFERENT TEAM
-// // only required if multiple people can be on 1 team
-// void assign_team(int oldTeam, int newTeam) {
-    // if (oldTeam >= TEAM_1 && oldTeam <= TEAM_4) {
-        // teamCount[oldTeam]--;
-    // }
-    // if (newTeam >= TEAM_1 && newTeam <= TEAM_4) {
-        // teamCount[newTeam]++;
-    // }
-// }
 
 // AT LEAST 2 TEAMS ARE REQUIRED
 bool validateTeamCount(void)
@@ -700,7 +624,7 @@ bool validateTeamCount(void)
         return false;
     }
     
-    for(unsigned int i = 0; i <= g_Game.numPlayers; i++)
+    for(int8_t i = 0; i <= g_Game.numPlayers; i++)
     {
         PPLAYER player = &g_Players[i];
 

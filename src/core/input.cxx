@@ -1,19 +1,23 @@
-#include <jo/jo.h>
 #include "../main.h"
 #include "input.h"
-#include "assets.h"
-INPUT g_Inputs[MAX_INPUTS] = {0};
+#include "assets.h"
+#include "math.h"
+using namespace SRL::Types;
+using namespace SRL::Math::Types;
+using namespace SRL::Input;
+
+INPUT g_Inputs[MAX_INPUTS] = {};
 void init_inputs(void) {
     PINPUT input = NULL;
-    for(unsigned int i = 0; i < COUNTOF(g_Inputs); i++)
+    for(uint8_t i = 0; i < MAX_INPUTS; i++)
     {
         input = &g_Inputs[i];
-        input->id = i;
-	input->axis_x = JO_FIXED_0;
-	input->axis_y = JO_FIXED_0;
-	input->left_trigger = JO_FIXED_0;
-	input->right_trigger = JO_FIXED_0;
-	input->sensitivity = ANALOG_SENSITIVITY;
+        input->id = 0;
+        input->axis_x = Fxp_0;
+        input->axis_y = Fxp_0;
+        input->left_trigger = Fxp_0;
+        input->right_trigger = Fxp_0;
+        input->sensitivity = ANALOG_SENSITIVITY;
         input->isSelected = false;
         input->isAnalog = false;
     }
@@ -21,64 +25,72 @@ void init_inputs(void) {
 
 void reset_inputs(void) {
     PINPUT input = NULL;
-    for(unsigned int i = 0; i < COUNTOF(g_Inputs); i++)
+    for(uint8_t i = 0; i < MAX_INPUTS; i++)
     {
         input = &g_Inputs[i];
-        input->id = i;
-	input->axis_x = JO_FIXED_0;
-	input->axis_y = JO_FIXED_0;
-	input->left_trigger = JO_FIXED_0;
-	input->right_trigger = JO_FIXED_0;
+        input->id = 0;
+        input->axis_x = Fxp_0;
+        input->axis_y = Fxp_0;
+        input->left_trigger = Fxp_0;
+        input->right_trigger = Fxp_0;
         input->isSelected = false;
         input->isAnalog = false;
     }
 }
-// check to see if a controller is plugged in and what type it is
 void check_inputs(void) {
-    PINPUT input = NULL;
-    for(unsigned int i = 0; i < COUNTOF(g_Inputs); i++)
+    for (uint8_t i = 0; i < MAX_INPUTS; i++)
     {
-        input = &g_Inputs[i];  
-        if (!jo_is_input_available(i)) {
+        PINPUT input = &g_Inputs[i];
+
+        if (!Management::IsConnected(i)) {
             continue;
         }
-        if (jo_get_input_type(i) == JoNightsPad) { // TODO: handle analog inputs for menu screens
-                input->isAnalog = true;
-            	// X and Y are centered at 128
-		char axis_x_raw = jo_get_input_axis(i, JoAxis1) - 0x80;
-		char axis_y_raw = jo_get_input_axis(i, JoAxis2) - 0x80;
 
-		// Left and right trigger start at 0 and go to 255
-		unsigned char axis_right_trigger_raw = jo_get_input_axis(i, JoAxis3);
-		unsigned char axis_left_trigger_raw  = jo_get_input_axis(i, JoAxis4);
+        input->id = i;
 
-		// Scale input to the size of the screen
-		input->axis_x = jo_fixed_mult(input->sensitivity, toFIXED(axis_x_raw));
-		input->axis_y = jo_fixed_mult(input->sensitivity, toFIXED(axis_y_raw));
-		input->left_trigger  = toFIXED(axis_left_trigger_raw);
-		input->right_trigger = toFIXED(axis_right_trigger_raw);
+        if (Management::GetType(i) == PeripheralType::Analog3dPad) {
+            input->isAnalog = true;
+            Analog port(i);
+
+            int16_t axis[4] = {
+                port.GetAxis(Analog::Axis::Axis1),
+                port.GetAxis(Analog::Axis::Axis2),
+                port.GetAxis(Analog::Axis::Axis3),
+                port.GetAxis(Analog::Axis::Axis4)
+            };
+
+            int8_t axis_x_raw = axis[0] - 0x80;
+            int8_t axis_y_raw = axis[1] - 0x80;
+
+            uint8_t axis_right_trigger_raw = axis[2];
+            uint8_t axis_left_trigger_raw  = axis[3];
+
+            input->axis_x = input->sensitivity * Fxp::Convert(axis_x_raw);
+            input->axis_y = input->sensitivity * Fxp::Convert(axis_y_raw);
+            input->left_trigger  = Fxp::Convert(axis_left_trigger_raw);
+            input->right_trigger = Fxp::Convert(axis_right_trigger_raw);
         }
         else {
             input->isAnalog = false;
         }
     }
-}
-void analogAdjustmentScreen_input(void) {
+}void analogAdjustmentScreen_input(void) {
     PINPUT input = NULL;
-    for(unsigned int i = 0; i < COUNTOF(g_Inputs); i++)
+    for(unsigned int i = 0; i < MAX_INPUTS; i++)
     {
         input = &g_Inputs[i];  
-        if (!jo_is_input_available(i)) {
+        if (!Management::IsConnected(i)) {
             continue;
         }
-        if (jo_get_input_type(i) == JoNightsPad) {
-            if (jo_is_input_key_down(i, JO_KEY_LEFT) && input->sensitivity > ANALOG_MIN) {
-                pcm_play(g_Assets.tickPcm8, PCM_PROTECTED, 6); // tick sound
-                input->sensitivity -= toFIXED(0.01);
+        if (Management::GetType(i) == PeripheralType::Analog3dPad) {
+            Analog gamepad(i);
+            if (gamepad.WasPressed(Digital::Button::Left) && input->sensitivity > ANALOG_MIN) {
+                pcm_play(g_Assets.tickPcm8, PCM_PROTECTED, 6);
+                input->sensitivity -= Fxp(0.01);
             }
-            if (jo_is_input_key_down(i, JO_KEY_RIGHT) && input->sensitivity < ANALOG_MAX) {
-                pcm_play(g_Assets.tickPcm8, PCM_PROTECTED, 6); // tick sound
-                input->sensitivity += toFIXED(0.01);
+            if (gamepad.WasPressed(Digital::Button::Right) && input->sensitivity < ANALOG_MAX) {
+                pcm_play(g_Assets.tickPcm8, PCM_PROTECTED, 6);
+                input->sensitivity += Fxp(0.01);
             }
         }
     }
@@ -86,17 +98,19 @@ void check_inputs(void) {
 void analogAdjustmentScreen_draw(int input_x, int input_y) {
     PINPUT input = NULL;
     input_x += 2;
-    for(unsigned int i = 0; i < COUNTOF(g_Inputs); i++)
+    for(unsigned int i = 0; i < MAX_INPUTS; i++)
     {
         input = &g_Inputs[i];  
-        if (!jo_is_input_available(i)) {
+        if (!Management::IsConnected(i)) {
             continue;
         }
-        if (jo_get_input_type(i) == JoNightsPad) {
-            jo_nbg0_printf(input_x, input_y, "INPUT %i: - %2i +", i+1, toINT(jo_fixed_mult(input->sensitivity, FIXED_100)));
+        if (Management::GetType(i) == PeripheralType::Analog3dPad) {
+            // when srl_string is fixed, this can be %f, or replaced with a graphic
+            Fxp sensitivity = input->sensitivity * Fxp_100;
+            SRL::Debug::Print(input_x, input_y, "Input %i: - %i + ", i+1, sensitivity.As<uint8_t>());
         }
         else {
-            jo_nbg0_printf(input_x, input_y, "INPUT %i: DIGITAL", i+1);
+            SRL::Debug::Print(input_x, input_y, "Input %i: Digital", i+1);
         }
         input_y += 1;
     }

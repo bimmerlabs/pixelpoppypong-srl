@@ -1,13 +1,17 @@
-#include <jo/jo.h>
+#include <srl.hpp>
 #include "items.h"
 #include "../main.h"
+#include "../core/screen_transition.h"
 #include "../game/gameplay.h"
-#include "../palettefx/sprite_colors.h"
+#include "../vdp2/sprite_colors.h"
+
+using namespace SRL::Types;
+using namespace SRL::Math::Types;
 
 static bool animate_bomb = false;
 static bool explode_bomb = false;
 static bool bomb_heating = false;
-static Uint16 bomb_timer = 0;
+static uint16_t bomb_timer = 0;
 static float item_scale = 0.1;
 static float item_velocity = 0.0;
 
@@ -15,7 +19,7 @@ void animateBombColor(bool *_do_update) {
     if (!animate_bomb) {
         return;
     }
-    if (JO_MOD_POW2(g_Game.frame, 4) == 0) {
+    if (g_Game.frame % 4 == 0) {
         if (bomb_heating) {
             hsl_incSprites[HSL_BOMB].h = 180;
             bomb_heating = false;
@@ -30,6 +34,7 @@ void animateBombColor(bool *_do_update) {
 
 void setItemPositions(void) {
     if (g_GameOptions.debug_mode || !g_GameOptions.enableItems) {
+        // TODO: make this an option in the menu (need a debug menu)
         // g_item.id = GAME_ITEM_BOMB;
         // g_item.id = GAME_ITEM_FISH;
         // g_item.id = GAME_ITEM_SHROOM;
@@ -38,7 +43,7 @@ void setItemPositions(void) {
         g_item.id = GAME_ITEM_MAX;
     }
     else {
-        int item = jo_random(1000000);
+        int item = rnd.GetNumber(0, 1000000);
         switch(g_Game.gameDifficulty)
         {
             case GAME_DIFFICULTY_EASY:
@@ -146,6 +151,8 @@ void setItemPositions(void) {
     set_spr_scale(g_item._sprite, item_scale, item_scale);
     g_item._sprite->isColliding = false;
     g_item.isActive = false;
+    
+    // SRL::Debug::Print(2, 13, "g_item.id:%3d", g_item.id);
 }
 
 void drawGameItems(void) {
@@ -191,7 +198,7 @@ void drawGameItems(void) {
                 }
             }
             looped_animation_pow(&shroom_item, 4);
-            hsl_incSprites[HSL_SHROOM].h += 2; // TODO: replace with one just for the mushroom?
+            hsl_incSprites[HSL_SHROOM].h += 2;
             do_update_shroom = true;
             break;
         case GAME_ITEM_GARF:
@@ -217,6 +224,10 @@ void drawGameItems(void) {
             g_item.isActive = false;
             break;
     }
+    
+    // SRL::Debug::Print(2, 14, "isVisible:%d", g_item._sprite->visible);
+    // SRL::Debug::Print(2, 15, "isActive:%d", g_item.isActive);
+    
     if (g_item._sprite->visible) {
         my_sprite_draw(g_item._sprite);
     }
@@ -226,6 +237,7 @@ void handlePlayerItemCollision(PPLAYER player) {
     g_item.isActive = false;
     switch (g_item.id) {
         case GAME_ITEM_BOMB:
+        {
             explode_bomb = true;
             bomb_heating = false;
             animate_bomb = false;
@@ -236,7 +248,9 @@ void handlePlayerItemCollision(PPLAYER player) {
             }
             g_GameOptions.bombTouchCounter++;
             break;
+        }
         case GAME_ITEM_FISH:
+        {
             pcm_play(g_Assets.bloopPcm8, PCM_PROTECTED, 7);
             // int missing = player->totalLives - player->numLives;
             if ((player->totalLives - player->numLives) > 1) {
@@ -252,9 +266,11 @@ void handlePlayerItemCollision(PPLAYER player) {
             player->score.points += 10000;
             g_GameOptions.fishTouchCounter++;
             break;
+        }
         case GAME_ITEM_SHROOM:
+        {
             shroom_item.visible = false;
-            Uint16 shroom_angle = hslSprites.color[p_rangeShroom.lower].h;
+            int16_t shroom_angle = hslSprites[p_rangeShroom.lower].h;
             g_item.timer[player->playerID] = SHROOM_TIMER;
             // affect the player depending on the color of the shroom
             if ((shroom_angle > 0 && shroom_angle <= 90) || (shroom_angle > 270 && shroom_angle <= 360)) {
@@ -273,7 +289,9 @@ void handlePlayerItemCollision(PPLAYER player) {
             }
             player->score.points += 50000;
             break;
+        }
         case GAME_ITEM_GARF:
+        {
             garfield_item.visible = false;
             // "i hate mondays" etc
             if (touchedBy[player->playerID].touchCount == 0) {
@@ -296,7 +314,9 @@ void handlePlayerItemCollision(PPLAYER player) {
                 pcm_play(g_Assets.chain5Pcm8, PCM_PROTECTED, 7);
             }
             break;
+        }
         case GAME_ITEM_CRAIG:
+        {
             craig_item.visible = false;
             // "nice shot"
             player->score.points += 100000;
@@ -308,9 +328,12 @@ void handlePlayerItemCollision(PPLAYER player) {
                 pcm_play(g_Assets.stadlerPcm8, PCM_PROTECTED, 7);
             }
             break;
+        }
         default:
+        {
             g_item._sprite->visible = false;
             break;
+        }
     }
 }
 

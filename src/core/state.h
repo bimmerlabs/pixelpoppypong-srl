@@ -3,8 +3,6 @@
 #define TRANSITION_TIMER (3 * 60)
 #define STATE_FADE_TIMER (1 * 60)
 
-extern unsigned int g_AttractScreenState;
-
 // each game state has it's own input/update/draw routines
 typedef enum
 {
@@ -32,19 +30,15 @@ typedef enum
 
 typedef struct
 {
-    unsigned char state[ATTRACT_SCREEN_MAX];
-    unsigned char id;
+    uint8_t state[ATTRACT_SCREEN_MAX];
+    uint8_t id;
 } AttractScreenState;
 
 extern AttractScreenState g_AttractScreen;
 
-// typedef enum
-// {
-    // ATTRACT_SCREEN_1 = GAME_STATE_DEMO_LOOP,
-    // ATTRACT_SCREEN_2 = GAME_STATE_CREDITS,
-    // ATTRACT_SCREEN_3 = GAME_STATE_HIGHSCORES,
-    // ATTRACT_SCREEN_MAX = ATTRACT_SCREEN_3+1,
-// } ATTRACT_SCREEN_STATE;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void changeState(GAME_STATE newState);
 
@@ -53,3 +47,7 @@ void transitionState(GAME_STATE newState);
 void game_state_update(void);
 
 void attract_screen_state(void);
+
+#ifdef __cplusplus
+}
+#endif

@@ -7,10 +7,10 @@
 extern PLAYER g_Players[MAX_PLAYERS];
 
 void playerAI(Sprite *ball) {    
-    for(unsigned int i = 0; i <= g_Game.numPlayers; i++)
+    for(int8_t i = 0; i <= g_Game.numPlayers; i++)
     {
         PPLAYER player = &g_Players[i];
-        if(player->objectState == OBJECT_STATE_INACTIVE || player->isAI == false  || player->subState == PLAYER_STATE_DEAD)
+        if(!player->isActivated || player->isAI == false  || player->isDead)
         {
             continue;
         }
@@ -19,19 +19,19 @@ void playerAI(Sprite *ball) {
         }
         else if (player->onLeftSide == true) {
             // Check if the ball is moving towards player 2's goal
-            if (ball->vel.x < FIXED_0) {
+            if (ball->vel.x < Fxp_0) {
 
                 // Check if the ball is close enough to start tracking
-                if (ball->pos.x <= toFIXED(128)) {
+                if (ball->pos.x <= Fxp(128)) {
                     // animate_paw1 = true;
                 }
                 if (ball->pos.x <= SCREEN_MIDDLE + FIELD_THRESHOLD) {
                     // animate_paw1 = true;
                     // Move the paw towards the ball's y position
-                    FIXED y_diff = ball->pos.y - player->_sprite->pos.y;
+                    Fxp y_diff = ball->pos.y - player->_sprite->pos.y;
 
                     // Gradual movement
-                    player->curPos.dy += jo_fixed_mult(player->acceleration, y_diff);
+                    player->curPos.dy += player->acceleration * y_diff;
                 }
             }
             else {
@@ -40,19 +40,19 @@ void playerAI(Sprite *ball) {
         }
         else {
             // Check if the ball is moving towards player 2's goal
-            if (ball->vel.x > FIXED_0) {
+            if (ball->vel.x > Fxp_0) {
 
                 // Check if the ball is close enough to start tracking
-                if (ball->pos.x >= -toFIXED(128)) {
+                if (ball->pos.x >= -Fxp(128)) {
                     // animate_paw1 = true;
                 }
                 if (ball->pos.x >= SCREEN_MIDDLE - FIELD_THRESHOLD) {
                     // animate_paw1 = true;
                     // Move the paw towards the ball's y position
-                    FIXED y_diff = ball->pos.y - player->_sprite->pos.y;
+                    Fxp y_diff = ball->pos.y - player->_sprite->pos.y;
 
                     // Gradual movement
-                    player->curPos.dy += jo_fixed_mult(player->acceleration, y_diff);
+                    player->curPos.dy += player->acceleration * y_diff;
                 }
             } 
             else {
@@ -75,41 +75,41 @@ void playerAI(Sprite *ball) {
 
 void centerAiPlayer(PPLAYER player)
 {
-    FIXED middle;
-    PGOAL _goal = &g_Goal[player->playerID];
+    Fxp middle;
+    PGOAL goal = &g_Goal[player->playerID];
     switch(player->teamChoice)
     {
         case TEAM_1: {
             middle = -AI_GOAL_CENTER;
-            if (_goal->drawSingleGoal) {
+            if (goal->drawSingleGoal) {
                 middle = SCREEN_MIDDLE;
             }
             break;
         }
         case TEAM_2: {
             middle = -AI_GOAL_CENTER;
-            if (_goal->drawSingleGoal) {
+            if (goal->drawSingleGoal) {
                 middle = SCREEN_MIDDLE;
             }
             break;
         }
         default: {
             middle = AI_GOAL_CENTER;
-            if (_goal->drawSingleGoal) {
+            if (goal->drawSingleGoal) {
                 middle = SCREEN_MIDDLE;
             }
             break;
         }
     }
-    FIXED center_diff = middle - player->_sprite->pos.y;
+    Fxp center_diff = middle - player->_sprite->pos.y;
     if (center_diff > player->goalCenterThresholdMax || center_diff < -player->goalCenterThresholdMax) {
-        player->curPos.dy += jo_fixed_mult(MEDIUM_MOVEMENT_FACTOR, center_diff);
+        player->curPos.dy += MEDIUM_MOVEMENT_FACTOR * center_diff;
     }
     else if (center_diff > player->goalCenterThresholdMin || center_diff < -player->goalCenterThresholdMin) {
-        player->curPos.dy -= jo_fixed_mult(SLOW_MOVEMENT_FACTOR, center_diff);
+        player->curPos.dy -= SLOW_MOVEMENT_FACTOR * center_diff;
     }
     else {
-        player->curPos.dy = FIXED_0;
+        player->curPos.dy = Fxp_0;
     }
     player->_sprite->pos.y += player->curPos.dy;
     player->_sprite->vel.y += player->curPos.dy;
@@ -139,15 +139,15 @@ void boundAiPlayer(PPLAYER player)
         }
     }
 
-    FIXED bottom = SCREEN_BOTTOM;
-    FIXED top = SCREEN_MIDDLE;
-    PGOAL _goal = &g_Goal[player->playerID];
+    Fxp bottom = SCREEN_BOTTOM;
+    Fxp top = SCREEN_MIDDLE;
+    PGOAL goal = &g_Goal[player->playerID];
     switch(player->teamChoice)
     {
         case TEAM_1: {
             bottom = SCREEN_MIDDLE;
             top = SCREEN_TOP;
-            if (_goal->drawSingleGoal) {
+            if (goal->drawSingleGoal) {
                 bottom = SCREEN_BOTTOM;
             }
             break;
@@ -155,13 +155,13 @@ void boundAiPlayer(PPLAYER player)
         case TEAM_2: {
             bottom = SCREEN_MIDDLE;
             top = SCREEN_TOP;
-            if (_goal->drawSingleGoal) {
+            if (goal->drawSingleGoal) {
                 bottom = SCREEN_BOTTOM;
             }
             break;
         }
         default: {
-            if (_goal->drawSingleGoal) {
+            if (goal->drawSingleGoal) {
                 top = SCREEN_TOP;
                 bottom = SCREEN_BOTTOM;
             }
@@ -171,12 +171,12 @@ void boundAiPlayer(PPLAYER player)
     if(player->_sprite->pos.y > bottom)
     {
         player->_sprite->pos.y = bottom;
-        player->curPos.dy = FIXED_0;
+        player->curPos.dy = Fxp_0;
     }
 
     if(player->_sprite->pos.y < top)
     {
         player->_sprite->pos.y = top;
-        player->curPos.dy = FIXED_0;
+        player->curPos.dy = Fxp_0;
     }
 }

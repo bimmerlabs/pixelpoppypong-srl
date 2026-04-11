@@ -1,32 +1,34 @@
-#include <jo/jo.h>
 #include "audio.h"
 #include "../main.h"
 
 AudioSettings g_Audio = {
-    .goalScoredTrack = GOAL_SCORED_TRACK_1,
+    .currentTrack = GOAL_SCORED_TRACK_1,
     .cdIsPlaying = false,
+    .soundTest = false,
     .masterVolume = MAX_VOLUME,
 };
 
-void playCDTrack(int track, bool repeat)
+void playCDTrack(uint16_t track, bool repeat)
 {
-    CDDA_PlaySingle(track, repeat);
+    CDDA_Play(track, track, repeat);
+    // SRL::Sound::Cdda::PlaySingle(track, repeat);
+    // CDDA_PlaySingle(track, repeat);
     g_Audio.cdIsPlaying = true;
 }
 
-void reset_audio(int new_volume) {
+void reset_audio(uint8_t new_volume) {
     if (g_Audio.cdIsPlaying) {
-        CDDA_Stop();
-        g_Audio.masterVolume = volume_shift(new_volume);
+        // SRL::Sound::Cdda::StopPause();
+        // SRL::Sound::Cdda::SetVolume(volume_shift(g_Audio.masterVolume));
         CDDA_SetVolume(g_Audio.masterVolume);
         g_Audio.cdIsPlaying = false;
     }
 }
 
-void nextGoalScoredTrack(void)
+void nextcurrentTrack(void)
 {
-    g_Audio.goalScoredTrack++;
-    if (g_Audio.goalScoredTrack == GOAL_SCORED_TRACK_MAX) {
-        g_Audio.goalScoredTrack = GOAL1_TRACK;
+    g_Audio.currentTrack++;
+    if (g_Audio.currentTrack == GOAL_SCORED_TRACK_MAX) {
+        g_Audio.currentTrack = GOAL1_TRACK;
     }
 }

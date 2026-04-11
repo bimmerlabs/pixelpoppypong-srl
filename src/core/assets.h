@@ -1,9 +1,12 @@
 #pragma once
 
-#include <jo/jo.h>
+#include <srl.hpp>
 #include "../main.h"
 #include "sprites.h"
 #include "pcmsys.h"
+#include "../vdp2/palette.h"
+#include "../vdp2/nbg2.h"
+#include <tmsf.hpp>
 
 #define NUM_PAW_SPRITES 5
 #define NUM_POPPY_SPRITES 7
@@ -29,6 +32,55 @@
 #define NUM_FISH_SPRITES 4
 #define NUM_SHROOM_SPRITES 8
 
+using namespace SRL::Types;
+using namespace SRL::Math::Types;
+
+// tmsf format loads in alphabetical order
+typedef enum
+{
+    CORE_SPRITE_CURSOR = 0,
+    CORE_SPRITE_MENUBG,
+    CORE_SPRITE_POPPY,
+    CORE_SPRITE_PUMPKIN,
+    CORE_SPRITE_MAX,
+} CORE_SPRITES;
+
+typedef enum
+{
+    TITLE_SPRITE_ARROWS = 0,
+    TITLE_SPRITE_LOGO,
+    TITLE_SPRITE_PPPLOGO,
+    TITLE_SPRITE_TMENU,
+    TITLE_SPRITE_MAX,
+} TITLE_SPRITES;
+
+typedef enum
+{
+    TEAM_SPRITE_METER = 0,
+    TEAM_SPRITE_PAWS,
+    TEAM_SPRITE_PORTRAIT,
+    TEAM_SPRITE_SELECT1,
+    TEAM_SPRITE_SELECT2,
+    TEAM_SPRITE_MAX,
+} TEAM_SPRITES;
+
+typedef enum
+{
+    GAME_SPRITE_BOMB = 0,
+    GAME_SPRITE_CORN, // CANDY CORN (HEARTS)
+    GAME_SPRITE_CRAIG,
+    GAME_SPRITE_EXPLOD,
+    GAME_SPRITE_FISH,
+    GAME_SPRITE_GARF,
+    GAME_SPRITE_GOAL,
+    GAME_SPRITE_HEARTS,
+    GAME_SPRITE_TIMER,
+    GAME_SPRITE_SHIELD,
+    GAME_SPRITE_SHROOM,
+    GAME_SPRITE_X,
+    GAME_SPRITE_MAX,
+} GAME_SPRITES;
+
 typedef enum _MEOW
 {
     MEOW1 = 0,
@@ -40,44 +92,19 @@ typedef enum _MEOW
     MEOW7,
     MEOW8,
     MEOW9,
+    MEOW_MAX,
 } MEOW;
 
 // holds sprite and audio assets
 typedef struct _assets
 {
-    // title screen
-    int title;
     
-    int font[NUM_FONT_CHARS]; // VDP1 font
+    bool coreAssetsLoaded;
+    bool titleAssetsLoaded;
+    bool characterAssetsLoaded;    
+    bool NameEntryAssetsLoaded;
+    bool GameplayAssetsLoaded;
     
-    int menu[NUM_TITLE_MENU_TEXT];
-    int arrow[NUM_TITLE_MENU_ARROWS];
-    
-    int timer[NUM_TIMER_SPRITES];
-    int heart[NUM_HEART_SPRITES];
-    
-    int shield[NUM_SHIELD_SPRITES];
-    // backgrounds for menus, player select, etc
-    int menubg[NUM_MENUBG_SPRITES];
-
-    // team selection
-    int characters[NUM_CHARACTER_SPRITES];
-    int dead[NUM_X_SPRITES];
-    int pcursor[2][NUM_PCURSOR_SPRITES];
-    
-    // players sprites
-    int paw[MAX_CHARACTERS][NUM_PAW_SPRITES];
-    
-    int pixel_poppy[NUM_POPPY_SPRITES];
-    
-    int goal[MAX_PLAYERS][NUM_GOAL_SPRITES];
-    
-    // items
-    int bomb[NUM_BOMB_SPRITES];
-    int explosion[NUM_EXPLOD_SPRITES];
-    int fishtank[NUM_FISH_SPRITES];
-    int shroom[NUM_SHROOM_SPRITES];
-
     // audio assets
     // CORE / MENU SOUNDS
     short cancelPcm8; // b button
@@ -107,41 +134,54 @@ typedef struct _assets
     short countdownPcm8;
     short winPcm8;
     short bumpPcm16;
-    bool GameplaySoundsLoaded;
     
     // CAT SOUNDS
     short meowPcm8[9];
     short meowID;
+    
+    bool GameplaySoundsLoaded;
     
     // NAME ENTRY SOUNDS
     short name_ketPcm8;
     short name_curPcm8;
     short name_canPcm8;
     short name_brkPcm8;
+    short load_okPcm8;
     bool NameEntrySoundsLoaded;
 
 } ASSETS, *PASSETS;
 
 extern ASSETS g_Assets;
 
-// create sprite / animation object
-void loadSprite(Sprite *sprite, int *asset, const char *file, unsigned int cols, unsigned int rows, int w, int h, unsigned char anim_id);
+extern TilemapObject* coreTiles;
+extern TilemapObject* titleTiles;
+extern TilemapObject* characterTiles;
+extern TilemapObject* gameplayTiles;
+extern TilemapObject* fontTiles;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // assets
-void loadCommonAssets(void);
+void loadCoreAssets(void);
 void loadCoreSoundAssets(void);
 
-void loadPPPLogoAssets(void);
-void unloadPPPLogoAssets(void);
-
-void loadNameEntryAssets(void);
-void unloadNameEntryAssets(void);
-bool loadNameEntrySoundAssets(void);
-
 void loadTitleScreenAssets(void);
-void unloadTitleScreenAssets(void);
 
 void loadCharacterAssets(void);
 void loadGameAssets(void);
-void unloadGameAssets(void);
 bool loadGameplaySoundAssets(void);
+
+void loadNameEntryAssets(void);
+bool loadNameEntrySoundAssets(void);
+
+void unloadTitleAssets(void);
+void unloadGameAssets(void);
+void unloadNameEntryAssets(void);
+
+void switchCoreAssets(void);
+
+#ifdef __cplusplus
+}
+#endif
