@@ -1,59 +1,68 @@
 #pragma once
+#include <srl.hpp>
 #include "../objects/player.h"
+
+using namespace SRL::Types;
+using namespace SRL::Math::Types;
 
 #define TEAM_SELECT_TIMER (1 * 60)
 
 // UI locations
-#define PORTRAIT_X -120
-#define PORTRAIT_Y -166
+#define PORTRAIT_X Fxp(-120)
+#define PORTRAIT_Y Fxp(-166)
+#define PORTRAIT_DEPTH Fxp(90) // why is this Fxp?
+
+#define PAW_X Fxp(247)
+
 #define CHARACTER_TEXT_Y 2
-#define PAW_X 247
 #define TEAM_TEXT_X1 33
 #define TEAM_TEXT_X2 35
 #define TEAM_TEXT_Y 4
-#define METER_TEXT_X 18
-#define METER_TEXT_Y2 2
-#define METER_TEXT_Y3 4
-#define METER_X -40
-#define METER_Y1 34
-#define METER_Y2 3
-#define METER_Y3 29
-#define METER_HEIGHT 10
-#define METER_WIDTH 100
+// #define METER_TEXT_X 18
+// #define METER_TEXT_Y2 2
+// #define METER_TEXT_Y3 4
 
-#define PLAYER_OFFSET_Y 112
+// #define METER_X  Fxp(-40)
+// #define METER_Y1 Fxp(34)
+// #define METER_Y2 Fxp(3)
+// #define METER_Y3 Fxp(29)
+// #define METER_HEIGHT Fxp(0.9)
+// #define METER_WIDTH Fxp(25)
+
+#define PLAYER_OFFSET_Y Fxp(112)
 #define PLAYER_TEXT_OFFSET_Y 7
-#define PLAYER_BG_DEPTH 95
-#define PLAYER_BG_X1 toFIXED(88)
-#define PLAYER_BG_X2 toFIXED(208)
-#define PLAYER_BG_Y toFIXED(50)
+#define PLAYER_BG_DEPTH Fxp(95)
+#define PLAYER_BG_X1 Fxp(88)
+#define PLAYER_BG_X2 Fxp(208)
+#define PLAYER_BG_Y Fxp(50)
 
-#define MENU_BG2_X -120
-#define MENU_BG2_WIDTH 56
-#define MENU_BG2_HEIGHT 240
-#define MENU_BG2_DEPTH 95
-#define MENU_BG1_DEPTH 92
+#define MENU_BG2_X Fxp(-120)
+#define MENU_BG2_WIDTH Fxp(56)
+#define MENU_BG2_HEIGHT Fxp(240)
+#define MENU_BG2_DEPTH Fxp(95)
+#define MENU_BG1_DEPTH Fxp(92)
 
-#define PORTRAIT_DEPTH 90
-#define CURSOR_DEPTH 80
+#define CURSOR_DEPTH Fxp(80)
 
-extern const char *characterNames[];
 extern int g_StartGameFrames; // for debugging
 extern bool g_TeamSelectPressedStart; // for debugging
 extern bool all_players_ready; // for debugging
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void resetTeams(void);
-void initUnlockedCharacters(void);
-void initAvailableCharacters(void);
 void drawCharacterSelectGrid(void);  // re-organize these to be in order
 void characterSelect_input(void);
 void teamSelect_init(void);
-// void assign_team(int oldTeam, int newTeam);
 void teamSelect_input(void);
-void validateCharacters(PLAYER *player);
-void validateTeam(PLAYER *player);
 bool playerReadyState(void);
 void resetReadyState(void);
 bool validateTeamCount(void);
 void teamSelect_update(void);
 void teamSelect_draw(void);
+
+#ifdef __cplusplus
+}
+#endif

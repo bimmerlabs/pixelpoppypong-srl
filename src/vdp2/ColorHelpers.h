@@ -1,12 +1,14 @@
-#ifndef OBJ_COLORHELPERS_H
-#define OBJ_COLORHELPERS_H
+#pragma once
 
 #include "palettetools.h"
 
-// Extra Entity Functions
-Uint16 ColorHelpers_PackRGB(ObjectColor *color);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-void ColorHelpers_RGBToHSL(ObjectColor *color, ObjectHSL *hsl);
-void ColorHelpers_HSLToRGB(ObjectHSL *hsl, ObjectColor *color);
+void ColorHelpers_RGBToHSL(VectorRGB *color, VectorHSL *hsl);
+void ColorHelpers_HSLToRGB(VectorHSL *hsl, VectorRGB *color);
 
-#endif //! OBJ_COLORHELPERS_H
+#ifdef __cplusplus
+}
+#endif

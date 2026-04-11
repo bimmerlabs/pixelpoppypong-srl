@@ -1,19 +1,22 @@
 #pragma once
+#include <srl.hpp>
+
+using namespace SRL::Input;
 
 #define MAX_INPUTS (12)
-#define ANALOG_SENSITIVITY toFIXED(0.12)
-#define ANALOG_MIN toFIXED(0.02)
-#define ANALOG_MAX toFIXED(0.2)
+#define ANALOG_SENSITIVITY Fxp(0.12)
+#define ANALOG_MIN Fxp(0.02)
+#define ANALOG_MAX Fxp(0.2)
 
 // Saturn inputs
 typedef struct _INPUT
 {
-	Uint8 id;
-	FIXED axis_x;
-	FIXED axis_y;
-	FIXED left_trigger;
-	FIXED right_trigger;
-	FIXED sensitivity;
+	uint8_t id;
+	Fxp axis_x;
+	Fxp axis_y;
+	Fxp left_trigger;
+	Fxp right_trigger;
+	Fxp sensitivity;
 	bool isAnalog;
 	bool isSelected;
 } INPUT, *PINPUT;

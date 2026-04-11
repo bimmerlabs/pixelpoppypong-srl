@@ -1,47 +1,43 @@
 #include "../main.h"
 #include "state.h"
-#include "backup.h"
 #include "assets.h"
 #include "screen_transition.h"
-#include "audio.h"
+#include "../core/input.h" // this was included somewhere else (gameplay?)
 #include "../game/gameplay.h"
 #include "../game/ppp_logo.h"
 #include "../game/title_screen.h"
+#include "../game/character_select.h"
 #include "../game/team_select.h"
 #include "../game/credits.h"
 #include "../game/highscores.h"
 #include "../game/name_entry.h"
 #include "../objects/player.h"
-#include "../palettefx/nbg1.h"
+#include "../vdp2/nbg1.h"
 
-Uint16 state_fade_timer = STATE_FADE_TIMER;
-
+uint16_t state_fade_timer = STATE_FADE_TIMER;
 
 AttractScreenState g_AttractScreen = {
     .state = { ATTRACT_SCREEN_1, ATTRACT_SCREEN_2, ATTRACT_SCREEN_3, ATTRACT_SCREEN_4 },
     .id = 0,
 };
 
-// unsigned int g_AttractScreenState = ATTRACT_SCREEN_1;
-
 // transistions between game states
 void changeState(GAME_STATE newState)
 {
-    
     switch(newState)
     {
         case GAME_STATE_PPP_LOGO:
-        {        
+        {
+            SRL::Debug::PrintClearScreen(); // moved from vblank
             pppLogo_init();
-            g_Audio.masterVolume = MAX_VOLUME;
-            CDDA_SetVolume(volume_shift(g_Audio.masterVolume));
+            reset_audio(MAX_VOLUME);
             playCDTrack(LOGO_TRACK, false);
             g_Game.gameState = GAME_STATE_PPP_LOGO;
-            jo_core_tv_on();
             break;
         }
         case GAME_STATE_TITLE_SCREEN:
         {
+            SRL::Debug::PrintClearScreen();
             g_Game.nextState = GAME_STATE_TITLE_SCREEN;
             titleScreen_init();
             reset_audio(HALF_VOLUME);
@@ -51,6 +47,7 @@ void changeState(GAME_STATE newState)
         }
         case GAME_STATE_TITLE_MENU:
         {
+            SRL::Debug::PrintClearScreen();
             titleMenu_init();
             g_Game.nextState = GAME_STATE_TITLE_MENU;
             if (g_Game.gameState == GAME_STATE_GAMEPLAY || g_Game.gameState == GAME_STATE_TEAM_SELECT || g_Game.gameState == GAME_STATE_CHARACTER_SELECT) {
@@ -62,12 +59,14 @@ void changeState(GAME_STATE newState)
         }
         case GAME_STATE_TITLE_OPTIONS:
         {
+            SRL::Debug::PrintClearScreen();
             optionsScreen_init();
             g_Game.gameState = GAME_STATE_TITLE_OPTIONS;
             break;
         }
         case GAME_STATE_DEMO_LOOP:
         {
+            SRL::Debug::PrintClearScreen();
             g_Game.nextState = GAME_STATE_DEMO_LOOP;
             demo_init();
             gameplay_init();
@@ -76,28 +75,31 @@ void changeState(GAME_STATE newState)
         }
         // case GAME_STATE_CHARACTER_PORTRAITS:
         // {
+            // SRL::Debug::PrintClearScreen();
             // changeState(GAME_STATE_UNINITIALIZED);
             // break;
         // }
         case GAME_STATE_TEAM_SELECT:
         {
+            SRL::Debug::PrintClearScreen();
             reset_audio(MAX_VOLUME);
             teamSelect_init();
             playCDTrack(SELECT_TRACK, true);
             g_Game.gameState = GAME_STATE_TEAM_SELECT;
             break;
         }
-        // TODO: implement
-        // case GAME_STATE_CHARACTER_SELECT:
-        // {
-            // reset_audio(HALF_VOLUME);
-            // characterSelectInit();
-            // playCDTrack(SELECT_TRACK, true);
-            // g_Game.gameState = GAME_STATE_CHARACTER_SELECT;
-            // break;
-        // }
+        case GAME_STATE_CHARACTER_SELECT:
+        {
+            SRL::Debug::PrintClearScreen();
+            reset_audio(MAX_VOLUME);
+            characterSelectInit();
+            playCDTrack(SELECT_TRACK, true);
+            g_Game.gameState = GAME_STATE_CHARACTER_SELECT;
+            break;
+        }
         case GAME_STATE_GAMEPLAY:
         {
+            SRL::Debug::PrintClearScreen();
             g_Game.nextState = GAME_STATE_GAMEPLAY;
             gameplay_init();
             g_Game.gameState = g_Game.nextState;
@@ -105,6 +107,7 @@ void changeState(GAME_STATE newState)
         }
         case GAME_STATE_NAME_ENTRY:
         {
+            SRL::Debug::PrintClearScreen();
             g_Game.nextState = GAME_STATE_NAME_ENTRY;
             nameEntryInit();
             g_Game.gameState = g_Game.nextState;
@@ -112,6 +115,7 @@ void changeState(GAME_STATE newState)
         }
         case GAME_STATE_CREDITS:
         {
+            SRL::Debug::PrintClearScreen();
             g_Game.nextState = GAME_STATE_CREDITS;
             init_credits();
             g_Game.gameState = g_Game.nextState;
@@ -119,6 +123,7 @@ void changeState(GAME_STATE newState)
         }
         case GAME_STATE_HIGHSCORES:
         {
+            SRL::Debug::PrintClearScreen();
             g_Game.nextState = GAME_STATE_HIGHSCORES;
             init_scores();
             g_Game.gameState = g_Game.nextState;
@@ -126,21 +131,26 @@ void changeState(GAME_STATE newState)
         }
         case GAME_STATE_UNINITIALIZED:
         {
-            jo_core_tv_off();
+            SRL::TV::TVOff();
+            SRL::Debug::PrintClearScreen();
+            SRL::VDP2::NBG2::ScrollDisable();
+            SRL::VDP2::NBG3::ScrollDisable();
             initGame();
-            reset_sprites();
-            do_update_All = true;
-            updateAllColors();
-            updateAllPalette();
+            
+            // this is currently broken (???)
+            // reset_sprites();
+            init_game_palette();
+            // do_update_All = true;
+            // updateAllColors();
+            // updateAllPalette();
+            
             update_nbg1_time_slot();
-            g_Game.isLoading = true;
-            loadCommonAssets();
             reset_audio(MAX_VOLUME);
             initTransitionStruct();
             reset_inputs();
             slColorCalcOn(OFF);
-            slColRateNbg0 ( TRANSPARENCY_MIN );
-            slScrPosNbg0(FIXED_0, FIXED_0);
+            slColRateNbg0(TRANSPARENCY_MIN);
+            slScrPosNbg0(toFIXED(0), toFIXED(0)); // ERROR: Fxp to FIXED conversion
             g_Game.nextState = GAME_STATE_PPP_LOGO;
             changeState(g_Game.nextState);
             break;
@@ -208,12 +218,4 @@ void attract_screen_state(void)
         g_AttractScreen.id = 0; // this will be 0 when demo mode is enabled
     }
 }
-
-// void attract_screen_state(void)
-// {
-    // g_AttractScreenState++;
-    // if (g_AttractScreenState == ATTRACT_SCREEN_MAX) {
-        // g_AttractScreenState = ATTRACT_SCREEN_1;
-    // }
-// }
 

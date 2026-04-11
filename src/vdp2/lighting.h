@@ -1,36 +1,30 @@
-#ifndef LIGHTING_H
-#define LIGHTING_H
+#pragma once
 
-#include <jo/jo.h>
+#include <srl.hpp>
 #include "palettetools.h"
-#include "../core/math.h"
+#include "../core/math.h" // can we use SRL math instead?
 
-#define ARC_CENTER_X 127
-#define ARC_CENTER_Z 255
-#define ARC_RADIUS_XY_SQ 16129
-#define ARC_RADIUS_Z_SQ 65025
-
-#define FIXED_SQ(x) ((x) * (x) / JO_FIXED_1)
+using namespace SRL::Types;
+using namespace SRL::Math::Types;
 
 typedef struct {
-    FIXED  x; // east / west
-    FIXED  y; // north / south
-    FIXED  z; // up / down
-    Uint8  ambient;
-    Sint8  intensity;
-    Uint16 hue;
+    Fxp  x; // east / west
+    Fxp  y; // north / south
+    Fxp  z; // up / down
+    unsigned char  ambient;
+    char  intensity;
+    uint16_t hue;
 } LightSource;
 
 extern LightSource light;
 
-void light_position_arc_fixed(LightSource *_light); // experimental
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-void light_position_ellipse_fixed(LightSource *_light); // experimental
-void light_position_ellipse_float(LightSource *_light);
+void InitNormal2d(VectorHSL *hslPal, uint16_t* basePalette, LightSource *_light, PaletteRange *range, ImageAttr *img_cfg);
+void NormalMapLighting2d(VectorHSL *hslPal, uint16_t* basePalette, SRL::Types::HighColor *colorBuffer, LightSource *_light, PaletteRange *range, HSLTracker *hsl_increment);
 
-void InitNormal2d(HslPalette *hslPal, RgbPalette *rgbPal, LightSource *_light, PaletteRange *range, ImageAttr *attr);
-void NormalMapLighting2d(HslPalette *hslPal, RgbPalette *rgbPal, RgbBuff *bufferPal, LightSource *_light, PaletteRange *range, GlobalHSL *hsl_increment);
-void InitNormal3d(HslPalette *hslPal, RgbPalette *rgbPal, LightSource *_light, PaletteRange *range, ImageAttr *attr);
-void NormalMapLighting3d(HslPalette *hslPal, RgbPalette *rgbPal, RgbBuff *bufferPal, LightSource *_light, PaletteRange *range, GlobalHSL *hsl_increment);
-
-#endif // LIGHTING_H
+#ifdef __cplusplus
+}
+#endif

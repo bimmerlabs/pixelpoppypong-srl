@@ -3,17 +3,24 @@
 #include "pcmsys.h"
 
 // CD sound tracks
-#define LOGO_TRACK                2 // TRACK 01
-#define TITLE_TRACK               3
-#define SELECT_TRACK              4
-#define BEGIN_GAME_TRACK          5
-#define CREDITS_TRACK             6
-#define FINISH_TRACK              7
-#define GOAL1_TRACK               8
-#define GOAL2_TRACK               9
-#define MATCH_TRACK              10
-#define NAME_ENTRY_TRACK         11
-#define CONTINUE_TRACK           12
+typedef enum
+{
+    LOGO_TRACK               = 2, // TRACK 01
+    TITLE_TRACK              = 3,
+    SELECT_TRACK             = 4,
+    BEGIN_GAME_TRACK         = 5,
+    CREDITS_TRACK            = 6,
+    GOAL1_TRACK              = 7,
+    GOAL2_TRACK              = 8,
+    GOAL3_TRACK              = 9,
+    GOAL4_TRACK              = 10,
+    NAME_ENTRY_TRACK         = 11,
+    HIDDEN1_TRACK            = 12,
+    HIDDEN2_TRACK            = 13,
+    HIDDEN3_TRACK            = 14,
+    HIDDEN4_TRACK            = 15,
+    LAST_TRACK               = 16,
+} MUSIC_TRACKS;
 
 #define AUDIO_FADE_TIMER (3 * 60)
 
@@ -25,29 +32,37 @@
 #define MIN_VOLUME 0
 
 typedef struct {
-    unsigned int goalScoredTrack;
+    int16_t currentTrack;
     bool cdIsPlaying;
-    int masterVolume;
+    bool soundTest;
+    int16_t masterVolume;
 } AudioSettings;
 
 extern AudioSettings g_Audio;
 
 typedef enum
 {
-    GOAL_SCORED_TRACK_1 = GOAL1_TRACK,
-    GOAL_SCORED_TRACK_2 = FINISH_TRACK,
-    GOAL_SCORED_TRACK_3 = GOAL2_TRACK,
-    GOAL_SCORED_TRACK_4 = MATCH_TRACK,
-    GOAL_SCORED_TRACK_MAX = MATCH_TRACK+1,
+    GOAL_SCORED_TRACK_1 = GOAL2_TRACK,
+    GOAL_SCORED_TRACK_2 = GOAL1_TRACK,
+    GOAL_SCORED_TRACK_3 = GOAL3_TRACK,
+    GOAL_SCORED_TRACK_4 = GOAL4_TRACK,
+    GOAL_SCORED_TRACK_MAX = GOAL4_TRACK+1,
 } GOAL_SCORED_TRACK;
 
-void playCDTrack(int track, bool repeat);
+#ifdef __cplusplus
+extern "C" {
+#endif
+void playCDTrack(uint16_t track, bool repeat);
 
-void reset_audio(int new_volume);
+void reset_audio(uint8_t new_volume);
 
-void nextGoalScoredTrack(void);
+void nextcurrentTrack(void);
 
 static inline int volume_shift(int vol)
 {
     return vol >> 4;
 }
+
+#ifdef __cplusplus
+}
+#endif

@@ -1,18 +1,19 @@
-#include <jo/jo.h>
 #include "../main.h"
 #include "screen_transition.h"
 #include "state.h"
 #include "math.h"
 #include "assets.h"
 
+using namespace SRL::Math;
+
 // leave separate for now
-Sint16 nbg0_rate = MINIMUM_FADE;
-Sint16 nbg1_rate = MINIMUM_FADE;
-Sint16 spr_rate  = MINIMUM_FADE;
+int16_t nbg0_rate = MINIMUM_FADE;
+int16_t nbg1_rate = MINIMUM_FADE;
+int16_t spr_rate  = MINIMUM_FADE;
 
-static int rand_max = MOSAIC_MAX;
+uint16_t rand_max = MOSAIC_MAX;
 
-TRANSITION g_Transition = {0};
+TRANSITION g_Transition = {};
 
 void initTransitionStruct(void) {
     g_Transition.timer = 0;
@@ -40,7 +41,7 @@ void initTransitionStruct(void) {
 }
 
 
-void screenTransition_init(Sint16 nbg0, Sint16 nbg1, Sint16 spr) {
+void screenTransition_init(int16_t nbg0, int16_t nbg1, int16_t spr) {
     nbg0_rate = nbg0;
     nbg1_rate = nbg1;
     spr_rate  = spr;
@@ -99,7 +100,7 @@ bool transitionIn(void) {
     return true;
 }
 
-bool fadeOut(Sint16 rate, Sint16 min) {
+bool fadeOut(int16_t rate, int16_t min) {
     if (nbg1_rate > min) {
         nbg1_rate -= rate;
         if (nbg1_rate < min) {
@@ -114,7 +115,7 @@ bool fadeOut(Sint16 rate, Sint16 min) {
     }
 }
 
-bool fadeIn(Sint16 rate, Sint16 max) {
+bool fadeIn(int16_t rate, int16_t max) {
     if (nbg1_rate < max) {
         nbg1_rate += rate;
         if (nbg1_rate > max) {
@@ -129,8 +130,8 @@ bool fadeIn(Sint16 rate, Sint16 max) {
     }
 }
 
-bool slowFadeIn(Sint16 rate, Sint16 max) {
-    if (nbg1_rate < max && JO_MOD_POW2(g_Game.frame, 4) == 0) { // modulus
+bool slowFadeIn(int16_t rate, int16_t max) {
+    if (nbg1_rate < max && g_Game.frame % 4 == 0) { // modulus (POW2)
         nbg1_rate += rate;
         if (nbg1_rate > max) {
             nbg1_rate = max;
@@ -147,7 +148,7 @@ bool slowFadeIn(Sint16 rate, Sint16 max) {
 }
 
 // MOSAIC
-void mosaicInit(jo_scroll_screen screens) {
+void mosaicInit(uint16_t screens) {
     rand_max = MOSAIC_MAX;
     g_Transition.mosaic_x = MOSAIC_MAX;
     g_Transition.mosaic_y = MOSAIC_MAX;
@@ -155,7 +156,7 @@ void mosaicInit(jo_scroll_screen screens) {
     slScrMosaicOn(screens);
 }
 
-bool mosaicOut(jo_scroll_screen screens) {
+bool mosaicOut(uint16_t screens) {
     if (g_Transition.mosaic_x < MOSAIC_MAX && g_Transition.mosaic_y < MOSAIC_MAX) {
         if (g_Game.frame % MOSAIC_FAST_RATE == 0) { // modulus
             g_Transition.mosaic_x++;
@@ -165,18 +166,18 @@ bool mosaicOut(jo_scroll_screen screens) {
             if (g_Transition.mosaic_y > MOSAIC_MAX)
                 g_Transition.mosaic_y = MOSAIC_MAX;
         }
-	slScrMosSize(g_Transition.mosaic_x, g_Transition.mosaic_y);
-	slScrMosaicOn(screens);
+        slScrMosSize(g_Transition.mosaic_x, g_Transition.mosaic_y);
+        slScrMosaicOn(screens);
         return true;
     }
     else {
-	slScrMosSize(MOSAIC_MAX, MOSAIC_MAX);
-	slScrMosaicOn(screens);
+        slScrMosSize(MOSAIC_MAX, MOSAIC_MAX);
+        slScrMosaicOn(screens);
         return false;
     }
 }
 
-bool mosaicIn(jo_scroll_screen screens) {
+bool mosaicIn(uint16_t screens) {
     if (g_Transition.mosaic_x > MOSAIC_MIN+1 && g_Transition.mosaic_y > MOSAIC_MIN+1) {
         if (g_Game.frame % g_Transition.mosaic_in_rate == 0) { // modulus
             g_Transition.mosaic_x--;
@@ -186,8 +187,8 @@ bool mosaicIn(jo_scroll_screen screens) {
             if (g_Transition.mosaic_y < MOSAIC_MIN)
                 g_Transition.mosaic_y = MOSAIC_MIN;
         }
-	slScrMosSize(g_Transition.mosaic_x, g_Transition.mosaic_y);
-	slScrMosaicOn(screens);
+        slScrMosSize(g_Transition.mosaic_x, g_Transition.mosaic_y);
+        slScrMosaicOn(screens);
         return true;
     }
     else {
@@ -195,16 +196,17 @@ bool mosaicIn(jo_scroll_screen screens) {
 	slScrMosaicOn(OFF);
         return false;
     }
+
 }
 
-void mosaicRandom(jo_scroll_screen screens) {
+void mosaicRandom(uint16_t screens) {
     if (g_Game.frame % MOSAIC_RANDOM_RATE == 0) { // modulus
-        g_Transition.mosaic_x = my_random_range(1, rand_max);
-        g_Transition.mosaic_y = my_random_range(1, rand_max);
+        g_Transition.mosaic_x = rnd.GetNumber(2, rand_max);
+        g_Transition.mosaic_y = rnd.GetNumber(2, rand_max);
 	slScrMosSize(g_Transition.mosaic_x, g_Transition.mosaic_y);
 	slScrMosaicOn(screens);
     }
-    if (g_Game.frame % 80 == 0 && rand_max > 7) { // modulus (could use 64 as a power of 2)
+    if (g_Game.frame % 60 == 0 && rand_max > 4) { // modulus (could use 64 as a power of 2)
 	rand_max--;
     }
 }
@@ -215,6 +217,7 @@ bool musicOut(void) {
         if (g_Audio.masterVolume < MIN_VOLUME) {
             g_Audio.masterVolume = MIN_VOLUME;
         }
+        // SRL::Sound::Cdda::SetVolume(volume_shift(g_Audio.masterVolume));
         CDDA_SetVolume(volume_shift(g_Audio.masterVolume));
         return true;
     }
@@ -229,6 +232,7 @@ bool musicIn(void) {
         if (g_Audio.masterVolume > MAX_VOLUME) {
             g_Audio.masterVolume = MAX_VOLUME;
         }
+        // SRL::Sound::Cdda::SetVolume(volume_shift(g_Audio.masterVolume));
         CDDA_SetVolume(volume_shift(g_Audio.masterVolume));
         return true;
     }
@@ -240,6 +244,7 @@ bool musicIn(void) {
 bool explosionEffect(void) {
     pcm_play(g_Assets.explod1Pcm8, PCM_PROTECTED, 7);
     g_Transition.fade_out = true;
+    g_Transition.fade_out_rate = 2;
     nbg1_rate = MAXIMUM_FADE;
     if (!g_GameOptions.debug_display) {
         slColOffsetA(nbg1_rate, nbg1_rate, nbg1_rate);

@@ -28,6 +28,10 @@ typedef struct {
 
 extern Item g_item;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void animateBombColor(bool *_do_update);
 
 void setItemPositions(void);
@@ -35,3 +39,7 @@ void drawGameItems(void);
 void handlePlayerItemCollision(PPLAYER player);
 
 void bombTimer(void);
+
+#ifdef __cplusplus
+}
+#endif

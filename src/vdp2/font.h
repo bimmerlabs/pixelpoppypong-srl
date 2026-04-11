@@ -1,9 +1,13 @@
-// font.h
-#ifndef FONT_H
-#define FONT_H
+#pragma once
+#include <srl.hpp>
 
-extern jo_palette game_palette;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+void init_sgl_font(void);
 void init_font(void);
 
-#endif // FONT_H
+#ifdef __cplusplus
+}
+#endif

@@ -1,4 +1,8 @@
 #pragma once
+#include <srl.hpp>
+
+using namespace SRL::Types;
+using namespace SRL::Math::Types;
 
 typedef enum _OBJECT_STATE
 {
@@ -8,10 +12,10 @@ typedef enum _OBJECT_STATE
 
 typedef struct _FIXED_POSITION
 {
-    FIXED x;
-    FIXED y;
-    FIXED dx;
-    FIXED dy;
+    Fxp x;
+    Fxp y;
+    Fxp dx;
+    Fxp dy;
 
 } FIXED_POSITION, *PFIXED_POSITION;
 
