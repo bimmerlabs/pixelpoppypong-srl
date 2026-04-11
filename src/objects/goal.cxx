@@ -298,8 +298,10 @@ void checkRightGoalCollision(Sprite *ball) {
                 g_Game.isGoalScored = true;
                 calculateScore(ball, 0);
                 updatePlayerLives(1);
-                playCDTrack(g_Audio.currentTrack, false);
-                nextcurrentTrack();
+                if (!g_Game.isBoss) {
+                    playCDTrack(g_Audio.currentTrack, false);
+                    nextcurrentTrack();
+                }
                 break;
             }
             else if (!g_Game.isGoalScored) { // scored on TEAM_2 or TEAM_4
@@ -325,8 +327,10 @@ void checkLeftGoalCollision(Sprite *ball) {
                 g_Game.isGoalScored = true;
                 ballTtouchTimer = 0;
                 updatePlayerLives(0);
-                playCDTrack(g_Audio.currentTrack, false);
-                nextcurrentTrack();
+                if (!g_Game.isBoss) {
+                    playCDTrack(g_Audio.currentTrack, false);
+                    nextcurrentTrack();
+                }
                 break;
             }
             else if (!g_Game.isGoalScored) { // scored on TEAM_2 or TEAM_4

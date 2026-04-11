@@ -1,10 +1,10 @@
 #include "player.h"
 #include "../main.h"
-#include "../core/assets.h"
 #include "../core/sprites.h"
 #include "../core/backup.h"
 #include "../core/screen_transition.h"
 #include "../game/gameplay.h"
+#include "../game/storymode.h"
 #include "../game/AI.h"
 #include "../game/physics.h"
 #include "../game/player_setup.h"
@@ -42,7 +42,10 @@ void resetPlayerAttacks(void)
         PPLAYER player = &g_Players[i];
 
         player->shield.activate = false;
-        player->_sprite->pos.r = PLAYER_RADIUS;
+        if (!player->isBig && !player->isSmall)
+        {
+            player->_sprite->pos.r = PLAYER_RADIUS;
+        }
         sprite_frame_reset(&shield[i]);
         player->isExploded = false;
         
@@ -96,6 +99,7 @@ int getLives(PPLAYER player)
             }
             break;
         default:
+            // story mode
             if (player->isAI) {
                 switch(g_Game.gameDifficulty)
                 {
@@ -105,13 +109,20 @@ int getLives(PPLAYER player)
                         break;
                     case GAME_DIFFICULTY_MEDIUM:
                         numLives = 6;
-                        // numLives = 3;
                         break;
                     case GAME_DIFFICULTY_HARD:
                         numLives = 6;
+                        if (g_Game.isBoss)
+                        {
+                            numLives += 1;
+                        }
                         break;
                     default:
                         break;
+                }
+                if (g_Game.isBoss)
+                {
+                    numLives += 1;
                 }
             }
             else {
@@ -290,7 +301,7 @@ void initPlayers(bool resetInputs)
         player->attack1Frames = 0;
         player->attack2Frames = 0;
         
-        player->_sprite->pos.r = PLAYER_RADIUS;
+        // player->_sprite->pos.r = PLAYER_RADIUS;
         player->shield.activate = false;
         
         player->_portrait = &character_portrait;
@@ -329,7 +340,7 @@ void initAiPlayers(void)
         
         player_bg.mesh = MESHoff;
         
-        computer->_sprite->pos.r = PLAYER_RADIUS;
+        // computer->_sprite->pos.r = PLAYER_RADIUS;
         computer->shield.activate = false;
         
         computer->isPlaying = true;
@@ -340,6 +351,7 @@ void initAiPlayers(void)
 
 void initStoryCharacters(void)
 {
+    PPLAYER player   = &g_Players[0];
     PPLAYER computer = &g_Players[1];
     
     computer->teamChoice = TEAM_2;
@@ -348,12 +360,14 @@ void initStoryCharacters(void)
     
     computer->_bg->id = computer->_bg->anim[0].asset + 1;
     
-    // need to handle what happens if you play as wuppy
-    computer->character.choice = g_Game.countofRounds;
-    if (!characterAvailable[computer->character.choice])
+    if (player->character.choice == CHARACTER_MACCHI)
     {
-        computer->character.choice += 1;
+        computer->character.choice = CHARACTER_JELLY;
     }
+    else {
+        computer->character.choice = CHARACTER_MACCHI;
+    }
+    characterAvailable[computer->character.choice] = false;
 
     assignCharacterSprite(computer);
     assignCharacterStats(computer);
@@ -369,15 +383,27 @@ void initStoryCharacters(void)
 
 void nextStoryCharacter(void)
 {
-    PPLAYER player = &g_Players[1];
+    PPLAYER computer = &g_Players[1];
     
-    player->character.choice = g_Game.countofRounds + 1;
-    player->isActivated = true;
-    player->isDead = false;
+    computer->character.choice += 1;
+;
+    validateStoryCharacters(computer);
 
-    assignCharacterSprite(player);
+    characterAvailable[computer->character.choice] = false;
+        
+    computer->isActivated = true;
+    computer->isDead = false;
+
+    assignCharacterSprite(computer);
+    assignCharacterStats(computer);
+    
     initVsModePlayers();
-    boundPlayer(player);
+    boundPlayer(computer);
+    
+    if (g_Game.countofRounds == MAX_ROUNDS-1)
+    {
+        g_Game.isBoss = true;
+    }
 }
 
 void initVsModePlayers(void)
@@ -593,6 +619,7 @@ void initDemoPlayers(void)
         player->_sprite->pos.r = PLAYER_RADIUS;
         player->shield.activate = false;
         player_bg.mesh = MESHoff;
+        player->_sprite->mesh = MESHoff;
         player->_portrait->id = player->_portrait->anim[0].asset + player->character.choice;
         set_spr_scale_fxp(player->_portrait, Fxp(1.1), Fxp_1);
         // player->isDead = false;
@@ -610,28 +637,63 @@ void assignCharacterSprite(PPLAYER player) {
     player->_sprite = &paw[player->character.choice];
     player->_sprite->anim[0].frame = 0;
     player->_sprite->id = player->_sprite->anim[0].asset;
-    
-    if (player->character.choice == CHARACTER_WUPPY)
+    player->_sprite->mesh = MESHoff;
+    player->_sprite->zmode = _ZmCC;
+    if (
+        player->playerID == 1 &&
+        player->character.choice == CHARACTER_WUPPY && 
+        g_Game.gameMode == GAME_MODE_STORY
+        )
     {
         player->_sprite->scl = {Fxp(3), Fxp(3)};
+        player->_sprite->pos.r = PLAYER_RADIUS * Fxp(1.5);
     }
     else {
         player->_sprite->scl = {Fxp(2), Fxp(2)};
+        player->_sprite->pos.r = PLAYER_RADIUS;
     }
 }
 
+// this is super ugly (too much repetition) - could be reorganized?
 void assignCharacterStats(PPLAYER player) {
     if (player->isAI) {
         switch(g_Game.gameDifficulty)
             {
                 case GAME_DIFFICULTY_EASY:
-                    player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.06);
+                    if (g_Game.gameMode == GAME_MODE_STORY) {
+                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.08);
+                        player->basePower = Fxp(characterAttributes[player->character.choice].power) * Fxp(.06);
+                        player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration) * Fxp(1.1);
+                    }
+                    else {
+                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.06);
+                        player->basePower = Fxp(characterAttributes[player->character.choice].power) * Fxp(.05);
+                        player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration);
+                    }
                     break;
                 case GAME_DIFFICULTY_MEDIUM:
-                    player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.08);
+                    if (g_Game.gameMode == GAME_MODE_STORY) {
+                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.1);
+                        player->basePower = Fxp(characterAttributes[player->character.choice].power) * Fxp(.07);
+                        player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration) * Fxp(1.2);
+                    }
+                    else {
+                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.08);
+                        player->basePower = Fxp(characterAttributes[player->character.choice].power) * Fxp(.05);
+                        player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration);
+                    }
                     break;
                 case GAME_DIFFICULTY_HARD:
-                    player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.1);
+                    if (g_Game.gameMode == GAME_MODE_STORY) {
+                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.12);
+                        player->basePower = Fxp(characterAttributes[player->character.choice].power) * Fxp(.08);
+                        player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration) * Fxp(1.3);
+                    }
+                    else {
+                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.1);
+                        player->basePower = Fxp(characterAttributes[player->character.choice].power) * Fxp(.05);
+                        player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration);
+                    }
                     break;
                 default:
                     break;
@@ -639,9 +701,9 @@ void assignCharacterStats(PPLAYER player) {
     }
     else {        
         player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.1);
+        player->basePower = Fxp(characterAttributes[player->character.choice].power) * Fxp(.05);
+        player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration);
     }
-    player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration);
-    player->basePower = Fxp(characterAttributes[player->character.choice].power) * Fxp(.05);
     player->power = player->basePower;
     
     if (player->isAI) {
@@ -764,8 +826,17 @@ void getPlayersInput(void)
             player->curPos.dy = 0;
             player->_sprite->vel.y = 0;
         }
+        
         regenPlayerPower(player);
         playerAttack(player);
+        
+        #if ENABLE_DEBUG_MODE == 1
+        if (g_Game.gameMode == GAME_MODE_STORY && gamepad.WasPressed(Digital::Button::X))
+        {
+            g_Game.countofRounds++;
+            initNextRound();
+        }
+        #endif
     }
 }
 
@@ -825,7 +896,7 @@ void playerAttack(PPLAYER player) {
             player->attack2Frames++;
         }
         // SHIELD
-        if (gamepad.WasPressed(Digital::Button::B) && player->shield.power > 0)
+        if (gamepad.WasPressed(Digital::Button::B) && player->shield.power > SHIELD_COST)
         {
             if (player->shield.power > 1) {
                 Pcm::Play(Sounds.Game[ShieldSnd], PlayMode::Protected, 6);
@@ -841,7 +912,7 @@ void playerAttack(PPLAYER player) {
                 player->shield.activate = true;
             }
             if (!g_GameOptions.testCollision) {
-                player->shield.power--;
+                player->shield.power -= SHIELD_COST;
             }
         }
         else if (!player->shield.activate) {  
@@ -879,7 +950,6 @@ void regenPlayerPower(PPLAYER player)
         !gamepad.IsHeld(Digital::Button::C)) {
         if (player->shield.power < SHIELD_POWER) {
             if (g_Game.frame % regen_speed == 0) { // modulus
-                // Pcm::Play(Sounds.rechargePcm8, PlayMode::Protected, 6); // don't think this works because it keeps playing
                 player->shield.power++;
             }
         }
@@ -891,7 +961,29 @@ void updatePlayers(void)
     for(int8_t i = 0; i <= g_Game.numPlayers; i++)
     {
         PPLAYER player = &g_Players[i];
-        if(!player->isActivated || player->isDead || player->isAI == true)
+        
+        if(!player->isActivated || player->isDead)
+        {
+            continue;
+        }
+        
+        // item collision (include AI players!)
+        // don't allow collision unless player can see item
+        if (g_item.isActive)
+        { 
+            g_item._sprite->isColliding = checkItemDistance(player->_sprite, g_item._sprite);            
+            if (g_item._sprite->isColliding)
+            {
+                handlePlayerItemCollision(player);
+            }
+        }
+        else {
+            g_item._sprite->isColliding = false;
+        }
+        
+        changePlayerSize(player, g_item.timer[i]);
+        
+        if(player->isAI == true)
         {
             continue;
         }
@@ -908,41 +1000,11 @@ void updatePlayers(void)
         // ball collision
         detect_player_ball_collision(&pixel_poppy, player);
         
-        // item collision
-        if (g_item.isActive) { // don't allow collision unless player can see item
-            g_item._sprite->isColliding = checkItemDistance(player->_sprite, g_item._sprite);
-        }
-        else {
-            g_item._sprite->isColliding = false;
-        }
-        if (g_item._sprite->isColliding) {
-            handlePlayerItemCollision(player);
-        }
-        
         // if (i == 0) {
             // SRL::Debug::Print(2, 9, "Player isBig %i", player->isBig);
             // SRL::Debug::Print(2, 10, "Player isSmall %i", player->isSmall);
             // SRL::Debug::Print(2, 11, "Player scale %3d", player->_sprite->scl.x.As<int16_t>());
         // }
-        
-        if (player->isBig) {
-            if (g_item.timer[i] == 0) {
-                Pcm::Play(Sounds.Game[ShrinkSnd]);
-                player->isBig = shrinkPlayerSprite(player, NORMAL_PLAYER_SPRITE);
-            }
-            else {
-                growPlayerSprite(player, LARGE_PLAYER_SPRITE);
-            }
-        }
-        if (player->isSmall) {
-            if (g_item.timer[i] == 0) {
-                Pcm::Play(Sounds.Game[GrowSnd]);
-                player->isSmall = growPlayerSprite(player, NORMAL_PLAYER_SPRITE);
-            }
-            else {
-                shrinkPlayerSprite(player, SMALL_PLAYER_SPRITE);
-            }
-        }
     }
 }
 

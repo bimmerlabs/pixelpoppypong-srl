@@ -43,6 +43,7 @@ typedef enum
     CORE_SPRITE_MENUBG,
     CORE_SPRITE_POPPY,
     CORE_SPRITE_PUMPKIN,
+    CORE_SPRITE_SANTA,
     CORE_SPRITE_MAX,
 } CORE_SPRITES;
 
@@ -78,17 +79,20 @@ typedef enum
     GAME_SPRITE_TIMER,
     GAME_SPRITE_SHIELD,
     GAME_SPRITE_SHROOM,
+    GAME_SPRITE_TREES,
     GAME_SPRITE_X,
     GAME_SPRITE_MAX,
 } GAME_SPRITES;
 
 typedef enum _CORE_SND
 {
-    CancelSnd = 0,
+    BackSnd = 0,
+    CancelSnd,
     CursorSnd,
     NextSnd,
     StartSnd,
     TickSnd,
+    CORE_SND_MAX
 } CORE_SND;
 
 typedef enum _GAME_SND
@@ -104,14 +108,18 @@ typedef enum _GAME_SND
     Chain5Snd,
     DropSnd,
     ExplodeSnd,
-    GmOverSnd,
+    Explode2Snd,
+    LaunchSnd,
+    BankSnd,
     GrowSnd,
+    ShrinkSnd,
     ScoreAddSnd,
     ScoreTotalSnd,
     ShieldSnd,
-    ShrinkSnd,
     StadlerSnd,
     WinSnd,
+    GmOverSnd,
+    GAME_SND_MAX
 } GAME_SND;
 
 typedef enum _CAT_SND
@@ -125,7 +133,7 @@ typedef enum _CAT_SND
     MEOW7,
     MEOW8,
     MEOW9,
-    MEOW_MAX,
+    MEOW_MAX
 } CAT_SND;
 
 typedef enum _NAME_SND
@@ -135,7 +143,13 @@ typedef enum _NAME_SND
     NameCanSnd,
     NameCurSnd,
     NameKetSnd,
+    NAME_SND_MAX
 } NAME_SND;
+
+
+// PCM samples / Sound Test
+#define FIRST_SAMPLE 0
+#define LAST_SAMPLE 41
 
 // holds sprite and audio assets
 typedef struct _assets
@@ -146,6 +160,10 @@ typedef struct _assets
     bool characterAssetsLoaded;    
     bool NameEntryAssetsLoaded;
     bool GameplayAssetsLoaded;
+    uint16_t startofTitleAssets;
+    uint16_t startofCharAssets;
+    uint16_t startofGameAssets;
+    uint16_t startofNameAssets;
 } ASSETS, *PASSETS;
 
 extern ASSETS g_Assets;
@@ -155,17 +173,17 @@ extern ASSETS g_Assets;
 typedef struct _SoundAssets
 {    
     // CORE / MENU SOUNDS
-    short Core[5];
+    short Core[CORE_SND_MAX];
 
     // GAMEPLAY SOUNDS
-    short Game[19];    
+    short Game[GAME_SND_MAX];    
     // CAT SOUNDS
-    short Meow[9];
+    short Meow[MEOW_MAX];
     short MeowId;
     bool GameplayFxLoaded;
     
     // NAME ENTRY SOUNDS
-    short Name[5];
+    short Name[NAME_SND_MAX];
     bool NameEntryFxLoaded;
 
 } SoundAssets;
@@ -173,10 +191,12 @@ typedef struct _SoundAssets
 extern SoundAssets Sounds;
 
 extern TilemapObject* coreTiles;
+extern TilemapObject* particleTiles;
 extern TilemapObject* titleTiles;
 extern TilemapObject* characterTiles;
 extern TilemapObject* gameplayTiles;
 extern TilemapObject* fontTiles;
+extern TilemapObject* nameTiles;
 
 #ifdef __cplusplus
 extern "C" {
@@ -200,6 +220,14 @@ void unloadGameAssets(void);
 void unloadNameEntryAssets(void);
 
 void switchCoreAssets(void);
+
+static inline void playCatSound(void)
+{
+    Pcm::Play(Sounds.Meow[Sounds.MeowId]);
+    Sounds.MeowId++;
+    if (Sounds.MeowId > MEOW9)
+        Sounds.MeowId = MEOW1;
+}
 
 #ifdef __cplusplus
 }

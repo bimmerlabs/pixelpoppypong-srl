@@ -8,6 +8,8 @@ void preload_options_bg(void);
 
 void init_nbg2_img(void);
 
+void switch_nbg2_img(void);
+
 #ifdef __cplusplus
 }
 #endif

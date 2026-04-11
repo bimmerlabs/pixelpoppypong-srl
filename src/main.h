@@ -9,7 +9,7 @@
     #include "core/debug.h"
 #endif
 
-#define VERSION "0.88.81"
+#define VERSION "0.88.99"
 #define MAX_PLAYERS 4
 
 // Screen position
@@ -66,23 +66,6 @@ extern SRL::Math::Random<int32_t> rnd;
 #define GAME_DIFFICULTY_HARD    (2)
 #define GAME_DIFFICULTY_MAX     (3)
 
-#define OCTOBER 10
-
-// seasons (for special modes)
-typedef enum _SEASON
-{
-    S_NORMAL = 0,
-    S_HALLOWEEN = 1,
-} SEASON;
-
-// game resolutions (for testing)
-typedef enum _GAME_RESOLUTION
-{
-    RESOLUTION_NORMAL = TV_352x240,
-    RESOLUTION_HIGH   = TV_704x480,
-    RESOLUTION_WIDE   = TV_704x240,
-} GAME_RESOLUTION;
-
 // represents game state
 typedef struct _GAME
 {
@@ -119,6 +102,7 @@ typedef struct _GAME
     bool time_over;
 
     bool selectStoryCharacter;
+    bool isBoss;
 
     // is the game loading?
     bool isLoading;

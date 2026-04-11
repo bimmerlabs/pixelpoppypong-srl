@@ -32,6 +32,10 @@ extern int8_t lastTouchedBy;
 extern int8_t previouslyTouchedBy[TOUCHEDBY_BUFFER]; // use as a buffer
 extern unsigned int ballTtouchTimer;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void initTouchCounter(uint8_t resetTouchCount);
 void stopBallMovement(Sprite *ball);
 void start_ball_movement(Sprite *ball);
@@ -51,15 +55,15 @@ static inline Fxp calculate_z_velocity(Fxp vx, Fxp vy, bool horizontal_collision
     // Determine rotation direction based on the type of collision and vector
     if (horizontal_collision) {
         // Horizontal wall collision: reverse direction if Y velocity is positive
-        z_velocity *= (vy > Fxp_0) ? Fxp_1 : -Fxp_1;
+        z_velocity *= (vy > 0) ? 1 : -1;
     } else {
         // Vertical wall collision: reverse direction if X velocity is positive
-        z_velocity *= (vx > Fxp_0) ? -Fxp_1 : Fxp_1;
+        z_velocity *= (vx > 0) ? -1 : 1;
     }
 
     // Ensure z_velocity is at least 1 in magnitude
-    if (z_velocity == Fxp_0) {
-        z_velocity = Fxp_1;
+    if (z_velocity == 0) {
+        z_velocity = 1;
     }
     // speed limit z_velocity
     else if (z_velocity > MAX_VELOCITY_Z) {
@@ -77,6 +81,12 @@ static inline void updateBallTouch(PPLAYER player) {
     // Reset hasTouched for all players
     for(int8_t i = 0; i <= g_Game.numPlayers; i++) {
         touchedBy[i].hasTouched = false;
+    }
+    
+    if (g_Game.gameMode == GAME_MODE_STORY || g_Game.gameMode == GAME_MODE_CLASSIC)
+    {   
+        if (player->isAI)
+            return;
     }
 
     // Update the player who last touched the ball
@@ -110,12 +120,16 @@ static inline void updateBallTouch(PPLAYER player) {
                 break;
         }
     }
-    touchedBy[player->playerID].teamChoice = player->teamChoice; // not really needed anymore
+    touchedBy[player->playerID].teamChoice = player->teamChoice; // not really needed anymore?
     ballTtouchTimer = 0;
 }
 
-// Function to update the ball's position and check for collisions
 void update_ball(Sprite *ball);
 
-// // Function to detect and handle ball-player collision
+void adjust_xy_velocity_based_on_spin(Sprite *ball);
+
 bool detect_player_ball_collision(Sprite *ball, PPLAYER player);
+
+#ifdef __cplusplus
+}
+#endif

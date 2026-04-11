@@ -18,16 +18,6 @@ using namespace SRL::Math::Types;
 #define TEAM_TEXT_X1 33
 #define TEAM_TEXT_X2 35
 #define TEAM_TEXT_Y 4
-// #define METER_TEXT_X 18
-// #define METER_TEXT_Y2 2
-// #define METER_TEXT_Y3 4
-
-// #define METER_X  Fxp(-40)
-// #define METER_Y1 Fxp(34)
-// #define METER_Y2 Fxp(3)
-// #define METER_Y3 Fxp(29)
-// #define METER_HEIGHT Fxp(0.9)
-// #define METER_WIDTH Fxp(25)
 
 #define PLAYER_OFFSET_Y Fxp(112)
 #define PLAYER_TEXT_OFFSET_Y 7

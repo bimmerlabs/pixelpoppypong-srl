@@ -19,6 +19,7 @@
 #include "vdp2/nbg2.h"
 #include "vdp2/sprite_colors.h"
 #include "vdp2/ColorHelpers.h"
+#include "specialfx/seasons.h"
 
 using namespace SRL::Types;
 using namespace SRL::Math::Types;
@@ -31,16 +32,16 @@ SRL::Math::Random<int32_t> rnd = SRL::Math::Random<int32_t>(1);
 int run_once_callback = 1;
 
 GameOptions g_GameOptions = {
-    .debug_mode = true,
+    .debug_mode = false,
     .debug_display = false,
     .testCollision = false,
     .mesh_display = false,
     .mosaic_display = true,
-    .use_rtc = false,
+    .use_rtc = true,
     .unlockBigHeadMode = false,
     .bigHeadMode = false,
     .enableItems = true,
-    .enableMeows = true,
+    .enableMeows = true, // up for elimination
     .reservedBool = false,
     .bombTouchCounter = 0,
     .fishTouchCounter = 0,
@@ -104,16 +105,20 @@ void initGame(void) {
     
     // misc
     g_Game.selectStoryCharacter = false;
+    g_Game.isBoss = false;
     
     g_Game.vblankClearScreen = false;
 }
 
+// todo:  incorporate sprite animation?  (replace dots with "poppy" sprites)
 void loading_screen(void)
 {
     if (g_Game.gameState == !GAME_STATE_TRANSITION) {
         return;
     }
+    
     if (g_Game.isLoading) {
+        
         slColOffsetOn(NBG1ON);
         
         SRL::Debug::Print(17, 12, "Loading!");
@@ -129,6 +134,7 @@ void loading_screen(void)
             #if ENABLE_DEBUG_MODE == 1
             }
             #endif
+            
             // Generate dot string
             uint16_t sfx_count = Sound::GetNumberOfPCMs() + 6; // currently 37+6 = 43
             if (sfx_count >= 44) {
@@ -153,6 +159,7 @@ void loading_screen(void)
             #if ENABLE_DEBUG_MODE == 1
             }
             #endif
+            
             // loading bar      
             uint16_t sprite_count = SRL::VDP1::GetTextureCount()/3;
             // Clamp sprite count to prevent overflow
@@ -370,20 +377,13 @@ void my_palette_update(void)
 
 void run_once(void) {
     rnd = SRL::Math::Random<int32_t>(15);
-    // load_game_backup();
+    load_game_backup();
     init_font();
     basePalette = init_game_palette();
     init_sprites_img(); // rename
     init_nbg1_img();
     preload_options_bg();
-
-    // update based on time of day
-    DateTime time = DateTime::Now();
-    if (time.Month() == OCTOBER)
-    {
-        g_Game.timeSeason = S_HALLOWEEN;
-    }
-    
+    initSeason(); // should happen before nbg1?
     changeState(GAME_STATE_UNINITIALIZED);
     run_once_callback = 0;
 }
@@ -400,15 +400,14 @@ int main()
     SRL::TV::TVOff();
     
     #ifdef SRL_HIGH_RES_NON_INTERLACED
-        slSetSprTVMode(RESOLUTION_HIGH);
-        // slSetSprTVMode(<uint16_t>(SRL::TV::Resolutions::Interlaced704x480));
+        slSetSprTVMode(static_cast<uint16_t>(SRL::TV::Resolutions::Interlaced704x480));
     #endif
     // CRAM mode 0 - required for VDP2 transparency in high-res
     slColRAMMode ( CRM16_1024 ); // must be set before loading any palettes
     
     initUnlockedCharacters();
     init_inputs();
-    // highScore_init();
+    highScore_init();
     
     SRL::Core::OnVblank += main_loop;
     SRL::Core::OnVblank += my_palette_update;

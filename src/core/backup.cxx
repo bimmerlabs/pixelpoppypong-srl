@@ -2,17 +2,22 @@
 #include "../main.h"
 #include "backup.h"
 #include "../game/gameplay.h"
-#include <backup.hpp>
 
 using namespace SRL::Types;
 using namespace SRL::Math::Types;
 
-static Backup::BupDevice backup_device = Backup::CartridgeMemoryBackup;
-
 SaveGame save_game = {};
 
+unsigned char FileName[13] = "PPPONGSRL"; /* (11 ASCII characters + NUL, total 12 bytes) */
+unsigned char Comment[11] = "PixelPoppy"; /* (10 ASCII characters + NUL, total 11 bytes) */
+unsigned char OldFileName[13] = "PPPONG25";
+
+Device* bup = nullptr;
+BupDevice currentDevice = CartridgeMemoryBackup;
+// static Backup::BupDevice backup_device = Backup::CartridgeMemoryBackup;
+
 void init_save_game() {
-    save_game.g_GameOptions = g_GameOptions;
+    save_game.Options = g_GameOptions;
     for (int i = 0; i < CHARACTER_MAX; i++) {
         save_game.characterUnlocked[i] = characterUnlocked[i];
     }
@@ -25,71 +30,68 @@ void init_save_game() {
 }
 
 void save_game_backup(void) {
-    Backup::BackupDevice backupManager;
-    if (!backupManager.Mount(backup_device)) {
-        return;
-    }
+
+    // if (!bup->BupState[currentDevice].Status != BupStatus::Success) {
+        // return;
+    // }
     init_save_game();
     
-    Backup::BupFile backup;
+    // Backup::BupFile backup;    
+
+    // backup.Data = &save_game;
+    // backup.DataSize = sizeof(SaveGame);
     
-    memcpy(backup.Name, "PPPONG25", 8); // seems wrong
-    memcpy(backup.Comment, "PIXELPOPPY", 10);
-    backup.Data = &save_game;
-    backup.DataSize = sizeof(SaveGame);
-    
-    backupManager.Save(backup_device, &backup, true);
-        
+    // backupManager.Save(backup_device, &backup, true);
+    // bup->Save(currentDevice, &save_game);
+    // SRL::Debug::Print(3, 20, "Saved: %s             ", deviceStatus[bup->Save(currentDevice, &save_game, true)]);
     // backupManager.Unmount(Backup::InternalMemoryBackup);
+    
+    bup->Save(currentDevice, &save_game, true);
 }
 
 bool load_game_backup(void) {
     SaveGame *loaded_save;
-    Backup::BackupDevice backupManager;
+    bup = new Device(FileName, Comment, sizeof(SaveGame), English);
+    
+    // Backup::BackupDevice backupManager;
     
     // try cart first
-    if (!backupManager.Mount(backup_device)) {
-        backup_device = Backup::InternalMemoryBackup;
+    if (bup->BupState[currentDevice].Status != BupStatus::Success) {
+        // fall back to internal memory
+        currentDevice = InternalMemoryBackup;
     }
-    // fall back to internal memory
-    if (backup_device == Backup::InternalMemoryBackup && !backupManager.Mount(backup_device)) {
+    if (currentDevice == InternalMemoryBackup) {
+        if (bup->BupState[currentDevice].Status != BupStatus::Success)
+            return false;
+    }         
+            
+    
+    // load save if it exists
+    if (bup->FileExists(currentDevice, FileName) == BupStatus::Success) {
+        bup->Read(currentDevice, FileName, (uint8_t*)&save_game);
+        g_GameOptions = save_game.Options;
+        for (int i = 0; i < CHARACTER_MAX; i++) {
+            characterUnlocked[i] = save_game.characterUnlocked[i];
+        }
+        for (int i = 0; i < SCORE_ENTRIES; i++) {
+            highScores[i] = save_game.highScores[i];
+        }
+        for (int i = 0; i < MAX_INPUTS; i++) {
+            g_Inputs[i].sensitivity = save_game.inputSettings[i].sensitivity;
+        }
+        return true;
+    }
+    // create default save
+    else {
+        save_game_backup();
         return false;
     }
-    // // load save if it exists
-    // if (jo_backup_file_exists(backup_device, "PPPONG25")) {
-        // loaded_save =  (SaveGame *)jo_backup_load_file_contents(backup_device, "PPPONG25", NULL);
-        // if (!loaded_save) {
-            // jo_backup_unmount(backup_device);
-            // return false;
-        // }
-        // g_GameOptions = loaded_save->g_GameOptions; 
-        // for (int i = 0; i < CHARACTER_MAX; i++) {
-            // characterUnlocked[i] = loaded_save->characterUnlocked[i];
-        // }
-        // for (int i = 0; i < SCORE_ENTRIES; i++) {
-            // highScores[i] = loaded_save->highScores[i];
-        // }
-        // for (int i = 0; i < MAX_INPUTS; i++) {
-            // g_Inputs[i].sensitivity = loaded_save->inputSettings[i].sensitivity;
-        // }
-        
-        // jo_free(loaded_save);
-        // jo_backup_unmount(backup_device);
-        // return true;
-    // }
-    // // create default save
-    // else {
-        // jo_backup_unmount(backup_device); 
-        // save_game_backup();
-        return false;
-    // }
 }
 
+// these aren't actually used...  only for debugging
 bool   is_cart_mem_available(void)
 {
-    Backup::BackupDevice backupManager;
-    if (backupManager.Mount(Backup::CartridgeMemoryBackup)) {
-        // backupManager.Unmount(Backup::CartridgeMemoryBackup); // maybe I shouldn't unmount it each time?
+    if (bup->BupState[CartridgeMemoryBackup].Status == BupStatus::Success) {
         return true;
     }
     else {
@@ -99,9 +101,7 @@ bool   is_cart_mem_available(void)
 
 bool   is_internal_mem_available(void)
 {
-    Backup::BackupDevice backupManager;
-    if (backupManager.Mount(Backup::InternalMemoryBackup)) {
-        // backupManager.Unmount(Backup::InternalMemoryBackup); // maybe I shouldn't unmount it each time?
+    if (bup->BupState[InternalMemoryBackup].Status == BupStatus::Success) {
         return true;
     }
     else {

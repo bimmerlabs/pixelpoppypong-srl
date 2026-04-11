@@ -7,6 +7,7 @@
 #include "../vdp2/lighting.h"
 #include "../vdp2/sprite_colors.h"
 #include "../vdp2/nbg1.h"
+#include "../specialfx/seasons.h"
 
 // Using to shorten names for Vector and HighColor
 using namespace SRL::Types;
@@ -21,42 +22,34 @@ bool test_colors = false;
 // initializations for PPP screen
 void pppLogo_init(void)
 {
-    // I think everything fits into VRAM, so there's no real need to unload anything
-    // if (g_Game.lastState == GAME_STATE_TEAM_SELECT 
-     // || g_Game.lastState == GAME_STATE_GAMEPLAY 
-     // || g_Game.lastState == GAME_STATE_DEMO_LOOP 
-     // || g_Game.lastState == GAME_STATE_CREDITS) {
-        // unloadGameAssets();
-    // }
+    if (g_Assets.NameEntryAssetsLoaded) {
+        unloadNameEntryAssets();
+    }
+    if (g_Assets.GameplayAssetsLoaded) {
+        unloadGameAssets();
+    }
     
     g_Game.lastState = GAME_STATE_PPP_LOGO;
     
     reset_normal_map();
     
     SRL::TV::TVOn();
-    // SRL::Debug::Print(18, 14, "LOADING!");
-    SRL::Debug::Print(18, 14, "  BOO!"); // MAKE A DIFFERENT MESSAGE PER DAY?
     
+    seasonalMessage();
+   
     if (!g_Assets.coreAssetsLoaded) {
         loadCoreAssets();
         loadCoreSoundAssets();
         g_Assets.coreAssetsLoaded = true;
     }
-    else {
-        switchCoreAssets();
-    }
+
     if (!g_Assets.titleAssetsLoaded) {
-        loadTitleScreenAssets();        
+        loadTitleScreenAssets();  
     }
     
     SRL::Debug::PrintClearScreen();
     
-    if (g_GameOptions.mesh_display) {
-        pppshadow.mesh = MESHon;
-    }
-    else {
-        pppshadow.mesh = MESHoff;
-    }
+    pppshadow.mesh = MESHoff;
     
     light.x = Fxp(10);
     light.y = Fxp(255);
@@ -104,71 +97,21 @@ void pppLogo_input(void)
 {
     PPLAYER player = &g_Players[0];
     
-    if (!player->input->isSelected)
-    {
-        check_ui_inputs();
-    }
+    check_ui_inputs();
+    
     if (player->input->isSelected)
     {
-        // Digital gamepad(player->input->id);
-
-        // if (gamepad.WasPressed(Digital::Button::A) && attrSprites.hue < 360)
-        // {
-            // hsl_incSprites[HSL_MAX].h++;
-        // }
-        // else if (gamepad.WasPressed(Digital::Button::B) && attrSprites.hue > 0)
-        // {
-            // hsl_incSprites[HSL_MAX].h--;
-        // }
-        // else if (gamepad.WasPressed(Digital::Button::X))
-        // {
-            // light.ambient++;
-        // }
-        // else if (gamepad.WasPressed(Digital::Button::Y))
-        // {
-            // light.ambient--;
-        // }        
-        // else if (gamepad.WasPressed(Digital::Button::START) && test_colors)
-        // {
-            // set everything back to defaults
-            nbg1_rate = NEUTRAL_FADE;
-            slColOffsetA(nbg1_rate, nbg1_rate, nbg1_rate);
-            slColOffsetB(nbg1_rate, nbg1_rate, nbg1_rate);
-            g_Transition.mosaic_x = MOSAIC_MIN;
-            g_Transition.mosaic_y = MOSAIC_MIN;
-            slScrMosSize(g_Transition.mosaic_x, g_Transition.mosaic_y);
-            g_Transition.fade_in_rate = 8;
-            changeState(GAME_STATE_TITLE_SCREEN);
-            return;
-        // }
-
-        // test_colors = true;
-        // SRL::Debug::Print(2, 21, "Hue_inc:%3d ", hsl_incSprites[HSL_MAX].h);
-        // SRL::Debug::Print(2, 22, "Hue:%3d ", hslSprites[240].h);
-        // SRL::Debug::Print(2, 23, "light.ambient:%3d ", light.ambient);
-
+        // set everything back to defaults
+        nbg1_rate = NEUTRAL_FADE;
+        slColOffsetA(nbg1_rate, nbg1_rate, nbg1_rate);
+        slColOffsetB(nbg1_rate, nbg1_rate, nbg1_rate);
+        g_Transition.mosaic_x = MOSAIC_MIN;
+        g_Transition.mosaic_y = MOSAIC_MIN;
+        slScrMosSize(g_Transition.mosaic_x, g_Transition.mosaic_y);
+        g_Transition.fade_in_rate = 8;
+        changeState(GAME_STATE_TITLE_SCREEN);
+        // return; // 0.88.95
     }
-
-    // shouldn't need this since the inputs will always be reset when restarting the loop at ppplogo
-    // else {
-        // Digital gamepad(player->input->id);
-        // //
-        // // skip the logo if player 1 hits start
-        // //
-        // if(gamepad.WasPressed(Digital::Button::START))
-        // {
-            // // set everything back to defaults
-            // nbg1_rate = NEUTRAL_FADE;
-            // slColOffsetA(nbg1_rate, nbg1_rate, nbg1_rate);
-            // slColOffsetB(nbg1_rate, nbg1_rate, nbg1_rate);
-            // g_Transition.mosaic_x = MOSAIC_MIN;
-            // g_Transition.mosaic_y = MOSAIC_MIN;
-            // slScrMosSize(g_Transition.mosaic_x, g_Transition.mosaic_y);
-            // g_Transition.fade_in_rate = 8;
-            // changeState(GAME_STATE_TITLE_SCREEN);
-            // return;
-        // }
-    // }
 }
 
 // update callback routine for PPP logo

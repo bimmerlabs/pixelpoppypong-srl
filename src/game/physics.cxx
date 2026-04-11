@@ -1,5 +1,6 @@
 #include "physics.h"
 #include "gameplay.h"
+#include "../specialfx/particlefx.h"
 #include "../core/audio.h"
 #include "../core/math.h"
 #include "../core/screen_transition.h"
@@ -14,9 +15,9 @@ unsigned int ballTtouchTimer = 0;
 int8_t lastTouchedBy = -1;
 int8_t previouslyTouchedBy[TOUCHEDBY_BUFFER];
     
-static Fxp maxBallVelocity = Fxp_0;
+static Fxp maxBallVelocity = 0;
 
-void initTouchCounter(uint8_t resetTouchCount) {
+void initTouchCounter(uint8_t resetTouchCount) { // why is this not a bool?
     for(unsigned int i = 0; i < MAX_PLAYERS; i++)
     {
         touchedBy[i].onLeftSide = false;
@@ -34,9 +35,9 @@ void initTouchCounter(uint8_t resetTouchCount) {
 }
 
 void stopBallMovement(Sprite *ball) {
-    ball->vel.x = Fxp_0;
-    ball->vel.y = Fxp_0;
-    ball->vel.z = Fxp_0;
+    ball->vel.x = 0;
+    ball->vel.y = 0;
+    ball->vel.z = 0;
 }
 
 // Function to initialize the ball's movement
@@ -45,26 +46,20 @@ void start_ball_movement(Sprite *ball) {
     {
         case GAME_DIFFICULTY_EASY:
             maxBallVelocity = EASY_MAX_VELOCITY;
-            ball->vel.x = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(5, 8)));
-            ball->vel.y = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(1, 8)));
+            ball->vel.x = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(4, 6)));
+            ball->vel.y = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(1, 5)));
             ball->vel.z = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(1, 10))); // originally 5
-            break;
-        case GAME_DIFFICULTY_MEDIUM:
-            maxBallVelocity = MEDIUM_MAX_VELOCITY;
-            ball->vel.x = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(5, 9)));
-            ball->vel.y = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(1, 9)));
-            ball->vel.z = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(1, 20))); // originally 10
             break;
         case GAME_DIFFICULTY_HARD:
             maxBallVelocity = HARD_MAX_VELOCITY;
-            ball->vel.x = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(6, 10)));
-            ball->vel.y = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(1, 10)));
+            ball->vel.x = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(5, 9)));
+            ball->vel.y = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(1, 8)));
             ball->vel.z = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(1, 40))); // originally 20
             break;
-        default:
+        default: // GAME_DIFFICULTY_MEDIUM
             maxBallVelocity = MEDIUM_MAX_VELOCITY;
-            ball->vel.x = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(6, 10)));
-            ball->vel.y = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(3, 9)));
+            ball->vel.x = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(4, 7)));
+            ball->vel.y = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(1, 6)));
             ball->vel.z = Fxp::Convert(static_cast<int16_t>(rnd.GetNumber(1, 20))); // originally 10
             break;
     }
@@ -92,7 +87,7 @@ void start_ball_movement(Sprite *ball) {
 // inline?
 void adjust_xy_velocity_based_on_spin(Sprite *ball) {
     // Calculate tangential velocity
-    Fxp tangential_velocity = ball->pos.r * ball->vel.z / Fxp_360;
+    Fxp tangential_velocity = ball->pos.r * ball->vel.z / 360;
 
     // Scale tangential velocity by friction
     Fxp friction_effect = tangential_velocity * FRICTION_COEFFICIENT;
@@ -149,7 +144,7 @@ void update_ball(Sprite *ball) {
     // Check for collisions with walls
     if (ball->pos.x >= SCREEN_RIGHT) {
         ball->pos.x = SCREEN_RIGHT;
-        Pcm::Play(Sounds.Game[BumpSnd], PlayMode::Volatile, 6);
+        Pcm::Play(Sounds.Game[BumpSnd], PlayMode::Volatile, 7);
         ball->vel.x = -ball->vel.x; // Reverse X velocity
         // moving right
         if (ball->vel.x > MIN_VELOCITY_X) {
@@ -169,7 +164,7 @@ void update_ball(Sprite *ball) {
     }
     if (ball->pos.x <= SCREEN_LEFT) {
         ball->pos.x = SCREEN_LEFT;
-        Pcm::Play(Sounds.Game[BumpSnd], PlayMode::Volatile, 6);
+        Pcm::Play(Sounds.Game[BumpSnd], PlayMode::Volatile, 7);
         ball->vel.x = -ball->vel.x; // Reverse X velocity
         // moving right
         if (ball->vel.x > MIN_VELOCITY_X) {
@@ -189,7 +184,7 @@ void update_ball(Sprite *ball) {
     }
     if (ball->pos.y >= SCREEN_BOTTOM - ball->pos.r) {
         ball->pos.y = SCREEN_BOTTOM - ball->pos.r;
-        Pcm::Play(Sounds.Game[BumpSnd], PlayMode::Volatile, 6);
+        Pcm::Play(Sounds.Game[BumpSnd], PlayMode::Volatile, 7);
         ball->vel.y = -ball->vel.y; // Reverse Y velocity
         // moving up
         if (ball->vel.y < -MIN_VELOCITY_Y) {
@@ -202,7 +197,7 @@ void update_ball(Sprite *ball) {
     }
     if (ball->pos.y <= SCREEN_TOP + ball->pos.r) {
         ball->pos.y = SCREEN_TOP + ball->pos.r;
-        Pcm::Play(Sounds.Game[BumpSnd], PlayMode::Volatile, 6);
+        Pcm::Play(Sounds.Game[BumpSnd], PlayMode::Volatile, 7);
         ball->vel.y = -ball->vel.y; // Reverse Y velocity
         // moving down
         if (ball->vel.y > MIN_VELOCITY_Y) {
@@ -234,38 +229,45 @@ void update_ball(Sprite *ball) {
     if (ABS(ball->rot.z) == 360) {
         ball->rot.z = 0;
     }
+    
+    starCfg.spawnX   = ball->pos.x;
+    starCfg.spawnY   = ball->pos.y;
+    starCfg.maxVX    = -ball->vel.x * 0.1;
+    starCfg.maxVY    = -ball->vel.y * 0.1;
+    Fxp emitRate     = 60 / ball->vel.z;
+    if (emitRate < 0)
+        emitRate *= -1;
+    if (emitRate < 1)
+        emitRate = 1;
+    starCfg.emitRate = emitRate.RawValue() >> 16;
 }
 
 // SIMPLER / BETTER? (ball/circle)
 void handle_ball_player_reaction(Sprite *ball, PPLAYER player, int32_t distance_squared, int32_t dx, int32_t dy) {
-    if (g_Game.explodeBall && !player->isExploded) {
+    if (g_Game.explodeBall && !player->isExploded && !player->shield.activate) {
         player->isExploded = explodePLayer(player);
         player->_sprite->isColliding = false;
         return;
     }
     
     Fxp distance = Fxp::Convert(static_cast<int16_t>(ApproximateIntegerSqrt(distance_squared)));
+    // Fxp distance = distance_squared.Sqrt();
     
-    // Calculate relative position vector    
+    // Calculate relative position vector
     Fxp collision_normal_x = Fxp::Convert(static_cast<int16_t>(dx)) / distance;
     Fxp collision_normal_y = Fxp::Convert(static_cast<int16_t>(dy)) / distance;
 
     // Compute the dot product of relative velocity and collision normal
     Fxp dot_product = ball->vel.x * collision_normal_x + ball->vel.y * collision_normal_y;
 
-    if (dot_product > Fxp_0) { // remove?
+    if (dot_product > 0) { // remove?
         // Ball is moving away from the player; no need to adjust velocity
         return;
     }
 
     player->_sprite->isColliding = true;
-    
-    // Fxp xNormal = dot_product * collision_normal_x * player->power;
-    // Fxp yNormal = dot_product * collision_normal_y * player->power;
-    // SRL::Debug::Print(2, 15, "xNormal:%3d    ", xNormal.As<int16_t>());
-    // SRL::Debug::Print(2, 16, "yNormal:%3d    ", yNormal.As<int16_t>());
-    
-  if (!g_GameOptions.testCollision) {        
+        
+  if (!g_GameOptions.testCollision) {
     // Reflect the ball's velocity along the collision normal, factoring in player's movement    
     ball->vel.x -= dot_product * collision_normal_x * player->power;
     ball->vel.y -= dot_product * collision_normal_y * player->power;
@@ -293,15 +295,6 @@ bool detect_player_ball_collision(Sprite *ball, PPLAYER player) {
         player->_sprite->isColliding = false;
         return false;
     }
-    // maybe this would work if the player was wedge shaped
-    // if (player->onLeftSide && (player->_sprite->pos.x - player->_sprite->pos.r) > ball->pos.x) {
-        // player->_sprite->isColliding = false;
-        // return false;
-    // }
-    // if (!player->onLeftSide && (player->_sprite->pos.x + player->_sprite->pos.r) < ball->pos.x) {
-        // player->_sprite->isColliding = false;
-        // return false;
-    // }
     
     // Relative position vector
     int32_t dx = ball->pos.x.As<int32_t>() - player->_sprite->pos.x.As<int32_t>();
@@ -340,10 +333,7 @@ bool detect_player_ball_collision(Sprite *ball, PPLAYER player) {
             updateBallTouch(player);
         }
         if (g_GameOptions.enableMeows && !player->_sprite->isColliding) {
-            Pcm::Play(Sounds.Meow[Sounds.MeowId]);
-            Sounds.MeowId++;
-            if (Sounds.MeowId > MEOW9)
-                Sounds.MeowId = MEOW1;
+            playCatSound();
         }
         handle_ball_player_reaction(ball, player, distance_squared, dx, dy);
         return true;
@@ -360,10 +350,7 @@ bool detect_player_ball_collision(Sprite *ball, PPLAYER player) {
             updateBallTouch(player);
         }
         if (g_GameOptions.enableMeows && !player->_sprite->isColliding) {
-            Pcm::Play(Sounds.Meow[Sounds.MeowId]);
-            Sounds.MeowId++;
-            if (Sounds.MeowId > MEOW9)
-                Sounds.MeowId = MEOW1;
+            playCatSound();
         }
         handle_ball_player_reaction(ball, player, distance_squared, dx, dy);
         return true;
@@ -375,6 +362,7 @@ bool detect_player_ball_collision(Sprite *ball, PPLAYER player) {
 }
 
 // distance formula without the square root
+// move to items?
 bool checkItemDistance(Sprite *player, Sprite *item)
 {
     if (!g_Game.isActive) {

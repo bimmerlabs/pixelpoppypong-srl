@@ -1,6 +1,7 @@
 #include "nbg1.h"
 #include "../main.h"
 #include "../core/math.h"
+#include "../specialfx/seasons.h"
 #include "palette.h"
 #include "NBG1.pal"
 #include "sprite_colors.h"
@@ -8,14 +9,11 @@
 // using namespace SRL::Types;
 using namespace SRL::Math::Types;
 
-// static unsigned char current_background = T_DAY;
-
 // initial image setup: hue, saturation, luminance, x_pos, y_pos, x_scale, y_scale, x_scroll (rate), y_scroll (rate), min_sat_id, max_sat_id, min_lum_id, max_lum_id
 ImageAttr attrNbg1 = { 0, 0, 0, Fxp(0.0), Fxp(0.0), Fxp(0.25), Fxp(0.0), 0, 0, 0, 0}; // default attributes (for single color image)
 
 void init_nbg1_img(void) {
     SRL::Bitmap::TGA* background = new SRL::Bitmap::TGA("BG0.TGA"); // Load Bitmap image to work RAM
-    // SRL::Bitmap::TGA* background = new SRL::Bitmap::TGA("JELLY.TGA"); // Load Bitmap image to work RAM
     SRL::Tilemap::Interfaces::Bmp2Tile* Tilebmp = new SRL::Tilemap::Interfaces::Bmp2Tile(*background); // convert bitmap to tilemap
     delete background; // free original bitmap from work ram
     SRL::VDP2::NBG1::LoadTilemap(*Tilebmp); // Transfer tilemap from work RAM to VDP2 VRAM and register with NBG2
@@ -57,6 +55,13 @@ void update_nbg1_time_slot(void) {
         if (time.Hour() >= T_NIGHT && time.Hour() < T_DAWN) {
             g_Game.timeSlot = BG_NIGHT;
         }
+    }
+
+    if (initNBG1())
+    {
+        attrSprites.hue = 21; // orange?
+    	attrSprites.sat = 245;
+        return;
     }
     
     switch (g_Game.timeSlot) {

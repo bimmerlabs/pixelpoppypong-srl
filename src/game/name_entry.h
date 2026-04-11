@@ -1,6 +1,7 @@
 #pragma once
 #include <srl.hpp>
 #include "../core/assets.h"
+#include "../core/vdp1print.h"
 #include "../vdp2/sprite_colors.h"
 
 using namespace SRL::Types;
@@ -27,7 +28,7 @@ typedef struct _NAME_ENTRY
     unsigned int selection;
     bool rotateLeft;
     bool rotateRight;
-    char initials[4];  // 3 letters + null terminator
+    char initials[4];  // 3 letters + null terminator (do I need the null?
     int char_id[3];
     
     Fxp xRadius;
@@ -50,6 +51,19 @@ extern bool rotateRight;
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+static inline void nameEntryTitleDraw(void)
+{
+    font.zmode = _ZmLC;
+    set_spr_scale(&font, 1, 1);
+    int32_t xpos = -232;
+    int32_t ypos = -200;
+    int32_t zpos = 50;
+    const int32_t offset = 24;
+    const int32_t space = 28;
+    
+    DrawSpriteText(&font, "Enter Your Initials", xpos, ypos, zpos, offset, space);
+}
 
 void nameEntryInit(void);
 void nameEntryInput(void);

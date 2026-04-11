@@ -24,17 +24,19 @@ bool all_players_ready = false;
 void teamSelect_init(void)
 {
     g_Game.lastState = GAME_STATE_TEAM_SELECT;
-    if (g_Assets.titleAssetsLoaded) {
-        unloadTitleAssets();
-    }
+    // if (g_Assets.titleAssetsLoaded) {
+        // unloadTitleAssets();
+    // }
     if (!g_Assets.characterAssetsLoaded) {
         loadCharacterAssets();
     }
         
     init_nbg2_img();
     
-    reset_inputs();
+    // need to ensure nobody has a "stuck" input
     initPlayers(true);
+    reset_inputs();
+    
     initAvailableCharacters();
 
     initTeams();
@@ -44,25 +46,12 @@ void teamSelect_init(void)
     g_Team.numTeams = 0;
     g_Team.minTeams = TEAM_1;
     
-    if (g_GameOptions.mesh_display) {
-        menu_bg1.mesh = MESHon;
-        menu_bg2.mesh = MESHon;
-        player_bg.mesh = MESHon;
-    }
-    else {
-        menu_bg1.mesh = MESHoff;
-        menu_bg2.mesh = MESHoff;
-        player_bg.mesh = MESHoff;
-    }
+    menu_bg1.mesh = MESHoff;
     
     // some assets don't change in scale
     menu_bg1.id = menu_bg1.anim[0].asset + 4;
     set_spr_scale(&menu_bg1, 48, 48);
-    menu_bg2.id = menu_bg2.anim[0].asset + 5;
-    menu_bg2.zmode = _ZmCC;
-    set_spr_position_fxp(&menu_bg2, MENU_BG2_X, Fxp_0, MENU_BG2_DEPTH);
-    set_spr_scale_fxp(&menu_bg2, MENU_BG2_WIDTH, MENU_BG2_HEIGHT);
-    
+
     SRL::VDP2::NBG2::ScrollEnable();
     
     g_Transition.mosaic_in = true;
@@ -74,8 +63,6 @@ void teamSelect_init(void)
 // main logic loop
 void teamSelect_update(void)
 {
-    check_player_inputs();
-    
     // EVERYONE PRESSED START
     if(g_TeamSelectPressedStart == true)
     {
@@ -321,12 +308,15 @@ void drawCharacterSelectGrid(void)
 
 void characterSelect_input(void)
 {   
+    check_player_inputs(); // check to see who presses ::START
+    
     // ONLY PLAYER 1 CAN EXIT TO TITLE SCREEN
     Digital player1(0);
     if (player1.WasPressed(Digital::Button::B) && g_Players[0].startSelection == false && g_Players[0].pressedB == false)
     {
         g_Game.vblankClearScreen = true;
         SRL::VDP2::NBG2::ScrollDisable();
+        reset_inputs();
         g_Game.lastState = GAME_STATE_TEAM_SELECT;
         transitionState(GAME_STATE_TITLE_SCREEN);
     }
@@ -379,7 +369,7 @@ void characterSelect_input(void)
                 player->maxSpeed = Fxp_0;
                 player->acceleration = Fxp_0;
                 player->power = Fxp_0;
-                player->input->id = 32;
+                player->input->id = -1;
                 player->input->isSelected = false;
                 player->input = nullptr;
                 assignCharacterSprite(player);
@@ -387,9 +377,11 @@ void characterSelect_input(void)
             }
             
             // SELECT CHARACTER
-            if (port.WasPressed(Digital::Button::START) ||
+            if (
+                // port.WasPressed(Digital::Button::START) ||
                 port.WasPressed(Digital::Button::A) ||
-                port.WasPressed(Digital::Button::C))
+                port.WasPressed(Digital::Button::C)
+                )
             {
                 g_Game.vblankClearScreen = true;
                 Pcm::Play(Sounds.Core[NextSnd], PlayMode::Volatile, 6);
@@ -408,44 +400,6 @@ void characterSelect_input(void)
             assignCharacterSprite(player);
             // make sure the scale is normal
             set_spr_scale(player->_sprite, 2, 2);
-        }
-        // BEGIN CHARACTER SELECTION
-        if (!player->startSelection) {
-            // Once a player starts selection, they shouldn't be able to assign a new id
-            if (player->input->isSelected && port.WasPressed(Digital::Button::START)) {
-                g_Game.vblankClearScreen = true;
-                Pcm::Play(Sounds.Core[StartSnd], PlayMode::Volatile, 6);
-                player->startSelection = true;
-                player->character.choice = CHARACTER_MACCHI;
-                validateCharacters(player);
-                assignCharacterSprite(player);
-            }
-            else {
-                for(unsigned int ip = 0; ip < COUNTOF(g_Inputs); ip++)
-                {
-                    // Once a player starts selection, they shouldn't be able to assign a new id
-                    if (g_Inputs[ip].isSelected) {
-                        continue;
-                    }
-                    if (port.WasPressed(Digital::Button::START))
-                    {
-                        g_Game.vblankClearScreen = true;
-                        Pcm::Play(Sounds.Core[StartSnd], PlayMode::Volatile, 6);
-                        player->input = &g_Inputs[ip];
-                        player->input->id = ip;
-                        player->input->isSelected = true;
-                        
-                        player->startSelection = true;
-                        player->character.choice = CHARACTER_MACCHI;
-                        validateCharacters(player);
-                        assignCharacterSprite(player);
-                        
-                        player->teamChoice = TEAM_1;
-                        validateTeam(player);
-                       return;
-                    }
-                }
-            }
         }
         // DEFAULT CHARACTER SETUP
         if (!player->character.selected) {
@@ -533,9 +487,11 @@ void teamSelect_input(void)
             }
             
             // SELECT TEAM
-            if (port.WasPressed(Digital::Button::START) ||
+            if (
+                // port.WasPressed(Digital::Button::START) ||
                 port.WasPressed(Digital::Button::A) ||
-                port.WasPressed(Digital::Button::C))
+                port.WasPressed(Digital::Button::C)
+                )
             {
                 g_Game.vblankClearScreen = true;
                 Pcm::Play(Sounds.Core[NextSnd], PlayMode::Volatile, 6);

@@ -237,6 +237,18 @@ static inline void updateGamePalette(void) {
 	}
 }
 
+// // character select
+// static inline void updateTitleColors(void) {
+    // DateTime time = DateTime::Now();
+    // int hue = time.Second()*6;
+	// for (unsigned int i = 0; i < FONT_CHARS; i++) {
+		// unsigned int color_id = p_rangeFont2[i].upper;
+		// hslSprites[color_id].h = hue;
+		// hslSprites[color_id].s = 255;
+		// hslSprites[color_id].l = 112;
+	// }
+	// do_update_font2All = calculate_sprites_color(&p_rangeFont2All);
+// }
 
 // name entry
 static inline void initNameEntryColors(void) {

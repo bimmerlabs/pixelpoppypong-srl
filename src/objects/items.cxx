@@ -37,10 +37,10 @@ void setItemPositions(void) {
         // TODO: make this an option in the menu (need a debug menu)
         // g_item.id = GAME_ITEM_BOMB;
         // g_item.id = GAME_ITEM_FISH;
-        // g_item.id = GAME_ITEM_SHROOM;
+        g_item.id = GAME_ITEM_SHROOM;
         // g_item.id = GAME_ITEM_GARF;
         // g_item.id = GAME_ITEM_CRAIG;
-        g_item.id = GAME_ITEM_MAX;
+        // g_item.id = GAME_ITEM_MAX;
     }
     else {
         int item = rnd.GetNumber(0, 1000000);
@@ -121,36 +121,38 @@ void setItemPositions(void) {
             explode_bomb = false;
             bomb_timer = BOMB_TIMER;
             g_item._sprite = &bomb_item;
-            g_item._sprite->visible = true;
+            g_item._sprite->active = true;
             sprite_frame_reset(g_item._sprite);
             break;
         case GAME_ITEM_FISH:
             g_item._sprite = &fishtank_item;
-            g_item._sprite->visible = true;
+            g_item._sprite->active = true;
             hsl_incSprites[HSL_FISH].h -= FISH_HUE_INCREMENT;
             do_update_fish = true;
             break;
         case GAME_ITEM_SHROOM:
             g_item._sprite = &shroom_item;
-            g_item._sprite->visible = true;
+            g_item._sprite->active = true;
             break;
         case GAME_ITEM_GARF:
             g_item._sprite = &garfield_item;
-            g_item._sprite->visible = true;
+            g_item._sprite->active = true;
             break;
         case GAME_ITEM_CRAIG:
             g_item._sprite = &craig_item;
-            g_item._sprite->visible = true;
+            g_item._sprite->active = true;
             break;
         default:
             g_item._sprite = &fishtank_item;
-            g_item._sprite->visible = false;
+            g_item._sprite->active = false;
             break;
     }
     set_item_position(g_item._sprite);
     set_spr_scale(g_item._sprite, item_scale, item_scale);
     g_item._sprite->isColliding = false;
+    g_item._sprite->rot.z = 0;
     g_item.isActive = false;
+    g_item.update = false;
     
     // SRL::Debug::Print(2, 13, "g_item.id:%3d", g_item.id);
 }
@@ -171,7 +173,7 @@ void drawGameItems(void) {
                 }
                 explode_bomb = explode_animation(&bomb_item);
                 if (explode_bomb == false) {
-                    bomb_item.visible = false;
+                    bomb_item.active = false;
                     g_item.isActive = false;
                 }
             }
@@ -220,37 +222,48 @@ void drawGameItems(void) {
             }
             break;
         default:
-            g_item._sprite->visible = false;
+            g_item._sprite->active = false;
             g_item.isActive = false;
             break;
     }
     
-    // SRL::Debug::Print(2, 14, "isVisible:%d", g_item._sprite->visible);
+    // SRL::Debug::Print(2, 14, "isVisible:%d", g_item._sprite->active);
     // SRL::Debug::Print(2, 15, "isActive:%d", g_item.isActive);
     
-    if (g_item._sprite->visible) {
-        my_sprite_draw(g_item._sprite);
+    if (g_item._sprite->active) {
+        my_sprite_draw_rot(g_item._sprite);
+        item_bounce();
     }
 }
 
 void handlePlayerItemCollision(PPLAYER player) {
-    g_item.isActive = false;
     switch (g_item.id) {
         case GAME_ITEM_BOMB:
         {
-            explode_bomb = true;
-            bomb_heating = false;
-            animate_bomb = false;
-            bomb_timer = 0;
-            g_Transition.explosion_flash = true;
-            if (!player->isExploded) {
-                player->isExploded = explodePLayer(player);
+            if (player->shield.activate == true)
+            {
+                handle_item_player_reaction(player);
+                g_item.update = true;
+            }
+            else
+            {
+                g_item.isActive = false;
+                g_item.update = false;
+                explode_bomb = true;
+                bomb_heating = false;
+                animate_bomb = false;
+                bomb_timer = 0;
+                g_Transition.explosion_flash = true;
+                if (!player->isExploded) {
+                    player->isExploded = explodePLayer(player);
+                }
             }
             g_GameOptions.bombTouchCounter++;
             break;
         }
         case GAME_ITEM_FISH:
         {
+            g_item.isActive = false;
             Pcm::Play(Sounds.Game[BloopSnd]);
             if ((player->totalLives - player->numLives) > 1) {
                 player->numLives += (player->totalLives - player->numLives) / 2;
@@ -261,37 +274,54 @@ void handlePlayerItemCollision(PPLAYER player) {
             if (player->numLives > player->totalLives * 2) {
                 player->numLives = player->totalLives * 2;
             }
-            fishtank_item.visible = false;
+            fishtank_item.active = false;
             player->score.points += 10000;
             g_GameOptions.fishTouchCounter++;
             break;
         }
         case GAME_ITEM_SHROOM:
         {
-            shroom_item.visible = false;
-            int16_t shroom_angle = hslSprites[p_rangeShroom.lower].h;
-            g_item.timer[player->playerID] = SHROOM_TIMER;
-            // affect the player depending on the color of the shroom
-            if ((shroom_angle > 0 && shroom_angle <= 90) || (shroom_angle > 270 && shroom_angle <= 360)) {
-                Pcm::Play(Sounds.Game[GrowSnd]);
-                player->_sprite->pos.r = PLAYER_RADIUS_LARGE;
-                player->isBig = true;
-                player->isSmall = false;
-                g_GameOptions.redShroomTouchCounter++;
+            if (player->shield.activate == true)
+            {
+                handle_item_player_reaction(player);
+                g_item.update = true;
             }
-            if (shroom_angle > 90 && shroom_angle <= 270) {
-                Pcm::Play(Sounds.Game[ShrinkSnd]);
-                player->_sprite->pos.r = PLAYER_RADIUS_SMALL;
-                player->isBig = false;
-                player->isSmall = true;
-                g_GameOptions.blueShroomTouchCounter++;
+            else {
+                g_item.isActive = false;
+                if (player->isAI && g_Game.gameMode == GAME_MODE_STORY && player->character.choice == CHARACTER_WUPPY)
+                {
+                    // select from messages or replace with state system
+                    SRL::Debug::Print(15, 14, "Mwa-ha-ha-ha!");
+                }
+                else
+                {
+                    shroom_item.active = false;
+                    int16_t shroom_angle = hslSprites[p_rangeShroom.lower].h;
+                    g_item.timer[player->playerID] = SHROOM_TIMER;
+                    // affect the player depending on the color of the shroom
+                    if ((shroom_angle > 0 && shroom_angle <= 90) || (shroom_angle > 270 && shroom_angle <= 360)) {
+                        Pcm::Play(Sounds.Game[GrowSnd]);
+                        player->_sprite->pos.r = PLAYER_RADIUS_LARGE;
+                        player->isBig = true;
+                        player->isSmall = false;
+                        g_GameOptions.redShroomTouchCounter++;
+                    }
+                    if (shroom_angle > 90 && shroom_angle <= 270) {
+                        Pcm::Play(Sounds.Game[ShrinkSnd]);
+                        player->_sprite->pos.r = PLAYER_RADIUS_SMALL;
+                        player->isBig = false;
+                        player->isSmall = true;
+                        g_GameOptions.blueShroomTouchCounter++;
+                    }
+                    player->score.points += 50000;
+                }
             }
-            player->score.points += 50000;
             break;
         }
         case GAME_ITEM_GARF:
         {
-            garfield_item.visible = false;
+            g_item.isActive = false;
+            garfield_item.active = false;
             // "i hate mondays" etc
             if (touchedBy[player->playerID].touchCount == 0) {
                 touchedBy[player->playerID].touchCount = 20;
@@ -316,7 +346,8 @@ void handlePlayerItemCollision(PPLAYER player) {
         }
         case GAME_ITEM_CRAIG:
         {
-            craig_item.visible = false;
+            g_item.isActive = false;
+            craig_item.active = false;
             // "nice shot"
             player->score.points += 100000;
             g_GameOptions.craigTouchCounter++;
@@ -330,7 +361,7 @@ void handlePlayerItemCollision(PPLAYER player) {
         }
         default:
         {
-            g_item._sprite->visible = false;
+            g_item._sprite->active = false;
             break;
         }
     }

@@ -1,29 +1,32 @@
 #include "assets.h"
 #include "sprites.h"
 #include "util.h"
+#include "../specialfx/seasons.h"
 
 ASSETS g_Assets = {};
 SoundAssets Sounds = {};
 
 TilemapObject* coreTiles = nullptr;
+TilemapObject* particleTiles = nullptr;
 TilemapObject* titleTiles = nullptr;
 TilemapObject* characterTiles = nullptr;
 TilemapObject* gameplayTiles = nullptr;
 TilemapObject* fontTiles = nullptr;
+TilemapObject* nameTiles = nullptr;
 
 void loadCoreSoundAssets(void)
 {
     // CORE / MENU SOUNDS
-    Pcm::LoadSound("CORE.SND", Sounds.Core, 5);
+    Pcm::LoadSound("CORE.SND", Sounds.Core, CORE_SND_MAX);
 }
 
 bool loadGameplaySoundAssets(void)
 {
     // GAMEPLAY SOUNDS
-    Pcm::LoadSound("GAMEPLAY.SND", Sounds.Game, 19);
+    Pcm::LoadSound("GAMEPLAY.SND", Sounds.Game, GAME_SND_MAX);
     
     // CAT SOUNDS
-    Pcm::LoadSound("CAT.SND", Sounds.Meow, 9);
+    Pcm::LoadSound("CAT.SND", Sounds.Meow, MEOW_MAX);
     Sounds.MeowId = MEOW1;
     return true;
 }
@@ -31,7 +34,7 @@ bool loadGameplaySoundAssets(void)
 bool loadNameEntrySoundAssets(void)
 {   
     // NAME ENTRY SOUNDS
-    Pcm::LoadSound("NAME.SND", Sounds.Name, 5);
+    Pcm::LoadSound("NAME.SND", Sounds.Name, NAME_SND_MAX);
     return true;
 }
 
@@ -59,18 +62,31 @@ void loadCoreAssets(void)
     player_bg.id = coreTiles->sprite[CORE_SPRITE_MENUBG].SpriteIndex;
     player_bg.anim[0].asset = player_bg.id;
 
-    
+        
     // HALLOWEEN
-    if (g_Game.timeSeason == S_HALLOWEEN && g_GameOptions.use_rtc)
+    if (g_Game.timeSeason == S_HALLOWEEN)
     {
         pixel_poppy.id = coreTiles->sprite[CORE_SPRITE_PUMPKIN].SpriteIndex;
         pixel_poppy.anim[0].asset = pixel_poppy.id;
         pixel_poppy.anim[0].max = coreTiles->sprite[CORE_SPRITE_PUMPKIN].MaxFrames;
         pixel_poppy.anim[0].frame = 0;
-        
+
         cursor.id = cursor.anim[0].asset + 1;
     }
+    // XMAS
+    else if (g_Game.timeSeason == S_XMAS)
+    {
+        pixel_poppy.id = coreTiles->sprite[CORE_SPRITE_SANTA].SpriteIndex;
+        pixel_poppy.anim[0].asset = pixel_poppy.id;
+        pixel_poppy.anim[0].max = coreTiles->sprite[CORE_SPRITE_SANTA].MaxFrames;
+        pixel_poppy.anim[0].frame = 0;
 
+        cursor.id = cursor.anim[0].asset + 2;
+    }
+    
+    particleTiles = new TilemapObject("PARTICLE.LZ", PaletteID, false, true);
+    delete particleTiles;
+    
     g_Game.isLoading = false;
     SRL::Debug::PrintClearScreen();
 }
@@ -96,6 +112,8 @@ void loadTitleScreenAssets(void)
     menu_text.anim[0].asset = menu_text.id;
     menu_text.anim[0].max = titleTiles->sprite[TITLE_SPRITE_TMENU].MaxFrames;
     menu_text.anim[0].frame = 0;
+
+    g_Assets.startofTitleAssets = titleTiles->sprite[TITLE_SPRITE_ARROWS].SpriteIndex;
     
     g_Assets.titleAssetsLoaded = true;
     g_Game.isLoading = false;
@@ -142,6 +160,8 @@ void loadCharacterAssets(void)
     meter.anim[0].asset = meter.id;
     meter.anim[0].max = characterTiles->sprite[TEAM_SPRITE_METER].MaxFrames;
     meter.anim[0].frame = 0;
+
+    g_Assets.startofCharAssets = characterTiles->sprite[TEAM_SPRITE_METER].SpriteIndex;
     
     g_Game.isLoading = false;
     g_Assets.characterAssetsLoaded = true;
@@ -250,16 +270,26 @@ void loadGameAssets(void)
     dead.anim[0].asset = dead.id;
     
     // HALLOWEEN
-    if (g_Game.timeSeason == S_HALLOWEEN && g_GameOptions.use_rtc)
+    if (g_Game.timeSeason == S_HALLOWEEN)
     {
         craig_item.id = craig_item.anim[0].asset + 1; // VAMPIRE CRAIG
         garfield_item.id = garfield_item.anim[0].asset + 1; // VAMPIRE GARF
         heart.id = gameplayTiles->sprite[GAME_SPRITE_CORN].SpriteIndex; // CANDY CORN
         heart.anim[0].asset = heart.id;
-    }        
+        star.id = heart.id + 3;
+        star.anim[0].asset = star.id;
+    }
+    // XMAS
+    else if (g_Game.timeSeason == S_XMAS)
+    {
+        heart.id = gameplayTiles->sprite[GAME_SPRITE_TREES].SpriteIndex; // XMAS TREE
+        heart.anim[0].asset = heart.id;
+    }
+
+    g_Assets.startofGameAssets = gameplayTiles->sprite[GAME_SPRITE_BOMB].SpriteIndex;
     
     g_Assets.GameplayAssetsLoaded = true;
-    
+        
     if (!Sounds.GameplayFxLoaded) {
             g_Game.isSoundLoading = true;
             SRL::Debug::PrintClearLine(15);
@@ -275,7 +305,12 @@ void loadNameEntryAssets(void)
 {
     g_Game.isLoading = true;
     
-    fontTiles = new TilemapObject("NAMEENTR.LZ", PaletteID, false, true);
+    // const char* fileName =
+        // (g_Game.nextState == GAME_STATE_CHARACTER_SELECT)
+        // ? "CHARACTE.LZ"
+        // : "NAMEENTR.LZ";
+
+    fontTiles = new TilemapObject("CHARACTE.LZ", PaletteID, false, true);
     
     font.id = fontTiles->sprite[0].SpriteIndex;
     font.anim[0].asset = font.id;
@@ -286,51 +321,63 @@ void loadNameEntryAssets(void)
         Sounds.NameEntryFxLoaded = loadNameEntrySoundAssets();
         g_Game.isSoundLoading = false;            
     }
+        
+    g_Assets.startofNameAssets = fontTiles->sprite[0].SpriteIndex;
+    
+    if (g_Game.nextState == GAME_STATE_NAME_ENTRY)
+    {
+            nameTiles = new TilemapObject("NAMEENTR.LZ", PaletteID, false, true);
+    
+            name.id = nameTiles->sprite[0].SpriteIndex;
+            name.anim[0].asset = name.id;
+    }
     
     g_Assets.NameEntryAssetsLoaded = true;
     g_Game.isLoading = false;
     SRL::Debug::PrintClearScreen();
 }
 
+// delete?
 void unloadTitleAssets(void)
 {
-    // titleTiles->~TilemapObject(); 
-    SRL::VDP1::ResetTextureHeap(menu_arrow.id);
+    delete titleTiles;
+    titleTiles = nullptr;
+    SRL::VDP1::ResetTextureHeap(g_Assets.startofTitleAssets);
     g_Assets.titleAssetsLoaded = false;
 }
 
+// unrolling gameplay and character assets would probably fix some of these bugs
 void unloadGameAssets(void)
 {
-    // characterTiles->~TilemapObject();
-    SRL::VDP1::ResetTextureHeap(meter.id);
-    g_Assets.characterAssetsLoaded = false;
-    g_Assets.GameplayAssetsLoaded = false;
+    // delete characterTiles;
+    // characterTiles = nullptr;
+    delete gameplayTiles;
+    gameplayTiles = nullptr;
+    // if (g_Assets.characterAssetsLoaded || g_Assets.GameplayAssetsLoaded) {
+        // SRL::VDP1::ResetTextureHeap(g_Assets.startofCharAssets); // I wonder if this is right?
+        SRL::VDP1::ResetTextureHeap(g_Assets.startofGameAssets); // I wonder if this is right?
+        // g_Assets.characterAssetsLoaded = false;
+        g_Assets.GameplayAssetsLoaded = false;
+    // }
+    // if (g_Assets.NameEntryAssetsLoaded) {
+        // delete fontTiles;
+        // fontTiles = nullptr;
+        // if (nameTiles) {
+            // delete nameTiles;
+            // nameTiles = nullptr;
+        // }
+        // g_Assets.NameEntryAssetsLoaded = false;
+    // }
 }
 
 void unloadNameEntryAssets(void)
 {
-    SRL::VDP1::ResetTextureHeap(font.id);
+    delete fontTiles;
+    fontTiles = nullptr;
+    if (nameTiles) {
+        delete nameTiles;
+        nameTiles = nullptr;
+    }
+    SRL::VDP1::ResetTextureHeap(g_Assets.startofNameAssets);
     g_Assets.NameEntryAssetsLoaded = false;
-}
-
-void switchCoreAssets(void)
-{
-    // HALLOWEEN
-    if (g_Game.timeSeason == S_HALLOWEEN && g_GameOptions.use_rtc)
-    {
-        pixel_poppy.id = coreTiles->sprite[CORE_SPRITE_PUMPKIN].SpriteIndex;
-        pixel_poppy.anim[0].asset = pixel_poppy.id;
-        pixel_poppy.anim[0].max = coreTiles->sprite[CORE_SPRITE_PUMPKIN].MaxFrames;
-        pixel_poppy.anim[0].frame = 0;
-        
-        cursor.id = cursor.anim[0].asset + 1;
-    }
-    else {
-        pixel_poppy.id = coreTiles->sprite[CORE_SPRITE_POPPY].SpriteIndex;
-        pixel_poppy.anim[0].asset = pixel_poppy.id;
-        pixel_poppy.anim[0].max = coreTiles->sprite[CORE_SPRITE_POPPY].MaxFrames;
-        pixel_poppy.anim[0].frame = 0;
-        
-        cursor.id = cursor.anim[0].asset;
-    }
 }

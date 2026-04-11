@@ -5,14 +5,11 @@
 #include "player_setup.h"
 #include "../core/input.h"
 #include "../core/backup.h"
-#include "../vdp2/nbg2.h"
+#include "../vdp2/nbg2.h"
+#include "../specialfx/seasons.h"
 Item g_item = {};
-// TODO: implement this function
-// static bool isRoundOver(void);
-
 GAMEPLAY g_Gameplay = {};void initGameplayStruct(void) {
     g_Gameplay.GameTimer = 0;
-    // g_Gameplay.RoundOverTimer = 0; // NOT USED
     g_Gameplay.DemoTimer = 0;
     g_Gameplay.isGameOver = false;
     
@@ -21,9 +18,9 @@ GAMEPLAY g_Gameplay = {};void initGameplayStruct(void) {
     g_Gameplay.round_start = false;
 }
 void gameplay_init() {
-    if (g_Assets.titleAssetsLoaded) {
-        unloadTitleAssets();
-    }
+    // if (g_Assets.titleAssetsLoaded) {
+        // unloadTitleAssets();
+    // }
     if (g_Assets.NameEntryAssetsLoaded) {
         unloadNameEntryAssets();
     }
@@ -48,7 +45,7 @@ void gameplay_init() {
                 break;
             case GAME_MODE_STORY:
                 initStoryMode();
-                g_Transition.story_fade_in = true;
+                g_Transition.fade_in = true; // huh..
                 break;
             default:
                 break;
@@ -73,14 +70,6 @@ void gameplay_init() {
     initGoals();
     setGoalSize();    
 
-    if (g_GameOptions.mesh_display) {
-        menu_bg1.mesh = MESHon;
-        menu_bg1.id = menu_bg1.anim[0].asset + 4;
-    }
-    else {
-        menu_bg1.mesh = MESHoff;
-    }
-
     resetPlayerScores();
     getContinues();
     
@@ -101,15 +90,16 @@ void gameplay_init() {
     g_Game.isGoalScored = false;
     g_Game.winner = -2;
     g_Game.explodeBall = false;
+    g_Game.isBoss = false;
     
     // reset timers
     setGameTimer();
-        
-    menu_bg1.id = menu_bg1.anim[0].asset + 4;
-    set_spr_position(&menu_bg1, 0, -195, 85);
-    set_spr_scale(&menu_bg1, 36, 20);
     
-    g_Transition.explosion_flash = false;    
+    g_Transition.explosion_flash = false;
+        initGameplayFx();    
+    initStarsFx();
+    
+    SRL::VDP2::NBG2::ScrollEnable();
     reset_audio(MAX_VOLUME);
     playCDTrack(BEGIN_GAME_TRACK, false);
 }
@@ -117,9 +107,9 @@ void gameplay_init() {
 void demo_init(void) {
     g_Game.lastState = GAME_STATE_DEMO_LOOP;
     
-    if (g_Assets.titleAssetsLoaded) {
-        unloadTitleAssets();
-    }
+    // if (g_Assets.titleAssetsLoaded) {
+        // unloadTitleAssets();
+    // }
     if (g_Assets.NameEntryAssetsLoaded) {
         unloadNameEntryAssets();
     }
@@ -128,9 +118,13 @@ void demo_init(void) {
             loadCharacterAssets();
         }
         loadGameAssets();
-    }    initTeams();
-    // initPlayers();
+    }
+        initTeams();
     initDemoPlayers();
+    
+    initGameplayFx();
+    initStarsFx();
+    
     g_Game.selectStoryCharacter = false;
     g_Gameplay.DemoTimer = 0;    
     g_Game.gameMode = GAME_MODE_BATTLE;
@@ -250,8 +244,8 @@ void demo_init(void) {
     if (!g_Game.explodeBall) {
         ballTtouchTimer++;
     }
+    
     if (ballTtouchTimer == BALL_TOUCH_TIMEOUT && !g_Game.explodeBall) {
-        stopBallMovement(&pixel_poppy);
         g_Game.explodeBall = true;
         g_Transition.explosion_flash = true;
         pixel_poppy.pos.r = EASY_BALL_RADIUS;
@@ -265,6 +259,7 @@ void demo_init(void) {
         }
         g_Game.explodeBall = explode_animation(&pixel_poppy);
         if (!g_Game.explodeBall) {
+            stopBallMovement(&pixel_poppy);
             g_Transition.fade_out_rate = 4;
             g_Game.roundBeginTimer = ROUND_BEGIN_TIME_FAST;
             g_Game.dropBallTimer = DROP_BALL_TIME_FAST;
@@ -275,16 +270,13 @@ void demo_init(void) {
             g_Game.isBallActive = false;
             g_Game.isActive = false;
             g_Game.BeginTimer = 0;
+            initStarsFx();
         }
     }
     bombTimer();
 }
 void gameplay_draw(void)
 {    
-    #if ENABLE_DEBUG_MODE == 1
-    gameplayDebugText();
-    #endif
-    
     explodeGoals();
     if (g_Transition.fade_out) { // works for both ball and bomb..
         g_Transition.fade_out = fadeOut(8, NEUTRAL_FADE);
@@ -297,7 +289,13 @@ void demo_init(void) {
         // game ending
         if (g_Game.nextState == GAME_STATE_GAMEPLAY && g_Game.countofRounds == MAX_ROUNDS) {
             // TODO:  game ending
-            transitionState(GAME_STATE_NAME_ENTRY);
+            if (g_Game.gameMode == GAME_MODE_STORY)
+            {
+                transitionState(GAME_STATE_NAME_ENTRY);
+            }
+            else {
+                transitionState(GAME_STATE_CREDITS);
+            }
         }
         // you ran out of time or died
         else if (g_Game.nextState == GAME_STATE_GAMEPLAY &&  g_Game.winner == -1) {
@@ -350,12 +348,15 @@ void demo_init(void) {
     }
     else if (g_Game.currentNumPlayers == 1) {
         if (!g_Game.isRoundOver) {
+            
+            playCDTrack(MATCH_TRACK, false); // not ideal, but I'd have to fix the broken-ass logic below for it to make sense
+            
+            SRL::VDP2::NBG2::ScrollDisable();
             SRL::Debug::PrintClearScreen();
             g_Game.isRoundOver = true;
             g_Game.frame = 0; // this is a hack
             g_Game.winner = determineWinner();
             g_Transition.all_out = true;
-            g_Transition.story_fade_out = true;
         }       
             switch(g_Game.gameMode)
             {
@@ -363,21 +364,21 @@ void demo_init(void) {
                     g_Game.endDelayTimer--;
                     if (g_Game.winner > -1) {
                         SRL::Debug::Print(17, 14, "Game Over!");
-                        SRL::Debug::Print(15, 16, "Player %d Wins!", g_Game.winner+1);
-                        g_Game.nextState = GAME_STATE_NAME_ENTRY;
+                        SRL::Debug::Print(15, 16, "%s Wins!", classicCharacterNames[g_Game.winner]);
+                        g_Game.nextState = GAME_STATE_CREDITS;
                     }
                     else {
                         SRL::Debug::Print(17, 14, "Game Over!");
-                        SRL::Debug::Print(18, 16, "YOU LOSE");
+                        SRL::Debug::Print(18, 16, "You Lose");
                         g_Game.nextState = GAME_STATE_UNINITIALIZED;
                     }
                     break;
                 case GAME_MODE_CLASSIC:
                     g_Game.endDelayTimer--;
                     if (g_Game.winner > -1) {
-                        SRL::Debug::Print(17, 14, "Game Over!");
-                        SRL::Debug::Print(15, 16, "Player %d Wins!", g_Game.winner+1);
-                        g_Game.nextState = GAME_STATE_NAME_ENTRY;
+                        SRL::Debug::Print(17, 14, "Game Over!");                        
+                        SRL::Debug::Print(15, 16, "%s Wins!", classicCharacterNames[g_Game.winner]);
+                        g_Game.nextState = GAME_STATE_CREDITS;
                     }
                     else {
                         SRL::Debug::Print(17, 14, "Game Over!");
@@ -396,10 +397,16 @@ void demo_init(void) {
                     else if (g_Game.winner == -1) {
                         g_Game.endDelayTimer--;
                         // check for continues
-                        if (g_Players[0].score.continues > 0) {
+                        if (g_Players[0].score.continues >= 0) {
                             g_Game.nextState = GAME_STATE_GAMEPLAY;
                             SRL::Debug::Print(17, 14, "Try Again!");
-                            SRL::Debug::Print(12, 16, "REMAINING CONTINUES:%i", g_Players[0].score.continues);
+                            if (g_Players[0].score.continues > 0) {
+                                SRL::Debug::Print(12, 16, "Remaining Continues:");
+                                draw_star_element(&star, g_Players[0].score.continues, Fxp(172), Fxp(24), Fxp(16));
+                            }
+                            else {
+                                SRL::Debug::Print(12, 16, "Remaining Continues:%i", g_Players[0].score.continues);
+                            }
                             
                         }
                         else {
@@ -422,12 +429,17 @@ void demo_init(void) {
     }
     else if (g_Game.time_over) {
         if (!g_Game.isRoundOver) {
+            
+            // need a womp womp track
+            playCDTrack(MATCH_TRACK, false); // not ideal, but I'd have to fix the broken-ass logic below for it to make sense
+            
+            SRL::VDP2::NBG2::ScrollDisable();
+            
             SRL::Debug::PrintClearScreen();
             stopBallMovement(&pixel_poppy);
             g_Game.isRoundOver = true;
             g_Game.frame = 0; // this is a hack
             g_Transition.all_out = true;
-            g_Transition.story_fade_out = true;
         }       
         SRL::Debug::Print(16, 14, "Outta Time!");
         g_Gameplay.GameTimer = 60;
@@ -451,7 +463,13 @@ void demo_init(void) {
                     }
                     if (g_Players[0].score.continues >= 0) {
                         g_Game.nextState = GAME_STATE_GAMEPLAY;
-                        SRL::Debug::Print(12, 16, "Remaining Continues:%i", g_Players[0].score.continues);
+                        if (g_Players[0].score.continues > 0) {
+                            SRL::Debug::Print(12, 16, "Remaining Continues:");
+                            draw_star_element(&star, g_Players[0].score.continues, Fxp(172), Fxp(24), Fxp(16));
+                        }
+                        else {
+                            SRL::Debug::Print(12, 16, "Remaining Continues:%i", g_Players[0].score.continues);
+                        }
                     }
                     else {
                         SRL::Debug::Print(17, 16, "You Lose..");
@@ -494,11 +512,14 @@ void demo_init(void) {
     }
 }
 
-int determineWinner(void) {
+// instead, have a bool for "winner"?
+int determineWinner(void)
+{
     for(int8_t i = 0; i <= g_Game.numPlayers; i++)
     {
         PPLAYER player = &g_Players[i];
-        if (!player->isAI && !player->isDead) {
+        if (!player->isAI && !player->isDead)
+        {
             return i;
         }
     }
@@ -506,29 +527,44 @@ int determineWinner(void) {
 }
 
 
-void gameScore_draw(void) {
+void gameScore_draw(void)
+{
     if(g_Game.gameState != GAME_STATE_GAMEPLAY && g_Game.gameState != GAME_STATE_DEMO_LOOP)
     {
         return;
     }
-    if (!g_Game.isPaused && !g_Game.time_over && !g_Game.selectStoryCharacter && g_Game.currentNumPlayers > 1) {
-        for(int8_t i = 0; i <= (g_Game.numPlayers); i++)
+    if (!g_Game.isPaused && !g_Game.time_over && !g_Game.selectStoryCharacter && g_Game.currentNumPlayers > 1)
+    {
+        switch (g_Game.gameMode) 
         {
-            PPLAYER player = &g_Players[i];
-            switch (g_Game.gameMode) 
+            case GAME_MODE_STORY: 
             {
-                case GAME_MODE_STORY: {
-                    storymodeScore_draw(player);
-                    break;
+                storymodeScore_draw();
+                break;
+            }
+            case GAME_MODE_CLASSIC:
+            {
+                for(int8_t i = 0; i <= (g_Game.numPlayers); i++)
+                {
+                    PPLAYER player = &g_Players[i];
+                    classicScore_draw(player);                    
                 }
-                default:
-                    gameplayScore_draw(player);
-                    break;
+                break;
+            }
+            default:
+            {
+                for(int8_t i = 0; i <= (g_Game.numPlayers); i++)
+                {
+                    PPLAYER player = &g_Players[i];
+                    gameplayScore_draw(player);                    
+                }
+                break;
             }
         }
     }
 }
 
+// it's weird that this is called from an inline in gameplay.h...
 void gameplayUI_draw(PPLAYER player) {
     set_spr_scale(player->_portrait, 1.1, 1); // only really needs to do this once, after displaying the story/campaign screen
     // calculate power meter color
@@ -538,10 +574,10 @@ void gameplayUI_draw(PPLAYER player) {
 
     player->_bg->id = player->_bg->anim[0].asset + player->playerID;
     set_spr_scale(player->_bg, player->shield.power, POWER_METER_HEIGHT);        
-    Fxp heart_x = Fxp_0;
-    Fxp heart_y = Fxp_0;
-    Fxp star_x = Fxp_0;
-    Fxp offset = Fxp_0;    // TODO:  eliminate magic numbers
+    Fxp heart_x = 0;
+    Fxp heart_y = 0;
+    Fxp star_x = 0;
+    Fxp offset = 0;    // TODO:  eliminate magic numbers
     switch (player->teamChoice)
     {
         case TEAM_1: {
@@ -592,8 +628,30 @@ void gameplayUI_draw(PPLAYER player) {
     if (player->isDead) {
         my_sprite_draw(&dead);
         return;
-    }   
-    draw_star_element(&star, player->score.stars, star_x, heart_y, offset);
+    }
+    
+    switch (g_Game.gameMode) 
+    {
+        case GAME_MODE_STORY: 
+        {
+            if (player->playerID == 0)
+            {
+                star_x = -(GAMEPLAY_PORTRAIT_X - Fxp(212));
+                offset = Fxp(-16);
+                draw_star_element(&star, player->score.continues, star_x, heart_y, offset);
+            }
+            break;
+        }
+        case GAME_MODE_CLASSIC:
+        {
+            break;
+        }
+        default:
+        {
+            draw_star_element(&star, player->score.stars, star_x, heart_y, offset);
+            break;
+        }
+    }
     set_spr_scale(player->_bg, player->shield.power, POWER_METER_HEIGHT);
     my_sprite_draw(player->_bg);
 }
@@ -602,10 +660,10 @@ void reset_ball_movement(Sprite *ball) {
     ball_velocity = 0;
     ball_falling = true;
     ball_bounce = false;
-    ball->pos.x = Fxp_0;
+    ball->pos.x = 0;
     ball->pos.y = Fxp(-280);
-    ball->vel.x = Fxp_0;
-    ball->vel.y = Fxp_0;
+    ball->vel.x = 0;
+    ball->vel.y = 0;
     ball->vel.z = Ang_0;
     
     // big head option (only with 2 players)    
@@ -621,38 +679,6 @@ void reset_ball_movement(Sprite *ball) {
         ball->scl.y = Fxp(1.1);
     }
 }
-// // TODO:  implement function!
-// // static bool isRoundOver(void)
-// // {
-    // // // count number of players still active?
-    
-    // // // int numTeams = 0;
-    // // // int numSquares = 0;
-
-    // // // // TODO: check for no time left in time attack
-    // // // numTeams = countActiveTeams();
-    // // // if(numTeams == 0)
-    // // // {
-        // // // // no more teams left, players lost
-        // // // g_RoundOver = true;
-        // // // g_RoundOverTimer = ROUND_OVER_TIME;
-        // // // playCDTrack(DEATH_TRACK);
-        // // // return true;
-    // // // }
-
-    // // // numSquares = countSquaresRemaining();
-    // // // if(numSquares == 0)
-    // // // {
-        // // // // no more squares left to open, players win
-        // // // g_RoundOver = true;
-        // // // g_RoundOverTimer = ROUND_OVER_TIME;
-        // // // playCDTrack(VICTORY_TRACK);
-        // // // return true;
-    // // // }
-
-    // // return false;
-// // }
-
 void gameplay_update(void)
 {
     updatePlayers();
@@ -660,20 +686,7 @@ void gameplay_update(void)
     pause_draw();
     gameplay_draw();
     gameScore_draw();
-        // // TODO: implement this!!    
-    // // if(g_Game.isRoundOver == true)
-    // // {
-        // // g_Gameplay.RoundOverTimer--;
-
-        // // // check if it's time to go to the pause screen
-        // // if(g_Gameplay.RoundOverTimer <= 0)
-        // // {
-            // // g_Game.isPaused = true;
-        // // }
-        // // return;
-    // // }
-
-    // // g_Game.isRoundOver = isRoundOver();
+       displayParticleFx();
 }
 
 void demo_update(void)
@@ -696,9 +709,12 @@ void demo_update(void)
     playerAI(&pixel_poppy);
     gameplay_draw();
     gameScore_draw();
+        displayParticleFx();
     
     if(g_Gameplay.DemoTimer > DEMO_TIME)
     {
+        SRL::Debug::PrintClearScreen();
+        SRL::VDP2::NBG2::ScrollDisable();
         g_Gameplay.DemoTimer = 0;
         transitionState(GAME_STATE_UNINITIALIZED);
     }
@@ -724,22 +740,25 @@ void demo_input(void)
 {
     PPLAYER player = &g_Players[0];
     
+    check_ui_inputs();    
     if (!player->input->isSelected)
     {
-        check_ui_inputs();
+        return;
     }
 
     Digital gamepad(player->input->id);
     
     if(gamepad.IsHeld(Digital::Button::START))
     {
+        SRL::Debug::PrintClearScreen();
+        SRL::VDP2::NBG2::ScrollDisable();
         g_Game.lastState = GAME_STATE_DEMO_LOOP;
         transitionState(GAME_STATE_TITLE_SCREEN);
         g_Gameplay.DemoTimer = 0;
     }
 }
 
-Fxp ball_velocity = Fxp_0;
+Fxp ball_velocity = 0;
 bool ball_falling = false;
 bool ball_bounce = false;
 
@@ -749,10 +768,10 @@ bool drop_ball_animation(Sprite *ball) {
         Pcm::Play(Sounds.Game[DropSnd], PlayMode::Protected, 6);
         if (ball_velocity < BALL_VELOCITY) {
             if (g_Game.frame  % 2 == 0) { // modulus
-                ball_velocity += Fxp_1;
+                ball_velocity += 1;
             }
         }              
-        if (ball->pos.y < Fxp_0) {
+        if (ball->pos.y < 0) {
             ball->pos.y += ball_velocity;
         }
         // ball has hit the "ground"
@@ -790,7 +809,7 @@ bool drop_ball_animation(Sprite *ball) {
             
         }
         // final resting place
-        if (ball->pos.y < Fxp_0) {
+        if (ball->pos.y < 0) {
             ball->pos.y += ball_velocity;
         }
         else {
