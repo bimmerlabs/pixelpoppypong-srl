@@ -33,6 +33,7 @@ typedef enum _CHARACTER_SELECT
 
 extern bool characterUnlocked[CHARACTER_MAX]; // distinction between selection and what gets saved in backup ram
 extern bool characterAvailable[CHARACTER_MAX];
+extern bool storyCharacterAvailable[CHARACTER_MAX]; // only used for story mode
 
 typedef struct _CHARACTER_ATTRIBUTES
 {
@@ -51,6 +52,8 @@ typedef struct _CHARACTER
 
 extern const char *characterNames[];
 
+extern const char *classicCharacterNames[];
+
 extern const char *fullCharacterNames[];
 
 extern const char *characterQuotes[];
@@ -64,6 +67,7 @@ extern "C" {
 
 void initUnlockedCharacters(void);
 void initAvailableCharacters(void);
+void initAvailableStoryCharacters(void);
 
 void PrintWrapped(int x, int y, int maxCharsPerLine, const char *text);
 

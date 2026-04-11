@@ -19,10 +19,10 @@ void playerAI(Sprite *ball) {
         }
         else if (player->onLeftSide == true) {
             // Check if the ball is moving towards player 2's goal
-            if (ball->vel.x < Fxp_0) {
+            if (ball->vel.x < 0) {
 
                 // Check if the ball is close enough to start tracking
-                if (ball->pos.x <= Fxp(128)) {
+                if (ball->pos.x <= 128) {
                     // animate_paw1 = true;
                 }
                 if (ball->pos.x <= SCREEN_MIDDLE + FIELD_THRESHOLD) {
@@ -40,10 +40,10 @@ void playerAI(Sprite *ball) {
         }
         else {
             // Check if the ball is moving towards player 2's goal
-            if (ball->vel.x > Fxp_0) {
+            if (ball->vel.x > 0) {
 
                 // Check if the ball is close enough to start tracking
-                if (ball->pos.x >= -Fxp(128)) {
+                if (ball->pos.x >= -128) {
                     // animate_paw1 = true;
                 }
                 if (ball->pos.x >= SCREEN_MIDDLE - FIELD_THRESHOLD) {
@@ -109,7 +109,7 @@ void centerAiPlayer(PPLAYER player)
         player->curPos.dy -= SLOW_MOVEMENT_FACTOR * center_diff;
     }
     else {
-        player->curPos.dy = Fxp_0;
+        player->curPos.dy = 0;
     }
     player->_sprite->pos.y += player->curPos.dy;
     player->_sprite->vel.y += player->curPos.dy;
@@ -171,12 +171,12 @@ void boundAiPlayer(PPLAYER player)
     if(player->_sprite->pos.y > bottom)
     {
         player->_sprite->pos.y = bottom;
-        player->curPos.dy = Fxp_0;
+        player->curPos.dy = 0;
     }
 
     if(player->_sprite->pos.y < top)
     {
         player->_sprite->pos.y = top;
-        player->curPos.dy = Fxp_0;
+        player->curPos.dy = 0;
     }
 }

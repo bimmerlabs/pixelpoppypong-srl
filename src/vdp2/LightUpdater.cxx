@@ -15,7 +15,6 @@ LightUpdater::LightUpdater(const LightConfig& config)
 }
 
 // Update the light + shadow positions
-// void LightUpdater::update(LightSource& light, Sprite& shadow, Sprite& pixel_poppy) {
 void LightUpdater::update(LightSource &light, Sprite &shadow) {
     // advance angle
     lightAngle -= cfg.angleAdder;
@@ -26,13 +25,8 @@ void LightUpdater::update(LightSource &light, Sprite &shadow) {
     light.y = Fxp(127) + Trigonometry::Sin(fixedAngle) * cfg.y_radius;
 
     // shadow offset
-    shadow.pos.x = -Trigonometry::Cos(fixedAngle) * cfg.shadow_offset_x;
-    shadow.pos.y =  Trigonometry::Sin(fixedAngle) * cfg.shadow_offset_y;
-
-    // // poppy follows scaled light position
-    // pixel_poppy.pos.x = Fxp(2) * (light.x - Fxp(127));
-    // pixel_poppy.pos.y = -Fxp(2) * (light.y - Fxp(127));
-    // pixel_poppy.rot.z = Angle(0.25) - Angle(fixedAngle * Fxp(2));
+    shadow.pos.x = cfg.object_pos_x + (-Trigonometry::Cos(fixedAngle) * cfg.shadow_offset_x);
+    shadow.pos.y = cfg.object_pos_y +  (Trigonometry::Sin(fixedAngle) * cfg.shadow_offset_y);
 
     // trigger redraw
     do_update_ppplogo = true;

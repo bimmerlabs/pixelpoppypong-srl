@@ -9,10 +9,9 @@ using namespace SRL::Math::Types;
 extern "C" {
 #endif
 
-void check_ui_inputs(void);
-
 void check_player_inputs(void);
 void validateCharacters(PLAYER *player);
+void validateStoryCharacters(PLAYER *player);
 int selectRandomCharacter(void);
 void validateTeam(PLAYER *player);
 

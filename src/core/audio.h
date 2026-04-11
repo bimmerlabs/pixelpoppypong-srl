@@ -16,12 +16,10 @@ typedef enum
     GOAL2_TRACK              = 8,
     GOAL3_TRACK              = 9,
     GOAL4_TRACK              = 10,
-    NAME_ENTRY_TRACK         = 11,
-    HIDDEN1_TRACK            = 12,
-    HIDDEN2_TRACK            = 13,
-    HIDDEN3_TRACK            = 14,
-    HIDDEN4_TRACK            = 15,
-    LAST_TRACK               = 16,
+    MATCH_TRACK              = 11,
+    NAME_ENTRY_TRACK         = 12,
+    BOSS_TRACK               = 13,
+    LAST_TRACK               = 14
 } MUSIC_TRACKS;
 
 #define AUDIO_FADE_TIMER (3 * 60)
@@ -38,6 +36,7 @@ typedef struct {
     bool cdIsPlaying;
     bool soundTest;
     int16_t masterVolume;
+    int16_t currentPcm;
 } AudioSettings;
 
 extern AudioSettings g_Audio;

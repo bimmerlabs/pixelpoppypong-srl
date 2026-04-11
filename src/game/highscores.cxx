@@ -1,141 +1,157 @@
-// #include <jo/jo.h>
 #include "../main.h"
 #include "highscores.h"
 #include "gameplay.h"
 #include "name_entry.h"
 #include "player_setup.h"
+#include "../objects/characters.h"
 #include "../core/screen_transition.h"
 #include "../core/sprites.h"
-// #include "../core/backup.h"
 #include "../vdp2/nbg1.h"
 
 using namespace SRL::Input;
 
 static uint32_t highScoreTimer = 0;
 
+static uint8_t scoreEntries = 0;
+static uint8_t drawnChars[SCORE_ENTRIES] = {};
+
 HighScoreEntry highScores[SCORE_ENTRIES] = {};
 
+const char *difficulty[] = {
+    "Easy",
+    "Medium",
+    "Hard"
+};
 void highScore_init(void) {
-    highScores[0] = (HighScoreEntry){10000000, "CDS"}; // could put an actual score here
-    highScores[1] = (HighScoreEntry){5000000, "GBA"};
-    highScores[2] = (HighScoreEntry){4500000, "SES"};
-    highScores[3] = (HighScoreEntry){4000000, "OCS"};
-    highScores[4] = (HighScoreEntry){3500000, "WUP"};
-    highScores[5] = (HighScoreEntry){3000000, "FOO"};
-    highScores[6] = (HighScoreEntry){2500000, "CRS"};
-    highScores[7] = (HighScoreEntry){2000000, "BAR"};
-    highScores[8] = (HighScoreEntry){1500000, "PPP"};
-    highScores[9] = (HighScoreEntry){1000000, "DAD"};
+    highScores[0] = (HighScoreEntry){10000000, "CDS",  0, 1}; // could put an actual score here
+    highScores[1] = (HighScoreEntry){5000000,  "GBA", 10, 2};
+    highScores[2] = (HighScoreEntry){4500000,  "SES",  8, 1};
+    highScores[3] = (HighScoreEntry){4000000,  "OCS",  4, 0};
+    highScores[4] = (HighScoreEntry){3500000,  "WUP",  0, 0};
+    highScores[5] = (HighScoreEntry){3000000,  "FOO",  7, 1};
+    highScores[6] = (HighScoreEntry){2500000,  "CRS",  9, 2};
+    highScores[7] = (HighScoreEntry){2000000,  "BAR",  1, 1};
+    highScores[8] = (HighScoreEntry){1500000,  "PPP",  5, 1};
+    highScores[9] = (HighScoreEntry){1000000,  "DAD",  3, 0};
 }
 
 void init_scores(void)
 {
-    if (g_Game.lastState == GAME_STATE_NAME_ENTRY) {
-        // unloadNameEntryAssets();
+    if (g_Assets.GameplayAssetsLoaded) {
+        unloadGameAssets();
     }
-    g_Transition.fade_in = true;
-    g_Transition.all_in = true;
+    if (!g_Assets.characterAssetsLoaded) {
+        loadCharacterAssets();
+    }
+    if (!g_Assets.NameEntryAssetsLoaded)
+    {
+        loadNameEntryAssets();
+    }
     
-    // #if ENABLE_DEBUG_MODE == 1
-    // if (g_GameOptions.debug_mode) { // only needed if manually changing states
-        // reset_sprites();
-        // do_update_All = true;
-        // updateAllColors();
-        // updateAllPalette();
-        // set_spr_scale(&pixel_poppy, 6, 6);
-        // pixel_poppy.rot.z = Angle();
-        // set_spr_position(&pixel_poppy, 0, 0, 100);
-        // sprite_frame_reset(&pixel_poppy);
-    // }
-    // #endif
+    init_nbg2_img();
     
     highScoreTimer = 0;
-    
-    if (g_GameOptions.mesh_display) {
-        menu_bg2.mesh = MESHon;
+    scoreEntries = 0;
+                for (int i = 0; i < SCORE_ENTRIES; i++) {
+        drawnChars[i] = 0;
+    }        
+        for (int i = 0; i < CHARACTER_MAX; i++) {
+        set_spr_scale(&paw[i], 1, 1);
+        paw[i].flip = sprNoflip;
+        paw[i].id = paw[i].anim[0].asset;
+        paw[i].mesh = MESHoff;
     }
-    else {
-        menu_bg2.mesh = MESHoff;
-    }
-    menu_bg2.id = menu_bg2.anim[0].asset + 4;
-    menu_bg2.zmode = _ZmCC;
-    set_spr_position(&menu_bg2, 0, 0, 95);
-    set_spr_scale(&menu_bg2, 200, 480);
-    
+
     sortHighScores(highScores);
 
+    SRL::VDP2::NBG0::SetPriority(SRL::VDP2::Priority::Layer4);
+    SRL::VDP2::NBG2::ScrollEnable();  
+    
     g_Audio.masterVolume = MAX_VOLUME;
     reset_audio(g_Audio.masterVolume);
-    playCDTrack(GOAL1_TRACK, false);
+    playCDTrack(MATCH_TRACK, false);
+
+    g_Transition.fade_in = true;
+    g_Transition.all_in = true;
 }
- bool draw_header_text = true;
+bool draw_header_text = true;
 
 void display_scores(void)
 {
-    int text_x = 12;
+    int text_x = 5;
     int text_y = 4;
-    highScoreTimer++;
     
-    if (g_Game.frame % 8 == 0) { // modulus
-        draw_header_text = !draw_header_text;
-    }
-    if (draw_header_text) {
-        SRL::Debug::Print(text_x+5, text_y, "High Scores");
-    }
-    else {
-        SRL::Debug::Print(text_x+5, text_y, "           ");
-    }
+    int paw_x = -260;
+    int paw_y = -136;
+    
+    highScoreTimer++;
+
+    highScoreTitleDraw();
+    
     text_y += 2;
-    // TODO: increment score_entries after every line is printed, animating a character portrait/ball, etc for each line
-    for (int i = 0; i < SCORE_ENTRIES; i++) {
-        SRL::Debug::Print(text_x, text_y, "%2d. %s - %09d", i + 1, highScores[i].initials, highScores[i].score);
+
+    for (int i = 0; i < scoreEntries; i++) {
+        
+                int xOffset = drawnChars[i] * 16;
+        set_spr_position(&paw[highScores[i].character], paw_x + xOffset, paw_y, 95);
+        my_sprite_draw(&paw[highScores[i].character]);
+        
+        SRL::Debug::Print(text_x, text_y, "%2d. %s - %09d - %s", i + 1, highScores[i].initials, highScores[i].score, difficulty[highScores[i].difficulty]);
+        SRL::Debug::Print(text_x + drawnChars[i], text_y, "                            ");
+                if (drawnChars[i] < 31)
+            drawnChars[i]++;
+        
         text_y += 2;
+        paw_y += 32;
     }
-    my_sprite_draw(&menu_bg2);
-    update_bg_position();    if (highScoreTimer == SCORE_DISPLAY_TIME) {
+
+    update_bg_position();
+        if (highScoreTimer == SCORE_EXIT_TIME) {
         if (g_Game.lastState == GAME_STATE_NAME_ENTRY) {
-            g_Game.lastState = GAME_STATE_HIGHSCORES;
-            SRL::Debug::PrintClearScreen();
+            exitHighScoresHelper();
             transitionState(GAME_STATE_CREDITS);
         }
         else {
-            g_Game.lastState = GAME_STATE_HIGHSCORES;
-            SRL::Debug::PrintClearScreen();
+            exitHighScoresHelper();
             transitionState(GAME_STATE_UNINITIALIZED);
         }
+    }    
+        // play a sound?
+    if (g_Game.frame % 40 == 0) { // modulus
+        if (scoreEntries < SCORE_ENTRIES)
+            scoreEntries++;
     }
 }
 
 constexpr Angle backgroundAngleAdder = Angle(0.0027777777777778);static Angle backgroundAngle = Angle();
 
 void update_bg_position(void) {
-    if (g_Game.frame % 2 == 0) {
-        backgroundAngle -= backgroundAngleAdder;
-        // if (backgroundAngle == 0)
-            // backgroundAngle = 360;
-        attrNbg1.x_pos = Fxp_127 + (SRL::Math::Trigonometry::Cos(backgroundAngle) * Fxp_127);
-        slScrPosNbg1(attrNbg1.x_pos.RawValue(), attrNbg1.y_pos.RawValue());
+    if (attrNbg1.x_scroll > Fxp(0)) {
+        attrNbg1.x_pos += attrNbg1.x_scroll;
+        if (attrNbg1.x_pos > Fxp(512.0))
+            attrNbg1.x_pos = Fxp(0);
     }
+    slScrPosNbg1(attrNbg1.x_pos.RawValue(), attrNbg1.y_pos.RawValue());
 }
 
 void score_input(void)	{
     PPLAYER player = &g_Players[0];
     
+    check_ui_inputs();    
+
     if (!player->input->isSelected)
     {
-        check_ui_inputs();
+        return;
     }
 
     Digital gamepad(player->input->id);
     
     if (gamepad.IsHeld(Digital::Button::START) && g_Game.lastState == GAME_STATE_NAME_ENTRY) {
-        g_Game.lastState = GAME_STATE_HIGHSCORES;
-        SRL::Debug::PrintClearScreen();
+        exitHighScoresHelper();
         transitionState(GAME_STATE_CREDITS);
     }
     else if (gamepad.IsHeld(Digital::Button::START) && g_Game.lastState != GAME_STATE_NAME_ENTRY) {
-        g_Game.lastState = GAME_STATE_HIGHSCORES;
-        SRL::Debug::PrintClearScreen();
+        exitHighScoresHelper();
         transitionState(GAME_STATE_UNINITIALIZED);
     }
 }
@@ -153,13 +169,15 @@ void sortHighScores(HighScoreEntry scores[]) {
     }
 }
 
-void addHighScore(uint32_t newScore, const char *initials) {
+void addHighScore(uint32_t newScore, const char *initials, uint8_t character) {
     // Check if the new score qualifies
     if (newScore <= highScores[SCORE_ENTRIES - 1].score) {
         return;  // Score is too low, ignore
     }
     // Insert at the last position
     highScores[SCORE_ENTRIES - 1].score = newScore;
+    highScores[SCORE_ENTRIES - 1].character = character;
+    highScores[SCORE_ENTRIES - 1].difficulty = g_Game.gameDifficulty;
     
     for (int i = 0; i <= MAX_INITIAL; ++i) {
         highScores[SCORE_ENTRIES - 1].initials[i] = initials[i];

@@ -3,6 +3,7 @@
 #include <srl.hpp>
 #include "physics.h"
 #include "team_select.h"
+#include "../specialfx/particlefx.h"
 #include "../core/pause.h"
 #include "../core/screen_transition.h"
 #include "../core/assets.h"
@@ -25,7 +26,6 @@
 #define TIMEOUT_STORY_HARD 150
 
 #define BALL_TOUCH_TIMEOUT (5 * 60)
-// #define TRANSITION_DELAY_TIMEOUT (8 * 60)
 #define GAME_END_DELAY_TIMEOUT (5 * 60)
 #define LIFE_COUNT_DELAY_TIMEOUT (2 * 60)
 #define NEXT_BATTLE_DELAY_TIMEOUT (1 * 60)
@@ -48,7 +48,6 @@ extern PLAYER g_Players[MAX_PLAYERS];
 typedef struct _GAMEPLAY
 {
     uint16_t GameTimer;
-    // uint16_t RoundOverTimer; // not currently used
     uint16_t DemoTimer;
     bool isGameOver;  // not currently used
     
@@ -57,6 +56,30 @@ typedef struct _GAMEPLAY
     bool round_start;
 } GAMEPLAY, *PGAMEPLAY;
 
+typedef enum
+{
+    ROUND_STATE_PLAYING,
+    ROUND_STATE_NEXTROUND,
+    ROUND_STATE_SHOWMESSAGE,
+    ROUND_STATE_SHOWRESULT,
+    ROUND_STATE_ENDING,
+    ROUND_STATE_TRANSITION
+} RoundState;
+typedef struct
+{
+    // RoundState roundState;
+
+    int winner;
+    int endDelayTimer;
+
+    bool isRoundOver;
+    bool timeOver;
+
+    // GameMode gameMode;
+    // GameState nextState;
+
+    // etc...
+} GameStateData;
 // globals
 extern GAMEPLAY g_Gameplay;
 
@@ -120,19 +143,50 @@ static inline void initPixelPoppy(void) {
    }
 }
 
-static inline void storymodeScore_draw(PPLAYER player) {
-    switch (player->teamChoice || g_GameOptions.debug_display) 
+constexpr uint8_t nameOffset[] = {
+    3, // Macchiato     (12 - 9)
+    2, // Jelly Bean    (12 - 10)
+    1, // Queen Penny   (12 - 11)
+    0, // Hairy Potter  (12 - 12)
+    2, // Dr. Sparta
+    7, // Poppy
+    5, // Toe Jam
+    6, // George
+    1, // Puppy Wuppy
+    4, // Craig S.
+    4, // Garfield
+    6  // Random
+};
+
+static inline void storymodeScore_draw(void) {
+    if (g_GameOptions.debug_display) {
+        return;
+    }
+    // player 1
+    SRL::Debug::Print(6, 2, "%09d", g_Players[0].score.points);
+    SRL::Debug::Print(15, 2, "*%d ", touchedBy[0].touchCount);
+    // computer
+    SRL::Debug::Print(26+nameOffset[g_Players[1].character.choice], 2, "%s", classicCharacterNames[g_Players[1].character.choice]);
+}
+
+static inline void classicScore_draw(PPLAYER player) {
+    if (g_GameOptions.debug_display) {
+        return;
+    }
+    switch (player->teamChoice) 
     {
         case TEAM_1: {
-            SRL::Debug::Print(6, 2, "%09d", player->score.points);
-            SRL::Debug::Print(15, 2, "*%d ", touchedBy[0].touchCount);
+            SRL::Debug::Print(6, 2, "%s", classicCharacterNames[player->character.choice]);
+            break;
+        }
+        case TEAM_2: {
+            SRL::Debug::Print(26+nameOffset[player->character.choice], 2, "%s", classicCharacterNames[player->character.choice]);
             break;
         }
         default:
             break;
     }
-}
-
+}
 static inline void gameplayScore_draw(PPLAYER player) {
     if (player->isDead || g_GameOptions.debug_display) {
         return;
@@ -169,15 +223,12 @@ static inline void gameplayScore_draw(PPLAYER player) {
         if (g_Game.isActive) {
             drawGameItems();
         }
+        updateStarsFx();
         // don't draw until poppy is reset
         if (!g_Game.isGoalScored && !g_Game.isRoundOver) {
             if (g_Game.isBallActive) {
                 update_ball(&pixel_poppy);
-                // g_item._sprite->isColliding = checkItemDistance(&pixel_poppy, g_item._sprite);
-                // TODO: handle collision
-                // if (g_item._sprite->isColliding) {
-                    // handleItemCollision()
-                // }
+                displayStarsFx();
             }
             my_sprite_draw_rot(&pixel_poppy);
             return;
@@ -189,15 +240,18 @@ static inline void gameplayScore_draw(PPLAYER player) {
             g_Game.isBallActive = false;
             g_Game.isActive = false;
             g_Game.BeginTimer = 0;
+            initStarsFx();
         }
 }
 static inline void drawClassicMode(void) {
         // SPRITES        
-        drawPlayers();        
+        drawPlayers();
+        updateStarsFx();     
         // don't draw until poppy is reset
         if (!g_Game.isGoalScored && !g_Game.isRoundOver) {
             if (g_Game.isBallActive) {
                 update_ball(&pixel_poppy);
+                displayStarsFx();
             }
             my_sprite_draw_rot(&pixel_poppy);
             return;
@@ -209,6 +263,7 @@ static inline void gameplayScore_draw(PPLAYER player) {
             g_Game.isBallActive = false;
             g_Game.isActive = false;
             g_Game.BeginTimer = 0;
+            initStarsFx();
         }
 }
 

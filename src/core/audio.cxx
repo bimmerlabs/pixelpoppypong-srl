@@ -6,6 +6,7 @@ AudioSettings g_Audio = {
     .cdIsPlaying = false,
     .soundTest = false,
     .masterVolume = MAX_VOLUME,
+    .currentPcm = 0,
 };
 
 void playCDTrack(uint16_t track, bool repeat)

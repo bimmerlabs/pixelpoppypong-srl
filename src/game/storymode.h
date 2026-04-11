@@ -25,7 +25,9 @@ void initNextRound(void);
 void storySelectUpdate(void);
 void tallyScore(void);
 
-static inline void drawCharacterList(void) 
+// fix this to show correct portraits
+// maybe just redo this to work a different way?
+static inline void drawCharacterList(void)
 {
     PPLAYER player = &g_Players[0];
     

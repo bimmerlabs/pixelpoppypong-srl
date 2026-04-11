@@ -30,11 +30,6 @@ static void drawPauseMenu(int options_y);
 static void checkForPausePress(void);
 static void checkForPauseMenu(void);
 
-//
-// Pause callbacks
-//
-
-// input for handling pause
 void pause_input(void)
 {
     if(g_Game.gameState != GAME_STATE_GAMEPLAY || g_Game.isRoundOver || g_Gameplay.isGameOver)
@@ -62,7 +57,6 @@ void pause_input(void)
     }
 }
 
-// need to add background switching for pause screen
 void pause_draw(void)
 {
     if(g_Game.isPaused == true)
@@ -73,7 +67,15 @@ void pause_draw(void)
             options_y += 2;
             SRL::Debug::Print(15, options_y, "Score:%09d", g_Players[0].score.points + g_Players[0].score.total);
             options_y += 2;
-            SRL::Debug::Print(15, options_y, "Continues:%i", g_Players[0].score.continues);
+            
+            if (g_Players[0].score.continues > 0) {
+                SRL::Debug::Print(15, options_y, "Continues:");
+                draw_star_element(&star, g_Players[0].score.continues, Fxp(56), Fxp(-72), Fxp(16));
+            }
+            else {
+                SRL::Debug::Print(15, options_y, "Continues:%i", g_Players[0].score.continues);
+            }
+            
             options_y += 2;
         }
         else {
@@ -83,14 +85,11 @@ void pause_draw(void)
         }            
         drawPauseMenu(options_y);
         drawPauseMenuCursor();
+
+        displayParticleFx();
     }
 }
 
-//
-// Pause private functions
-//
-
-// pause the game
 void pauseGame(void)
 {
     pauseChoice = 0;
@@ -104,9 +103,9 @@ void pauseGame(void)
     }
     g_Game.vblankClearScreen = true;
     g_Game.isPaused = true;
+    switch_nbg2_img();
     g_Transition.mosaic_in_rate = MOSAIC_FAST_RATE;
     Pcm::Play(Sounds.Core[StartSnd], PlayMode::Volatile, 6);
-    SRL::VDP2::NBG2::ScrollEnable();
 }
 
 // check if player 1 paused the game
@@ -127,7 +126,6 @@ static void checkForPausePress(void)
     }
 }
 
-// pause menu options
 static void checkForPauseMenu(void)
 {
     PPLAYER player = &g_Players[0];
@@ -177,65 +175,68 @@ static void checkForPauseMenu(void)
         }
     }
     
-    // keep pause screen choice in range
     sanitizeValue(&pauseChoice, 0, PAUSE_OPTION_MAX);
 
     if (gamepad.WasPressed(Digital::Button::START) || gamepad.WasPressed(Digital::Button::A)|| gamepad.WasPressed(Digital::Button::C))
     {
-        SRL::VDP2::NBG2::ScrollDisable();
-        // save_game_backup();
+        save_game_backup();
         switch(pauseChoice)
         {
             case PAUSE_OPTIONS_RESUME:
                 SRL::Debug::PrintClearScreen();
                 Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
-                // simply unpause
                 g_Transition.mosaic_in_rate = MOSAIC_FAST_RATE;
                 if (g_GameOptions.mosaic_display) {
                     g_Transition.mosaic_in = true;
                 }
-                slColOffsetB(NEUTRAL_FADE, NEUTRAL_FADE, NEUTRAL_FADE);
                 g_Game.isPaused = false;
+                switch_nbg2_img();
+                slColOffsetB(NEUTRAL_FADE, NEUTRAL_FADE, NEUTRAL_FADE);
                 break;
 
             case PAUSE_OPTIONS_RESTART:
                 SRL::Debug::PrintClearScreen();
                 Pcm::Play(Sounds.Core[NextSnd], PlayMode::Volatile, 6);
-                // start a new game without going to title or team select
                 g_Transition.mosaic_in_rate = MOSAIC_FAST_RATE;
                 if (g_GameOptions.mosaic_display) {
                     g_Transition.mosaic_in = true;
                 }
+                g_Game.isPaused = false;
+                switch_nbg2_img();
                 slColOffsetB(NEUTRAL_FADE, NEUTRAL_FADE, NEUTRAL_FADE);
                 changeState(GAME_STATE_GAMEPLAY);
                 break;
 
             case PAUSE_OPTIONS_QUIT:
                 SRL::Debug::PrintClearScreen();
+                SRL::VDP2::NBG2::ScrollDisable();
                 Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
                 transitionState(GAME_STATE_UNINITIALIZED);
+                g_Game.isPaused = false;
                 break;
             #if ENABLE_DEBUG_MODE == 1
             case PAUSE_OPTIONS_DEBUG:
+                SRL::Debug::PrintClearScreen();
                 Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
-                // simply unpause
                 g_Transition.mosaic_in_rate = MOSAIC_FAST_RATE;
                 if (g_GameOptions.mosaic_display) {
                     g_Transition.mosaic_in = true;
                 }
-                slColOffsetB(NEUTRAL_FADE, NEUTRAL_FADE, NEUTRAL_FADE);
                 g_Game.isPaused = false;
+                switch_nbg2_img();
+                slColOffsetB(NEUTRAL_FADE, NEUTRAL_FADE, NEUTRAL_FADE);
                 break;
             #endif
             case PAUSE_OPTIONS_ANALOG:
+                SRL::Debug::PrintClearScreen();
                 Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
-                // simply unpause
                 g_Transition.mosaic_in_rate = MOSAIC_FAST_RATE;
                 if (g_GameOptions.mosaic_display) {
                     g_Transition.mosaic_in = true;
                 }
-                slColOffsetB(NEUTRAL_FADE, NEUTRAL_FADE, NEUTRAL_FADE);
                 g_Game.isPaused = false;
+                switch_nbg2_img();
+                slColOffsetB(NEUTRAL_FADE, NEUTRAL_FADE, NEUTRAL_FADE);
                 break;
 
             default:
@@ -244,21 +245,19 @@ static void checkForPauseMenu(void)
     }
     else if (gamepad.WasPressed(Digital::Button::B))
     {
-        SRL::VDP2::NBG2::ScrollDisable();
         SRL::Debug::PrintClearScreen();
-        // save_game_backup();
+        save_game_backup();
         Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
-        // simply unpause
+        g_Game.isPaused = false;
+        switch_nbg2_img();
         g_Transition.mosaic_in_rate = MOSAIC_FAST_RATE;
         if (g_GameOptions.mosaic_display) {
         g_Transition.mosaic_in = true;
         }
         slColOffsetB(NEUTRAL_FADE, NEUTRAL_FADE, NEUTRAL_FADE);
-        g_Game.isPaused = false;
     }
 }
 
-// Options menu + values
 static void drawPauseMenu(int options_y)
 {                
     int options_x = 15;

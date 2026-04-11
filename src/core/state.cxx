@@ -28,7 +28,7 @@ void changeState(GAME_STATE newState)
     {
         case GAME_STATE_PPP_LOGO:
         {
-            SRL::Debug::PrintClearScreen(); // moved from vblank
+            SRL::Debug::PrintClearScreen();
             pppLogo_init();
             reset_audio(MAX_VOLUME);
             playCDTrack(LOGO_TRACK, false);
@@ -38,7 +38,7 @@ void changeState(GAME_STATE newState)
         case GAME_STATE_TITLE_SCREEN:
         {
             SRL::Debug::PrintClearScreen();
-            g_Game.nextState = GAME_STATE_TITLE_SCREEN;
+            g_Game.nextState = GAME_STATE_TITLE_SCREEN;            
             titleScreen_init();
             reset_audio(HALF_VOLUME);
             playCDTrack(TITLE_TRACK, true);
@@ -113,19 +113,20 @@ void changeState(GAME_STATE newState)
             g_Game.gameState = g_Game.nextState;
             break;
         }
+        case GAME_STATE_HIGHSCORES:
+        {
+            SRL::Debug::PrintClearScreen();
+            g_Game.nextState = GAME_STATE_HIGHSCORES;
+            init_game_palette();
+            init_scores();
+            g_Game.gameState = g_Game.nextState;
+            break;
+        }
         case GAME_STATE_CREDITS:
         {
             SRL::Debug::PrintClearScreen();
             g_Game.nextState = GAME_STATE_CREDITS;
             init_credits();
-            g_Game.gameState = g_Game.nextState;
-            break;
-        }
-        case GAME_STATE_HIGHSCORES:
-        {
-            SRL::Debug::PrintClearScreen();
-            g_Game.nextState = GAME_STATE_HIGHSCORES;
-            init_scores();
             g_Game.gameState = g_Game.nextState;
             break;
         }

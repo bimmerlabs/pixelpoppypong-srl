@@ -4,11 +4,10 @@
 #include "../main.h"
 #include "math.h"
 #include "../objects/characters.h"
-// #include "../../modules/tmsf/tmsf.hpp"
-#include <tmsf.hpp>
+// #include <tmsf.hpp>
 
 // SGL doesn't have these by default
-#define	    Pclpoff		(1 << 11)	/* No pre-clipping and no horizontal inversion */
+#define	    Pclpoff	(1 << 11)	/* No pre-clipping and no horizontal inversion */
 #define	    Pclpon		(0 << 11)	/* Pre-clipping with horizontal inversion (default) */
 
 #define FRAMERATE1 4 // for animation speed (power of 2)
@@ -17,19 +16,9 @@
 #define EASY_BALL_RADIUS Fxp(56)
 #define NORMAL_BALL_RADIUS Fxp(36)
 
-// #define MY_SPR_ATTRIBUTE(t, c, g, a, d)                 \
-    // {                                                   \
-        // (uint16_t)(t),                                  \
-        // (uint16_t)((a) | (((d) >> 24) & 0xc0)),         \
-        // (uint16_t)(c),                                  \
-        // (uint16_t)(g),                                  \
-        // (uint16_t)((d) & 0x0f3f)                        \
-    // }
-    
 using namespace SRL::Types;
 using namespace SRL::Math::Types;
-    
-extern int g_spriteDrawCount;
+
 
 typedef struct {
     Fxp x, y, z;
@@ -44,20 +33,20 @@ typedef struct {
     Angle x, y, z;
 } Rotation;
 
-typedef struct {
-    Fxp x, y;
-} Vector;
+// typedef struct {
+    // Fxp x, y;
+// } Vector;
 
 typedef struct {
     Fxp x, y, z;
 } Velocity;
 
-typedef struct _BoundingBox
-{
-    Fxp min_x, min_y;
-    Fxp max_x, max_y;
-    Fxp width, height;
-} BoundingBox;
+// typedef struct _BoundingBox
+// {
+    // Fxp min_x, min_y;
+    // Fxp max_x, max_y;
+    // Fxp width, height;
+// } BoundingBox;
 
 typedef struct {
     uint16_t asset; // initial sprite index
@@ -69,15 +58,15 @@ typedef struct {
     Position pos;
     Scale    scl;
     Rotation rot;
-    Vector   vec2;
+    // Vector   vec2;
     Velocity vel;
-    BoundingBox bbox;
-    Fxp mass;
+    // BoundingBox bbox;
+    // Fxp mass;
     bool isColliding;
-    uint8_t    id;
+    uint16_t   id;
     uint8_t    frame;
     uint8_t    max;
-    bool   visible;
+    bool   active;
     int    pal_id;
     uint16_t    flip;
     uint16_t    mesh;
@@ -86,6 +75,7 @@ typedef struct {
 } Sprite;
 
 extern Sprite font; // VDP1 font
+extern Sprite name; // VDP1 font
 extern Sprite ppplogo;
 extern Sprite pppshadow;
 
@@ -127,9 +117,7 @@ extern Sprite garfield_item;
 static inline void set_item_position(Sprite *sprite) {
     int16_t xPos = rnd.GetNumber(-240, 240);
     int16_t yPos = rnd.GetNumber(-160, 160);
-    
-    // SRL::Debug::Print(2, 16, "X,Y:%4d,%4d", xPos, yPos);    
-    
+        
     sprite->pos.x = Fxp::Convert(yPos);
     sprite->pos.y = Fxp::Convert(yPos);
     
@@ -184,19 +172,18 @@ static inline void set_spr_scale_fxp(Sprite *sprite, Fxp sx, Fxp sy) {
 
 static inline void	my_sprite_draw_rot(Sprite *sprite) { // note: switched to using 256bnk mode, so all palette indexes are now 0
 	FIXED pos[XYZSS] = { sprite->pos.x.RawValue(), sprite->pos.y.RawValue(), sprite->pos.z.RawValue(), sprite->scl.x.RawValue(), sprite->scl.y.RawValue() };
-	SPR_ATTR attr = SPR_ATTRIBUTE( sprite->id, 0, No_Gouraud, sprite->mesh | HSSon | ECenb | CL256Bnk, sprite->flip | sprite->zmode );
+	SPR_ATTR attr = SPR_ATTRIBUTE( sprite->id, 0, No_Gouraud, sprite->mesh | HSSoff | ECenb | CL256Bnk, sprite->flip | sprite->zmode );
 	slDispSpriteHV(pos, &attr, sprite->rot.z.RawValue());
 }
 
 static inline void	my_sprite_draw(Sprite *sprite) {
 	FIXED pos[XYZSS] = { sprite->pos.x.RawValue(), sprite->pos.y.RawValue(), sprite->pos.z.RawValue(), sprite->scl.x.RawValue(), sprite->scl.y.RawValue() };
-	SPR_ATTR attr = SPR_ATTRIBUTE( sprite->id, 0, No_Gouraud, sprite->mesh | Pclpon | HSSon | ECenb | CL256Bnk, sprite->flip | sprite->zmode );
+	SPR_ATTR attr = SPR_ATTRIBUTE( sprite->id, 0, No_Gouraud, sprite->mesh | Pclpon | HSSoff | ECenb | CL256Bnk, sprite->flip | sprite->zmode );
 	slDispSpriteHV(pos, &attr, 0); // faster because it doesn't do a degree-to-angle conversion, which uses floats
 }
 
 // increments 1 frame
 static inline bool static_animation(Sprite *sprite) {
-    // if (JO_MOD_POW2(g_Game.frame, FRAMERATE1) == 0) { // modulus
     if (g_Game.frame % FRAMERATE1 == 0) { // modulus
         sprite->anim[0].frame++;
         sprite->id = sprite->anim[0].asset + sprite->anim[0].frame;
@@ -211,24 +198,19 @@ static inline bool static_animation(Sprite *sprite) {
 
 // loops through all frames based on powers of 2
 static inline void looped_animation_pow(Sprite *sprite, unsigned int framerate) {
-        // move to an animation module
-        // if (JO_MOD_POW2(g_Game.frame, framerate) == 0) { // modulus
+        // move to an animation module?
         if (g_Game.frame % framerate == 0) { // modulus
             sprite->anim[0].frame++;
             if (sprite->anim[0].frame == sprite->anim[0].max) {
                 sprite->anim[0].frame = 0;
             }
             sprite->id = sprite->anim[0].asset + sprite->anim[0].frame;
-            // SRL::Debug::Print(22, 11, "Frame:%3d", g_Game.frame);
         }
-        // SRL::Debug::Print(22, 13, "Asset:%3d", sprite->anim[0].asset);
-        // SRL::Debug::Print(22, 14, "Frame:%3d", sprite->anim[0].frame);
-        // SRL::Debug::Print(22, 15, "Max:%3d", sprite->anim[0].max);
 }
 
 // loops through second animation based on modulus
 static inline void looped_animation_mod(Sprite *sprite, unsigned int framerate) {
-        // move to an animation module
+        // move to an animation module?
         if (g_Game.frame % framerate == 0) { // modulus
             sprite->anim[1].frame++;
             if (sprite->anim[1].frame == sprite->anim[1].max) {

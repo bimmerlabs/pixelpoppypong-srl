@@ -2,17 +2,18 @@
 #include "input.h"
 #include "assets.h"
 #include "math.h"
+#include "../objects/player.h"
 using namespace SRL::Types;
 using namespace SRL::Math::Types;
 using namespace SRL::Input;
 
 INPUT g_Inputs[MAX_INPUTS] = {};
 void init_inputs(void) {
-    PINPUT input = NULL;
+    PINPUT input = nullptr;
     for(uint8_t i = 0; i < MAX_INPUTS; i++)
     {
         input = &g_Inputs[i];
-        input->id = 0;
+        input->id = -1;
         input->axis_x = Fxp_0;
         input->axis_y = Fxp_0;
         input->left_trigger = Fxp_0;
@@ -24,11 +25,11 @@ void init_inputs(void) {
 }
 
 void reset_inputs(void) {
-    PINPUT input = NULL;
+    PINPUT input = nullptr;
     for(uint8_t i = 0; i < MAX_INPUTS; i++)
     {
         input = &g_Inputs[i];
-        input->id = 0;
+        input->id = -1;
         input->axis_x = Fxp_0;
         input->axis_y = Fxp_0;
         input->left_trigger = Fxp_0;
@@ -74,7 +75,74 @@ void check_inputs(void) {
             input->isAnalog = false;
         }
     }
-}void analogAdjustmentScreen_input(void) {
+}
+
+void check_ui_inputs(void) {
+    PPLAYER player = &g_Players[0];
+    
+    if (player->input->isSelected)
+    {
+        return;
+    }
+
+    for(unsigned int i = 0; i < MAX_INPUTS; i++)
+    {
+        // Once a player starts selection, they shouldn't be able to assign a new id
+        if (!Management::IsConnected(i))
+        {
+            continue;
+        }
+
+        if (g_Inputs[i].isSelected)
+        {
+            continue;
+        }
+        
+        Digital gamepad(i);
+
+        if (gamepad.WasPressed(Digital::Button::START))
+        {
+            g_Game.vblankClearScreen = true;
+            player->input = &g_Inputs[i];
+            player->input->id = i;
+            player->input->isSelected = true;
+            return;
+        }
+    }
+}
+
+// void check_multiplayer_inputs(int8_t p) {
+    // PPLAYER player = &g_Players[p];
+
+    // if (player->input->isSelected) // this should never happen
+    // {
+        // return;
+    // }
+
+    // for(unsigned int i = 0; i < MAX_INPUTS; i++)
+    // {
+        // // Once a player starts selection, they shouldn't be able to assign a new id
+        // if (!Management::IsConnected(i))
+        // {
+            // continue;
+        // }
+        // if (g_Inputs[i].isSelected)
+        // {
+            // continue;
+        // }
+
+        // Digital gamepad(i);
+
+        // if (gamepad.WasPressed(Digital::Button::START) && !player->input->isSelected)
+        // {
+            // g_Game.vblankClearScreen = true;
+            // player->input = &g_Inputs[i];
+            // player->input->id = i;
+            // player->input->isSelected = true;
+            // return;
+        // }
+    // }
+// }void analogAdjustmentScreen_input(void) {
     PINPUT input = NULL;
     for(unsigned int i = 0; i < MAX_INPUTS; i++)
     {

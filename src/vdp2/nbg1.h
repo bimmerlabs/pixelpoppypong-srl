@@ -1,8 +1,6 @@
 // nbg1.h
 #pragma once
-
 #include <srl.hpp>
-
 #include "palettetools.h"
 
 #define T_DAWN 5

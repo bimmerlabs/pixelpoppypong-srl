@@ -1,5 +1,6 @@
 #pragma once
 #include <srl.hpp>
+#include "../core/assets.h"
 #include "../core/sprites.h"
 #include "../core/input.h"
 #include "characters.h"
@@ -36,6 +37,7 @@ using namespace SRL::Math::Types;
 #define SHIELD_RADIUS Fxp(60)
 #define SHIELD_OFFSET Fxp(32)
 #define SHIELD_POWER 26
+#define SHIELD_COST  5
 #define SHIELD_REGEN_FAST 8 // POWER OF 2!!
 #define SHIELD_REGEN_SLOW 16 // POWER OF 2!!
 #define BOUNDARY_SHIELD_REGEN_FAST  Fxp(280.0)
@@ -82,9 +84,7 @@ typedef struct _SHIELD
 
 typedef struct _PLAYER
 {
-    // OBJECT_STATE objectState;
     FIXED_POSITION curPos;
-    // PLAYER_STATE subState;
     SCORE score;
     CHARACTER character;
     
@@ -111,7 +111,6 @@ typedef struct _PLAYER
     
     // Team (replaces team struct values)
     short teamChoice;
-    // short teamOldTeam;
     bool teamSelected;
     
     // Attributes from the selected character
@@ -165,7 +164,7 @@ void getClassicModeInput(void);
 void getPlayersInput(void);
 void updatePlayers(void);
 
-void initPlayers(bool resetInputs = false);
+void initPlayers(bool resetInputs = false); // resetting inputs seems kind of confusing.  only reset on multiplayer inputs?
 void switchPlayerPosition(PPLAYER player);
 void initAiPlayers(void);
 void initStoryCharacters(void);
@@ -228,6 +227,33 @@ static inline bool shrinkPlayerSprite(PPLAYER player, Fxp targetSize)
     }
     // SRL::Debug::Print(22, 10, "SmallTargetSize %d", targetSize.As<int16_t>());
     return false;
+}
+
+static inline void changePlayerSize(PPLAYER player, unsigned int timer)
+{
+    int i = player->playerID;
+    
+    if (player->isBig) {
+        if (timer == 0) {
+        Pcm::Play(Sounds.Game[ShrinkSnd]);
+        player->isBig = shrinkPlayerSprite(player, NORMAL_PLAYER_SPRITE);
+        }
+        else {
+        growPlayerSprite(player, LARGE_PLAYER_SPRITE);
+        }
+    }
+    if (player->isSmall)
+    {
+            if (timer == 0)
+            {
+                Pcm::Play(Sounds.Game[GrowSnd]);
+                player->isSmall = growPlayerSprite(player, NORMAL_PLAYER_SPRITE);
+            }
+        else
+        {
+            shrinkPlayerSprite(player, SMALL_PLAYER_SPRITE);
+        }
+    }
 }
 
 #ifdef __cplusplus

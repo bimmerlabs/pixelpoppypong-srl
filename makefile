@@ -1,15 +1,15 @@
 # Configuration
-SRL_MAX_TEXTURES = 300         # Number of VDP1 texture slots
+SRL_MAX_TEXTURES = 300          # Number of VDP1 texture slots
 SRL_MODE = NTSC                 # Valid options are PAL or NTSC
 SRL_HIGH_RES = 0                # 480i mode
 SRL_HIGH_RES_NON_INTERLACED = 1 # 240p mode
-SRL_DISABLE_NBG3_FONT = 1	# Don't initialize NBG3 debug font by default
+SRL_DISABLE_NBG3_FONT = 0	# Don't initialize NBG3 debug font by default
 SRL_VDP1_ATTR_MANUAL_MODE = 1	# allow manual assignment of VDP1 sprite attributes
 SRL_FRAMERATE = 1               # Framerate control (0=dynamic, 1=< 60/value)
 SRL_MAX_CD_BACKGROUND_JOBS = 1  # Maximum number of files GFS can open at once
 SRL_MAX_CD_FILES = 256          # Maximum number of files on a CD
 SRL_MAX_CD_RETRIES = 5          # Number of times to retry on unsuccessful read
-SRL_MALLOC_METHOD = SIMPLE      # Allocation method: TLSF or SIMPLE are supported.
+SRL_MALLOC_METHOD = TLSF        # Allocation method: TLSF or SIMPLE are supported.
 
 # Sound driver specific configuration
 SRL_USE_SGL_SOUND_DRIVER = 0    # Set to 1 if you want to use SGL sound driver, this will copy necessary files into the CD folder
@@ -21,9 +21,13 @@ SGL_MAX_POLYGONS = 1500         # Number of polygons that can be used
 SGL_MAX_EVENTS = 1             # Number of events that can be used
 SGL_MAX_WORKS = 1             # Number of works that can be used
 
+# include extra modules
+MODULES_EXTRA = smpc tmsf backup ponesound decompression checksum particles
+
 # Custom flags
 CCFLAGS += -DENABLE_DEBUG_MODE=1
 CCFLAGS += -DDISABLE_PERFORMANCE_WARNINGS=1 # For SRL::Math::Fxp conversions
+# CCFLAGS += -DMATH_PERFORMANCE_MODE=ACCURATE
 
 # Disk name
 CD_NAME = PPPong

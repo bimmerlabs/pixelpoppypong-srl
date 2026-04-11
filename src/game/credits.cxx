@@ -1,10 +1,12 @@
 #include "../main.h"
 #include "credits.h"
+#include "../specialfx/particlefx.h"
 #include "player_setup.h"
 #include "../core/assets.h"
 #include "../core/screen_transition.h"
 #include "../objects/player.h"
 #include "../vdp2/nbg1.h"
+#include <particles.hpp>
 
 CREDITS credits = {};
 
@@ -24,6 +26,12 @@ void initCreditsStruct(void) {
 
 void init_credits(void)
 {
+    // are game assets sometimes loaded here?
+    if (g_Assets.NameEntryAssetsLoaded) {
+        unloadNameEntryAssets();
+    }
+    
+    
     if (g_GameOptions.mosaic_display) {
         g_Transition.mosaic_in = true;
     }
@@ -31,6 +39,7 @@ void init_credits(void)
     g_Transition.fade_in = true;
     g_Transition.all_in = true;
 
+    SRL::VDP2::NBG2::ScrollDisable(); // in cause it's accidentally enabled somewhere else
     initCreditsStruct();
     
     // text transparency (maybe use SRL here)
@@ -48,11 +57,13 @@ void init_credits(void)
 
     g_Game.lastState = GAME_STATE_CREDITS;
     playCDTrack(CREDITS_TRACK, false);
+        initCreditsFx();
 }
 
 void display_credits(void)
 {
-    credits.timer++;
+    credits.timer++;    displayCreditsFx();
+    
     if (attrNbg1.x_scroll > Fxp(0)) {
         attrNbg1.x_pos += attrNbg1.x_scroll;
         if (attrNbg1.x_pos > Fxp(512.0))
@@ -160,11 +171,17 @@ void display_credits(void)
 
         else if (credits.id == 4) {
             bg_height = Fxp(48);
-            SRL::Debug::Print(CREDITS_X1, 14, "Built with Saturn Rings Library");
-            SRL::Debug::Print(CREDITS_X2, 15, "srl.reye.me");
+            SRL::Debug::Print(CREDITS_X1, 14, "Aseprite to VDP2 By:");
+            SRL::Debug::Print(CREDITS_X2, 15, "purist");
         }
 
         else if (credits.id == 5) {
+            bg_height = Fxp(48);
+            SRL::Debug::Print(CREDITS_X1, 14, "Built with Saturn Ring Library");
+            SRL::Debug::Print(CREDITS_X2, 15, "srl.reye.me");
+        }
+
+        else if (credits.id == 6) {
             bg_height = Fxp(48);
             slScrPosNbg0(toFIXED(0), toFIXED(-4));
             SRL::Debug::Print(CREDITS_X1, 13, "Original Background Art:");
@@ -172,7 +189,7 @@ void display_credits(void)
             SRL::Debug::Print(CREDITS_X2, 15, "www.behance.net/t-sherbul");
         }
 
-        else if (credits.id == 6) {
+        else if (credits.id == 7) {
             bg_height = Fxp(56);
             slScrPosNbg0(toFIXED(0), toFIXED(0));
             SRL::Debug::Print(CREDITS_X1, 13, "Special Thanks:");
@@ -181,13 +198,13 @@ void display_credits(void)
             SRL::Debug::Print(CREDITS_X2, 16, "Sega Saturn Shiro!");
         }
 
-        else if (credits.id == 7) {
+        else if (credits.id == 8) {
             bg_height = Fxp(32);
             slScrPosNbg0(toFIXED(0), toFIXED(-4));
             SRL::Debug::Print(18, 14, "THE END!");
         }
 
-        else if (credits.id == 8)
+        else if (credits.id == 9)
         {
             g_Game.vblankClearScreen = true;
             slColorCalcOn(OFF);
@@ -205,10 +222,12 @@ void display_credits(void)
 
 void credits_input(void)	{
     PPLAYER player = &g_Players[0];
-    
+
+    check_ui_inputs();
+            
     if (!player->input->isSelected)
     {
-        check_ui_inputs();
+        return;
     }
 
     Digital gamepad(player->input->id);

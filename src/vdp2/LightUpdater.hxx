@@ -10,15 +10,18 @@ using namespace SRL::Math::Types;
 
 // Configuration for ellipse + shadow offset
 struct LightConfig {
-    constexpr LightConfig(Angle adder, Fxp xr, Fxp yr, Fxp sx, Fxp sy)
+    constexpr LightConfig(Angle adder, Fxp xr, Fxp yr, Fxp sx, Fxp sy, Fxp px, Fxp py)
         : angleAdder(adder), x_radius(xr), y_radius(yr),
-          shadow_offset_x(sx), shadow_offset_y(sy) {}
+          shadow_offset_x(sx), shadow_offset_y(sy),
+          object_pos_x(px), object_pos_y(py) {}
 
     Angle angleAdder;        // How fast angle changes per update
     Fxp   x_radius;          // Ellipse radius X
     Fxp   y_radius;          // Ellipse radius Y
     Fxp   shadow_offset_x;   // Shadow X offset
     Fxp   shadow_offset_y;   // Shadow Y offset
+    Fxp   object_pos_x = 0;      // position of object casting shadow
+    Fxp   object_pos_y = 0;      // position of object casting shadow
 };
 
 class LightUpdater {

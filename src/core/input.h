@@ -11,7 +11,7 @@ using namespace SRL::Input;
 // Saturn inputs
 typedef struct _INPUT
 {
-	uint8_t id;
+	int8_t id;
 	Fxp axis_x;
 	Fxp axis_y;
 	Fxp left_trigger;
@@ -23,9 +23,19 @@ typedef struct _INPUT
 
 extern INPUT g_Inputs[MAX_INPUTS];
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void init_inputs(void);
 void reset_inputs(void);
 void check_inputs(void);
+void check_ui_inputs(void);
+// void check_multiplayer_inputs(int8_t p);
 
 void analogAdjustmentScreen_input(void);
 void analogAdjustmentScreen_draw(int input_x, int options_y);
+
+#ifdef __cplusplus
+}
+#endif

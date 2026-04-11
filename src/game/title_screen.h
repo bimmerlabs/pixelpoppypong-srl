@@ -40,22 +40,22 @@ typedef enum _MENU_OPTIONS
     TITLE_OPTION_MAX,
 } MENU_OPTIONS;
 
+// controls the positioning of the cursor on the options menu
 typedef enum _OPTIONS
 {
     #if ENABLE_DEBUG_MODE == 1
     OPTION_DEBUG_MODE = 0,
     OPTION_DEBUG_TEXT,
     OPTION_DEBUG_COLLISION,
-    OPTION_DRAWMESH,
-    #else
-    OPTION_DRAWMESH = 0,
-    #endif
+    OPTION_ITEMS,
     OPTION_DRAWMOSAIC,
+    #else
+    OPTION_DRAWMOSAIC, = 0,
+    #endif
     OPTION_USE_RTC,
     OPTION_BIG_HEAD,
-    OPTION_ITEMS,
-    OPTION_MEOW,
     OPTION_CDDA,
+    OPTION_SNDTST,
     OPTION_ANALOG,
     OPTION_EXIT,
     OPTION_MAX,
@@ -136,7 +136,6 @@ static inline void selectNumPlayers(void) {
 }
 
 void titleScreen_init(void);
-// void logoSphere_init(void);
 void titleMenu_init(void);
 void optionsScreen_init(void);
 void titleScreen_input(void);

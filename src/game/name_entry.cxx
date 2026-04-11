@@ -7,9 +7,8 @@
 #include "../core/screen_transition.h"
 #include "../vdp2/nbg1.h"
 #include "../vdp2/lighting.h"
-#include "../vdp2/sprite_colors.h"
 
-const char letters[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ!.< ";
+const char letters[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ!.< ";
 
 NAME_ENTRY nameEntry = {};
 
@@ -19,13 +18,16 @@ void initNameEntryStruct(void)
     nameEntry.selection = FIRST_INITIAL;
     nameEntry.rotateLeft = false;
     nameEntry.rotateRight = false;
-    nameEntry.initials[0] = 0;  // 3 letters + null terminator
+    nameEntry.initials[0] = 0;  // 3 letters + null terminator (is the null terminator needed?)
     nameEntry.initials[1] = 0;
     nameEntry.initials[2] = 0;
     nameEntry.initials[3] = 0;
-    nameEntry.char_id[0] = 10; // letters[] index
-    nameEntry.char_id[1] = 39;
-    nameEntry.char_id[2] = 39;
+    // nameEntry.char_id[0] = 10; // letters[] index
+    // nameEntry.char_id[1] = 39;
+    // nameEntry.char_id[2] = 39;
+    nameEntry.char_id[0] = 0; // letters[] index
+    nameEntry.char_id[1] = 29;
+    nameEntry.char_id[2] = 29;
     nameEntry.xRadius = NAME_X_RADIUS;
     nameEntry.yRadius = NAME_Y_RADIUS;
     nameEntry.yPos = NAME_Y_POS;
@@ -40,11 +42,14 @@ void initNameEntryStruct(void)
 
 void nameEntryInit(void)
 {
-    if (g_Assets.titleAssetsLoaded) {
-        unloadTitleAssets();
-    }
+    // if (g_Assets.titleAssetsLoaded) {
+        // unloadTitleAssets();
+    // }
     if (g_Assets.characterAssetsLoaded) {
         unloadGameAssets();
+    }
+    if (!g_Assets.characterAssetsLoaded) {
+        loadCharacterAssets(); // load specifically for debug mode
     }
     if (!g_Assets.NameEntryAssetsLoaded)
     {
@@ -52,7 +57,9 @@ void nameEntryInit(void)
     }
     
     SRL::Debug::PrintClearScreen();
-
+    
+    reset_sprites();
+    
     initNameEntryColors();
     initNameEntryStruct();
      
@@ -82,6 +89,7 @@ void nameEntryInput(void)
         return;
     }
     
+    // todo:  what?  why do I need this?  maybe it was from before I had inputs figured out
     // need to change this to if debug is enabled in the options instead of being from the makefile
     PPLAYER player = &g_Players[g_Game.winner];
     #if ENABLE_DEBUG_MODE == 1
@@ -178,7 +186,8 @@ void nameEntryInput(void)
         {
             nameEntry.angle = 360;
             nameEntry.selection--;
-            nameEntry.char_id[nameEntry.selection] = 39;
+            // nameEntry.char_id[nameEntry.selection] = 39;
+            nameEntry.char_id[nameEntry.selection] = 29;
             initNameEntryColors();
             nameEntry.finished = false;
             nameEntry.isAngleSnapped = true;
@@ -208,7 +217,8 @@ void nameEntryUpdate(void)
         nameEntry.timer--;
     }
 
-    SRL::Debug::Print(17, 2, "Name Entry");
+    // SRL::Debug::Print(17, 2, "Name Entry");
+    nameEntryTitleDraw();
     
     if (nameEntry.timer > 0 && !nameEntry.end)
     {
@@ -225,29 +235,32 @@ void nameEntryUpdate(void)
     }
     
     // make an inline sub for this
-    if (nameEntry.char_id[FIRST_INITIAL] != 39)
+    // if (nameEntry.char_id[FIRST_INITIAL] != 39)
+    if (nameEntry.char_id[FIRST_INITIAL] != 9)
     {
-        set_spr_position(&font, -24, nameEntry.yPos.As<int32_t>(), 50);
-        set_spr_scale(&font, 2, 2);
-        font.id = font.anim[0].asset + nameEntry.char_id[FIRST_INITIAL];
-        font.zmode = _ZmRC;
-        my_sprite_draw(&font);
+        set_spr_position(&name, -24, nameEntry.yPos.As<int32_t>(), 50);
+        set_spr_scale(&name, 2, 2);
+        name.id = name.anim[0].asset + nameEntry.char_id[FIRST_INITIAL];
+        name.zmode = _ZmRC;
+        my_sprite_draw(&name);
     }
-    if (nameEntry.selection >= 1 && nameEntry.char_id[SECOND_INITIAL] != 39)
+    // if (nameEntry.selection >= 1 && nameEntry.char_id[SECOND_INITIAL] != 39)
+    if (nameEntry.selection >= 1 && nameEntry.char_id[SECOND_INITIAL] != 29)
     {
-        set_spr_position(&font, 0, nameEntry.yPos.As<int32_t>(), 50);
-        set_spr_scale(&font, 2, 2);
-        font.id = font.anim[0].asset + nameEntry.char_id[SECOND_INITIAL];
-        font.zmode = _ZmCC;
-        my_sprite_draw(&font);
+        set_spr_position(&name, 0, nameEntry.yPos.As<int32_t>(), 50);
+        set_spr_scale(&name, 2, 2);
+        name.id = name.anim[0].asset + nameEntry.char_id[SECOND_INITIAL];
+        name.zmode = _ZmCC;
+        my_sprite_draw(&name);
     }
-    if (nameEntry.selection >= 2 && nameEntry.char_id[THIRD_INITIAL] != 39)
+    // if (nameEntry.selection >= 2 && nameEntry.char_id[THIRD_INITIAL] != 39)
+    if (nameEntry.selection >= 2 && nameEntry.char_id[THIRD_INITIAL] != 29)
     {
-        set_spr_position(&font, 24, nameEntry.yPos.As<int32_t>(), 50);
-        set_spr_scale(&font, 2, 2);
-        font.id = font.anim[0].asset + nameEntry.char_id[THIRD_INITIAL];
-        font.zmode = _ZmLC;
-        my_sprite_draw(&font);
+        set_spr_position(&name, 24, nameEntry.yPos.As<int32_t>(), 50);
+        set_spr_scale(&name, 2, 2);
+        name.id = name.anim[0].asset + nameEntry.char_id[THIRD_INITIAL];
+        name.zmode = _ZmLC;
+        my_sprite_draw(&name);
     }
     if (nameEntry.end && nameEntry.xRadius > END_RADIUS)
     {
@@ -261,7 +274,7 @@ void nameEntryUpdate(void)
             nameEntry.yPos -= 2;
     }
     
-    font.zmode = _ZmCC;
+    name.zmode = _ZmCC;
     nameEntryDraw();
     
     
@@ -273,8 +286,9 @@ void nameEntryUpdate(void)
     if(nameEntry.timer == 0 || nameEntry.xRadius <= END_RADIUS)
     {
         SRL::Debug::PrintClearScreen();
-        addHighScore(g_Players[g_Game.winner].score.points, nameEntry.initials);
-        // save_game_backup();
+        PPLAYER winner = &g_Players[g_Game.winner];
+        addHighScore(winner->score.points, nameEntry.initials, winner->character.choice);
+        save_game_backup();
         g_Game.lastState = GAME_STATE_NAME_ENTRY;
         transitionState(GAME_STATE_HIGHSCORES);
         return;
@@ -332,7 +346,8 @@ void nameEntryPositionUpdate(int angle, int sprAngle)
     if (sprAngle > 360)
         sprAngle -= 360;
         
-    int spr_id = ((sprAngle / 12) % 30) + 10; // because letter A starts at 10
+    // int spr_id = ((sprAngle / 12) % 30) + 10; // because letter A starts at 10
+    int spr_id = ((sprAngle / 12) % 30); // because letter A starts at 0
         
     int scaleAngle = angle + 90;
     if (scaleAngle > 360)
@@ -341,8 +356,8 @@ void nameEntryPositionUpdate(int angle, int sprAngle)
     Fxp fixedAngle = Fxp::Convert(angle * TO_TURNS);
     light.x = SRL::Math::Trigonometry::Cos(fixedAngle) * nameEntry.xRadius;
     light.y = SRL::Math::Trigonometry::Sin(fixedAngle) * nameEntry.yRadius;
-    font.pos.x = 2*(light.x);
-    font.pos.y = -2*(light.y);    
+    name.pos.x = 2*(light.x);
+    name.pos.y = -2*(light.y);    
     
     if (angle > 262 && angle < 278)
     {
@@ -350,15 +365,15 @@ void nameEntryPositionUpdate(int angle, int sprAngle)
         {
             nameEntry.char_id[nameEntry.selection] = spr_id;
         }
-        font.scl.x = Fxp(2.7);
+        name.scl.x = Fxp(2.7);
     }
     else
     {
         Fxp fixedscaleAngle = Fxp::Convert(scaleAngle * TO_TURNS);
-        font.scl.x = Fxp_1 + (Fxp_127 + SRL::Math::Trigonometry::Cos(fixedscaleAngle) * NAME_X_RADIUS) / Fxp(200); // NOT SURE IF THIS NEEDS TO BE FIXED 200?
+        name.scl.x = Fxp_1 + (Fxp_127 + SRL::Math::Trigonometry::Cos(fixedscaleAngle) * NAME_X_RADIUS) / Fxp(200); // NOT SURE IF THIS NEEDS TO BE FIXED 200?
     }
     
-    font.scl.y = font.scl.x;
+    name.scl.y = name.scl.x;
     
     int zAngle = angle + 91;
     int zPos = 0;
@@ -375,9 +390,10 @@ void nameEntryPositionUpdate(int angle, int sprAngle)
         zPos = 180 - ABS(zAngle - 180);
     }
     
-    font.pos.z = Fxp::Convert(zPos+50.0f);
+    name.pos.z = Fxp::Convert(zPos+50.0f);
     
-    int colorid = spr_id + 54; // + 64 degrees -10 (start of "A")
+    // int colorid = spr_id + 54; // + 64 degrees -10 (start of "A")
+    int colorid = spr_id + 64; // + 64 degrees -0 (start of "A")
     
     if (!nameEntry.finished)
     {
@@ -393,8 +409,8 @@ void nameEntryPositionUpdate(int angle, int sprAngle)
         hslSprites[colorid].l = 240;
     }
     
-    font.id = font.anim[0].asset + spr_id;
-    my_sprite_draw(&font);
+    name.id = name.anim[0].asset + spr_id;
+    my_sprite_draw(&name);
 }
 
 int snap_to_nearest_12(int angle)

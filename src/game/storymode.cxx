@@ -1,4 +1,3 @@
-//#include <jo/jo.h>
 #include "../main.h"
 #include "storymode.h"
 #include "../core/assets.h"
@@ -6,9 +5,6 @@
 #include "../objects/player.h"
 #include "../objects/characters.h"
 #include "../vdp2/nbg1.h"
-
-// extern PLAYER g_Players[MAX_PLAYERS];
-
 
 int character_pos_x = CHARACTER_POS_X;
 int character_pos_y = 0;
@@ -25,12 +21,7 @@ void initStoryMode(void)
     character_pos_selected = CHARACTER_POS_Y;
     character_offset = (g_Game.countofRounds * CHARACTER_POS_OFFSET); // starts as 0
     
-    if (g_GameOptions.mesh_display) {
-        menu_bg2.mesh = MESHon;
-    }
-    else {
-        menu_bg2.mesh = MESHoff;
-    }
+    menu_bg2.mesh = MESHoff;
     menu_bg2.zmode = _ZmCC;
     menu_bg2.id = menu_bg2.anim[0].asset + 4;
     set_spr_position_fxp(&menu_bg2, Fxp_0, Fxp_0, MENU_BG2_DEPTH);
@@ -54,12 +45,12 @@ void initStoryMode(void)
     player->isAI = false;
     boundPlayer(player);
     draw_story_cursor = false;
-    // // // reset_sprites();
     
     initStoryCharacters();
     initVsModePlayers();
     resetPawScale();
-    
+        
+    g_Transition.fade_in = true;
     SRL::Debug::PrintClearScreen();
 }
 
@@ -121,7 +112,7 @@ void initNextRound(void) {
     sprite_frame_reset(&pixel_poppy);
     g_StartStoryFrames = CHARACTER_SELECT_TIMER;
     g_Game.selectStoryCharacter = true;
-    reset_sprites(); // doesn't do anything yet
+    reset_sprites(); // doesn't do anything yet // ??
     initGoalColors();
     
     g_Game.time_over = false;
@@ -130,6 +121,8 @@ void initNextRound(void) {
     
     playCDTrack(BEGIN_GAME_TRACK, false);
     
+    SRL::VDP2::NBG2::ScrollDisable(); // zzz
+    
     SRL::Debug::PrintClearScreen();
 }
 
@@ -137,10 +130,11 @@ void initNextRound(void) {
 void storySelectUpdate(void)
 {
     PPLAYER player = &g_Players[0];
+    PPLAYER computer = &g_Players[1];
     
     character_offset = ((g_Game.countofRounds) * CHARACTER_POS_OFFSET);
     SRL::Debug::Print(6, 10, "%s", characterNames[player->character.choice]);
-    SRL::Debug::Print(26, 14, "%s", characterNames[g_Game.countofRounds+1]); // needs updated
+    SRL::Debug::Print(26, 14, "%s", characterNames[computer->character.choice]); // needs updated
     
         character_portrait.id = character_portrait.anim[0].asset + player->character.choice;
         set_spr_position_fxp(&character_portrait, Fxp(-200), Fxp_0, PORTRAIT_DEPTH);
@@ -154,7 +148,7 @@ void storySelectUpdate(void)
     else {
         SRL::Debug::Print(2, 19, "%s", characterQuotes[player->character.choice]);
         SRL::Debug::Print(21, 19, "vs.");
-        SRL::Debug::Print(26, 16, "%s", characterQuotes[g_Game.countofRounds+1]); // needs updated
+        SRL::Debug::Print(26, 16, "%s", characterQuotes[computer->character.choice]); // needs updated
     }
     if (g_StartStoryFrames == 0)
     {
@@ -165,8 +159,12 @@ void storySelectUpdate(void)
             g_Transition.mosaic_in = true;
         }
         g_Transition.fade_in = true;
+        // g_Transition.story_fade_in = true;
         g_Game.selectStoryCharacter = false;
         SRL::Debug::PrintClearScreen();
+        if (g_Game.isBoss) {
+            playCDTrack(BOSS_TRACK, true);
+        }
     }
     
     if (g_Game.frame % 3 == 0) { // modulus

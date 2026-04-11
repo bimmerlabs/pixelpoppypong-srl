@@ -16,33 +16,52 @@ const char *characterNames[] = {
     "CPU     "
 };
 
-const char *fullCharacterNames[] = {
-    "  Macchiato   ",
-    "  Jelly Bean  ",
-    " Queen Penny  ",
-    " Hairy Potter ",
-    "    Sparta    ",
-    "Princess Poppy",
-    "   Toe Jam    ",
-    "Curious George",
-    "  Puppy Wuppy ",
-    "Craig Stadler ",
-    "   Garfield   ",
-    "    Random    ",
+// removed the "centering" because it was fragile and I'm going to re-do all of that anyway
+const char *classicCharacterNames[] = {
+    "Macchiato",
+    "Jelly Bean",
+    "Queen Penny",
+    "Hairy Potter",
+    "Dr. Sparta",
+    "Poppy",
+    "Toe Jam",
+    "George",
+    "Wuppy",
+    "Craig S.",
+    "Garfield",
+    "Random",
 };
 
+// removed the "centering" because it was fragile and I'm going to re-do all of that anyway
+const char *fullCharacterNames[] = {
+    "Macchiato",
+    "Jelly Bean",
+    "Queen Penny",
+    "Hairy Potter",
+    "Dr. Sparta",
+    "Princess Poppy",
+    "Toe Jam",
+    "Curious George",
+    "Wuppy",
+    "Craig Stadler",
+    "Garfield",
+    "Random",
+};
+
+// if this was a 12x12 matrix it would have a saying for every cat vs every cat
 const char *characterQuotes[] = {
     "I'm the best!",
     "Hello?  HELLO??",
     "No, *I'm* the best!",
     "The cat who lived",
-    "I love lamp!  ",
+    "I love lamp!",
     "I'm so fluffy YOU wanna die!!",
     "Yo, Anyone seen Earl?",
     "Can I eat that?",
     "I just wanna play cat pong!",
     "Great shot!!",
     "I hate Mondays..",
+    "Beep Beep Boop!",
 };
 
 const char *characterBios[] = {
@@ -73,6 +92,7 @@ const char *characterBios[] = {
 
 bool characterUnlocked[CHARACTER_MAX] = {};
 bool characterAvailable[CHARACTER_MAX] = {};
+bool storyCharacterAvailable[CHARACTER_MAX] = {};
 
 const CHARACTER_ATTRIBUTES characterAttributes[] = {
   // s   a   p    // speed, acceleration, power - scale 0-100
@@ -103,21 +123,26 @@ void initUnlockedCharacters(void) {
 }
 
 void initAvailableCharacters(void) {
-    #if ENABLE_DEBUG_MODE == 1
+    // all characters are available
     if (g_GameOptions.debug_mode) {
-        for (int i = 0; i < CHARACTER_NONE; i++) {
+        for (int i = CHARACTER_MACCHI; i < CHARACTER_NONE; i++) {
             characterAvailable[i] = true;
         }
     }
     // Copy values from characterUnlocked to characterAvailable
     else {
-        for (int i = 0; i < CHARACTER_MAX; i++) {
-    #endif
+        for (int i = CHARACTER_MACCHI; i < CHARACTER_MAX; i++) {
             characterAvailable[i] = characterUnlocked[i];
         }
-    #if ENABLE_DEBUG_MODE == 1
     }
-    #endif
+}
+
+void initAvailableStoryCharacters(void)
+{
+    for (int i = CHARACTER_MACCHI; i < CHARACTER_MAX; i++)
+    {
+        storyCharacterAvailable[i] = true;
+    }
 }
 
 void PrintWrapped(int x, int y, int maxCharsPerLine, const char *text)

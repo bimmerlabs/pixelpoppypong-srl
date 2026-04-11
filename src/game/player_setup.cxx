@@ -3,61 +3,39 @@
 #include "../core/assets.h"
 #include "../objects/characters.h"
 
-void check_ui_inputs(void) {
-    PPLAYER player = &g_Players[0];
-    
-    if (player->input->isSelected)
-    {
-        return;
-    }
-
-    for(unsigned int inp = 0; inp < MAX_INPUTS; inp++)
+// again.. why is this in player anything?
+void check_player_inputs(void) {
+    for(unsigned int p = 0; p < MAX_INPUTS; p++)
     {
         // Once a player starts selection, they shouldn't be able to assign a new id
-        if (g_Inputs[inp].isSelected)
+        if (!Management::IsConnected(p))
         {
             continue;
         }
 
-        Digital gamepad(inp);
+        if (g_Inputs[p].isSelected)
+        {
+            continue;
+        }
+
+        Digital gamepad(p);
 
         if (gamepad.WasPressed(Digital::Button::START))
         {
-            g_Game.vblankClearScreen = true;
-            player->input = &g_Inputs[inp];
-            player->input->id = inp;
-            player->input->isSelected = true;
-            return;
-        }
-    }
-}
-
-void check_player_inputs(void) {
-    // SRL::Debug::Print(2, 8, "numPlayers:%d", g_Game.numPlayers);
-    for(int8_t i = 0; i <= g_Game.numPlayers; i++)
-    {
-        PPLAYER player = &g_Players[i];
-        if (player->input->isSelected) {
-            continue;
-        }
-
-        for(unsigned int inp = 0; inp < MAX_INPUTS; inp++)
-        {
-            // Once a player starts selection, they shouldn't be able to assign a new id
-            if (g_Inputs[inp].isSelected) {
-                continue;
-            }
-            
-            Digital gamepad(inp);
-            
-            if (gamepad.WasPressed(Digital::Button::START))
+            for(int8_t i = 0; i <= g_Game.numPlayers; i++)
             {
-                g_Game.vblankClearScreen = true;
-                Pcm::Play(Sounds.Core[StartSnd], PlayMode::Volatile, 6);
-                player->input = &g_Inputs[inp];
-                player->input->id = inp;
-                player->input->isSelected = true;
+                PPLAYER player = &g_Players[i];
 
+                if (player->input->isSelected || player->startSelection) {
+                    continue;
+                }
+        
+                Pcm::Play(Sounds.Core[StartSnd], PlayMode::Volatile, 6);
+                g_Game.vblankClearScreen = true;
+                player->input = &g_Inputs[p];
+                player->input->id = p;
+                player->input->isSelected = true;
+                
                 player->startSelection = true;
                 player->character.choice = CHARACTER_MACCHI;
                 validateCharacters(player);
@@ -68,14 +46,51 @@ void check_player_inputs(void) {
                 return;
             }
         }
-    }
+    }    
+    
+        // this version loops backwards I think (player to input, instead of input to player)
+    // for(int8_t i = 0; i <= g_Game.numPlayers; i++)
+    // {
+        // PPLAYER player = &g_Players[i];
+
+        // if (player->input->isSelected || player->startSelection) {
+            // continue;
+        // }
+
+        // check_multiplayer_inputs(i);
+        
+        // if (player->input->isSelected)
+        // {
+            // Pcm::Play(Sounds.Core[StartSnd], PlayMode::Volatile, 6);
+
+            // player->startSelection = true;
+            // player->character.choice = CHARACTER_MACCHI;
+            // validateCharacters(player);
+            // assignCharacterSprite(player);
+
+            // player->teamChoice = TEAM_1;
+            // validateTeam(player);
+            // return;
+        // }
+    // }
 }
 
-// only select available characters 
+// only select available characters
 void validateCharacters(PLAYER *player) {
     while (!characterAvailable[player->character.choice]) {
         player->character.choice++;
-        if (player->character.choice > CHARACTER_MAX)
+        if (player->character.choice >= CHARACTER_NONE) // Was MAX
+        {
+            player->character.choice = CHARACTER_MACCHI;
+        }
+    }
+}
+
+// only select available characters
+void validateStoryCharacters(PLAYER *player) {
+    while (!storyCharacterAvailable[player->character.choice]) {
+        player->character.choice++;
+        if (player->character.choice >= CHARACTER_NONE) // Was MAX
         {
             player->character.choice = CHARACTER_MACCHI;
         }
