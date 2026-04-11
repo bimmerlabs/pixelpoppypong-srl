@@ -15,6 +15,7 @@ ImageAttr attrNbg1 = { 0, 0, 0, Fxp(0.0), Fxp(0.0), Fxp(0.25), Fxp(0.0), 0, 0, 0
 
 void init_nbg1_img(void) {
     SRL::Bitmap::TGA* background = new SRL::Bitmap::TGA("BG0.TGA"); // Load Bitmap image to work RAM
+    // SRL::Bitmap::TGA* background = new SRL::Bitmap::TGA("JELLY.TGA"); // Load Bitmap image to work RAM
     SRL::Tilemap::Interfaces::Bmp2Tile* Tilebmp = new SRL::Tilemap::Interfaces::Bmp2Tile(*background); // convert bitmap to tilemap
     delete background; // free original bitmap from work ram
     SRL::VDP2::NBG1::LoadTilemap(*Tilebmp); // Transfer tilemap from work RAM to VDP2 VRAM and register with NBG2

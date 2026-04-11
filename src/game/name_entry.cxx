@@ -151,20 +151,20 @@ void nameEntryInput(void)
         
         if (nameEntry.finished && nameEntry.angle == GAP_ANGLE)
         {
-            pcm_play(g_Assets.load_okPcm8, PCM_VOLATILE, 7);
+            Pcm::Play(Sounds.Name[LoadOkSnd], PlayMode::Volatile);
             nameEntry.end = true;
             return;
         }
         
         if (!nameEntry.finished && nameEntry.angle != GAP_ANGLE)
         {
-            pcm_play(g_Assets.name_ketPcm8, PCM_PROTECTED, 7);
+            Pcm::Play(Sounds.Name[NameKetSnd]);
             nameEntry.selection++;
         }
         
         if (nameEntry.selection == MAX_INITIAL)
         {
-            pcm_play(g_Assets.name_brkPcm8, PCM_VOLATILE, 6);
+            Pcm::Play(Sounds.Name[NameBrkSnd], PlayMode::Volatile, 6);
             nameEntry.finished = true;
             nameEntry.isAngleSnapped = false;
         }
@@ -172,7 +172,7 @@ void nameEntryInput(void)
     else if (gamepad.WasPressed(Digital::Button::B))
     {
         g_Game.vblankClearScreen = true;
-        pcm_play(g_Assets.name_canPcm8, PCM_PROTECTED, 7);
+        Pcm::Play(Sounds.Name[NameCanSnd]);
         
         if (nameEntry.selection == MAX_INITIAL)
         {
@@ -422,7 +422,7 @@ int snap_to_nearest_12(int angle)
     // If angle is now a multiple of 12, stop adjusting
     if (angle % 12 == 0)
     {
-        pcm_play(g_Assets.name_curPcm8, PCM_VOLATILE, 7);
+        Pcm::Play(Sounds.Name[NameCurSnd], PlayMode::Volatile);
         nameEntry.isAngleSnapped = true;  // Mark snapping complete
     }
 
@@ -456,7 +456,7 @@ int snap_to_end(int angle)
     if (nameEntry.rotateRight)
     { // need to compare to original angle value and set a boolean?
         angle -= 6;  // Move counterclockwise
-        pcm_play(g_Assets.name_curPcm8, PCM_VOLATILE, 7);
+        Pcm::Play(Sounds.Name[NameCurSnd], PlayMode::Volatile);
         if (angle < 0)
             angle += 360;
     }
@@ -464,7 +464,7 @@ int snap_to_end(int angle)
     if (nameEntry.rotateLeft)
     {
         angle += 6;  // Move clockwise
-        pcm_play(g_Assets.name_curPcm8, PCM_VOLATILE, 7);
+        Pcm::Play(Sounds.Name[NameCurSnd], PlayMode::Volatile);
         if (angle > 360)
             angle -= 360;
     }

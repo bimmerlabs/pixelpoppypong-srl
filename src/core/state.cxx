@@ -136,14 +136,7 @@ void changeState(GAME_STATE newState)
             SRL::VDP2::NBG2::ScrollDisable();
             SRL::VDP2::NBG3::ScrollDisable();
             initGame();
-            
-            // this is currently broken (???)
-            // reset_sprites();
             init_game_palette();
-            // do_update_All = true;
-            // updateAllColors();
-            // updateAllPalette();
-            
             update_nbg1_time_slot();
             reset_audio(MAX_VOLUME);
             initTransitionStruct();

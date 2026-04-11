@@ -10,17 +10,13 @@ AudioSettings g_Audio = {
 
 void playCDTrack(uint16_t track, bool repeat)
 {
-    CDDA_Play(track, track, repeat);
-    // SRL::Sound::Cdda::PlaySingle(track, repeat);
-    // CDDA_PlaySingle(track, repeat);
+    CD::PlaySingle(track, repeat);
     g_Audio.cdIsPlaying = true;
 }
 
 void reset_audio(uint8_t new_volume) {
     if (g_Audio.cdIsPlaying) {
-        // SRL::Sound::Cdda::StopPause();
-        // SRL::Sound::Cdda::SetVolume(volume_shift(g_Audio.masterVolume));
-        CDDA_SetVolume(g_Audio.masterVolume);
+        CD::SetVolume(g_Audio.masterVolume);
         g_Audio.cdIsPlaying = false;
     }
 }

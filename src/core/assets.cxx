@@ -3,6 +3,7 @@
 #include "util.h"
 
 ASSETS g_Assets = {};
+SoundAssets Sounds = {};
 
 TilemapObject* coreTiles = nullptr;
 TilemapObject* titleTiles = nullptr;
@@ -12,62 +13,25 @@ TilemapObject* fontTiles = nullptr;
 
 void loadCoreSoundAssets(void)
 {
-    // load_8bit_pcm returns the ID of the sound loaded
-    // use pcm_reset, giving the id of the last sound you want to keep, to unload extra sounds
     // CORE / MENU SOUNDS
-    g_Assets.cancelPcm8 = load_8bit_pcm((int8_t *)"CANCEL.PCM", 15360);
-    g_Assets.cursorPcm8 = load_8bit_pcm((int8_t *)"CURSOR.PCM", 15360);
-    g_Assets.nextPcm8 = load_8bit_pcm((int8_t *)"NEXT.PCM", 15360);
-    g_Assets.startPcm8 = load_8bit_pcm((int8_t *)"START.PCM", 15360);
-    g_Assets.tickPcm8 = load_8bit_pcm((int8_t *)"TICK.PCM", 15360);
+    Pcm::LoadSound("CORE.SND", Sounds.Core, 5);
 }
 
 bool loadGameplaySoundAssets(void)
 {
     // GAMEPLAY SOUNDS
-    g_Assets.scoreTotalPcm8 = load_8bit_pcm((int8_t *)"SCORET.PCM", 15360);
-    g_Assets.scoreAddPcm8 = load_8bit_pcm((int8_t *)"SCOREA.PCM", 15360);
-    g_Assets.chain0Pcm8 = load_8bit_pcm((int8_t *)"CHAIN0.PCM", 15360);
-    g_Assets.chain1Pcm8 = load_8bit_pcm((int8_t *)"CHAIN1.PCM", 15360);
-    g_Assets.chain2Pcm8 = load_8bit_pcm((int8_t *)"CHAIN2.PCM", 15360);
-    g_Assets.chain3Pcm8 = load_8bit_pcm((int8_t *)"CHAIN3.PCM", 15360);
-    g_Assets.chain5Pcm8 = load_8bit_pcm((int8_t *)"CHAIN5.PCM", 15360);
-    g_Assets.explod1Pcm8 = load_8bit_pcm((int8_t *)"EXPLOD1.PCM", 15360);
-    g_Assets.growPcm8 = load_8bit_pcm((int8_t *)"GROW.PCM", 15360);
-    g_Assets.shrinkPcm8 = load_8bit_pcm((int8_t *)"SHRINK.PCM", 15360);
-    g_Assets.bloopPcm8 = load_8bit_pcm((int8_t *)"BLOOP.PCM", 15360);
-    g_Assets.stadlerPcm8 = load_8bit_pcm((int8_t *)"STADLER.PCM", 15360);
-    g_Assets.dropPcm8 = load_8bit_pcm((int8_t *)"DROP.PCM", 15360);
-    g_Assets.bouncePcm8 = load_8bit_pcm((int8_t *)"BOUNCE.PCM", 15360);
-    g_Assets.shieldPcm8 = load_8bit_pcm((int8_t *)"SHIELD.PCM", 15360);
-    // g_Assets.rechargePcm8 = load_8bit_pcm((int8_t *)"RECHARGE.PCM", 15360);
-    g_Assets.countdownPcm8 = load_8bit_pcm((int8_t *)"C_DOWN.PCM", 15360);
-    g_Assets.bumpPcm16 = load_16bit_pcm((int8_t *)"BUMP.PCM", 15360);
-    g_Assets.gameOverPcm8 = load_8bit_pcm((int8_t *)"GMOVR8.PCM", 15360);
-    g_Assets.winPcm8 = load_8bit_pcm((int8_t *)"WIN.PCM", 15360);
+    Pcm::LoadSound("GAMEPLAY.SND", Sounds.Game, 19);
     
     // CAT SOUNDS
-    g_Assets.meowPcm8[0] = load_8bit_pcm((int8_t *)"MEOW1.PCM", 15360);
-    g_Assets.meowPcm8[1] = load_8bit_pcm((int8_t *)"MEOW5.PCM", 15360);
-    g_Assets.meowPcm8[2] = load_8bit_pcm((int8_t *)"MEOW2.PCM", 15360);
-    g_Assets.meowPcm8[3] = load_8bit_pcm((int8_t *)"MEOW6.PCM", 15360);
-    g_Assets.meowPcm8[4] = load_8bit_pcm((int8_t *)"MEOW3.PCM", 15360);
-    g_Assets.meowPcm8[5] = load_8bit_pcm((int8_t *)"MEOW7.PCM", 15360);
-    g_Assets.meowPcm8[6] = load_8bit_pcm((int8_t *)"MEOW4.PCM", 15360);
-    g_Assets.meowPcm8[7] = load_8bit_pcm((int8_t *)"MEOW8.PCM", 15360);
-    g_Assets.meowPcm8[8] = load_8bit_pcm((int8_t *)"MEOW9.PCM", 15360);
-    g_Assets.meowID = MEOW1;
+    Pcm::LoadSound("CAT.SND", Sounds.Meow, 9);
+    Sounds.MeowId = MEOW1;
     return true;
 }
 
 bool loadNameEntrySoundAssets(void)
 {   
     // NAME ENTRY SOUNDS
-    g_Assets.name_ketPcm8 = load_8bit_pcm((int8_t *)"NAME_KET.PCM", 15360);
-    g_Assets.name_curPcm8 = load_8bit_pcm((int8_t *)"NAME_CUR.PCM", 15360);
-    g_Assets.name_canPcm8 = load_8bit_pcm((int8_t *)"NAME_CAN.PCM", 15360);
-    g_Assets.name_brkPcm8 = load_8bit_pcm((int8_t *)"NAME_BRK.PCM", 15360);
-    g_Assets.load_okPcm8 = load_8bit_pcm((int8_t *)"LOAD_OK.PCM", 15360);
+    Pcm::LoadSound("NAME.SND", Sounds.Name, 5);
     return true;
 }
 
@@ -77,7 +41,7 @@ void loadCoreAssets(void)
     SRL::Bitmap::TGA::LoaderSettings settings;
     settings.TransparentColorIndex = 0; // needs to always be index 0 for VDP1/VDP2 (maybe can be configured for VDP1 internally?)
     
-    coreTiles = new TilemapObject("CORE.TM", PaletteID, false);    
+    coreTiles = new TilemapObject("CORE.LZ", PaletteID, false, true);    
 
     pixel_poppy.id = coreTiles->sprite[CORE_SPRITE_POPPY].SpriteIndex;
     pixel_poppy.anim[0].asset = pixel_poppy.id;
@@ -113,7 +77,7 @@ void loadCoreAssets(void)
 
 void loadTitleScreenAssets(void)
 { 
-    titleTiles = new TilemapObject("TITLESCR.TM", PaletteID, false);
+    titleTiles = new TilemapObject("TITLESCR.LZ", PaletteID, false, true);
     
     menu_arrow.id = titleTiles->sprite[TITLE_SPRITE_ARROWS].SpriteIndex;
     menu_arrow.anim[0].asset = menu_arrow.id;
@@ -123,8 +87,7 @@ void loadTitleScreenAssets(void)
     logo1.id = titleTiles->sprite[TITLE_SPRITE_LOGO].SpriteIndex;
     logo1.anim[0].asset = logo1.id;
     logo1.anim[0].max = titleTiles->sprite[TITLE_SPRITE_LOGO].MaxFrames;
-    logo1.anim[0].frame = 0;    
-    // logo2.id = titleTiles->sprite[TITLE_SPRITE_LOGO2].SpriteIndex;
+    logo1.anim[0].frame = 0;
     
     ppplogo.id = titleTiles->sprite[TITLE_SPRITE_PPPLOGO].SpriteIndex;
     pppshadow.id = titleTiles->sprite[TITLE_SPRITE_PPPLOGO].SpriteIndex + 1;
@@ -145,7 +108,7 @@ void loadCharacterAssets(void)
 {
     g_Game.isLoading = true;
         
-    characterTiles = new TilemapObject("TEAMSELE.TM", PaletteID, false);
+    characterTiles = new TilemapObject("TEAMSELE.LZ", PaletteID, false, true);
     
     uint8_t characterOffset = 0;
     uint8_t maxFrames = characterTiles->sprite[TEAM_SPRITE_PAWS].MaxFrames;
@@ -157,7 +120,6 @@ void loadCharacterAssets(void)
         paw[character].anim[0].asset = paw[character].id;
         paw[character].anim[0].max = maxFrames;
         paw[character].anim[0].frame = 0;
-
         characterOffset += maxFrames;
     }
     
@@ -190,7 +152,7 @@ void loadGameAssets(void)
 {
     g_Game.isLoading = true;
         
-    gameplayTiles = new TilemapObject("GAMEPLAY.TM", PaletteID, false);
+    gameplayTiles = new TilemapObject("GAMEPLAY.LZ", PaletteID, false, true);
     
     // GAME_SPRITE_EXPLOD
     // used as 2nd asset in other sprites
@@ -298,10 +260,10 @@ void loadGameAssets(void)
     
     g_Assets.GameplayAssetsLoaded = true;
     
-    if (!g_Assets.GameplaySoundsLoaded) {
+    if (!Sounds.GameplayFxLoaded) {
             g_Game.isSoundLoading = true;
             SRL::Debug::PrintClearLine(15);
-            g_Assets.GameplaySoundsLoaded = loadGameplaySoundAssets();
+            Sounds.GameplayFxLoaded = loadGameplaySoundAssets();
             g_Game.isSoundLoading = false;            
     }
     
@@ -313,15 +275,15 @@ void loadNameEntryAssets(void)
 {
     g_Game.isLoading = true;
     
-    fontTiles = new TilemapObject("NAMEENTR.TM", PaletteID, false);
+    fontTiles = new TilemapObject("NAMEENTR.LZ", PaletteID, false, true);
     
     font.id = fontTiles->sprite[0].SpriteIndex;
     font.anim[0].asset = font.id;
     
-    if (!g_Assets.NameEntrySoundsLoaded) {
+    if (!Sounds.NameEntryFxLoaded) {
         g_Game.isSoundLoading = true;
         SRL::Debug::PrintClearLine(15);
-        g_Assets.NameEntrySoundsLoaded = loadNameEntrySoundAssets();
+        Sounds.NameEntryFxLoaded = loadNameEntrySoundAssets();
         g_Game.isSoundLoading = false;            
     }
     

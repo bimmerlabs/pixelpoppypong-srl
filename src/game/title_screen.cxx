@@ -190,7 +190,7 @@ void titleScreen_input(void)
     
     if (gamepad.WasPressed(Digital::Button::START))
     {
-        pcm_play(g_Assets.startPcm8, PCM_VOLATILE, 6);
+        Pcm::Play(Sounds.Core[StartSnd], PlayMode::Volatile, 6);
         changeState(GAME_STATE_TITLE_MENU); 
         if (g_GameOptions.mosaic_display)
         {
@@ -499,7 +499,7 @@ void menuScreen_input(void)
     
         if (gamepad.WasPressed(Digital::Button::Up))
         {
-            pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+            Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
             titleScreen.h_value = 0;
             // hack - don't know why these are off by 240 degrees?  maybe fixed/RGB rounding error?
             hslSprites[28].h = 60;
@@ -536,7 +536,7 @@ void menuScreen_input(void)
 
         if (gamepad.WasPressed(Digital::Button::Down))
         {
-            pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+            Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
             titleScreen.h_value = 0;
             // hack - don't know why these are off by 240 degrees?  maybe fixed/RGB rounding error?
             hslSprites[28].h = 60;
@@ -576,21 +576,21 @@ void menuScreen_input(void)
             switch(titleScreen.menuChoice)
             {
                 case TITLE_OPTION_GAME_MODE:
-                    pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                     g_Game.gameMode--;
                     sanitizeValue(&g_Game.gameMode, 0, GAME_MODE_MAX);
                     selectGameMode();
                     break;
 
                 case TITLE_OPTION_GAME_PLAYERS:
-                    pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                     g_Game.numPlayers--;
                     sanitizeValue(&g_Game.numPlayers, g_Game.minPlayers, (g_Game.maxPlayers+1));
                     selectNumPlayers();
                     break;
 
                 case TITLE_OPTION_GAME_DIFFICULTY:
-                    pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                     g_Game.gameDifficulty--;
                     sanitizeValue(&g_Game.gameDifficulty, 0, GAME_DIFFICULTY_MAX);
                     break;
@@ -614,21 +614,21 @@ void menuScreen_input(void)
             switch(titleScreen.menuChoice)
                 {
                 case TITLE_OPTION_GAME_MODE:
-                    pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                     g_Game.gameMode++;
                     sanitizeValue(&g_Game.gameMode, 0, GAME_MODE_MAX);
                     selectGameMode();
                     break;
 
                 case TITLE_OPTION_GAME_PLAYERS:
-                    pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                     g_Game.numPlayers++;
                     sanitizeValue(&g_Game.numPlayers, g_Game.minPlayers, (g_Game.maxPlayers+1));
                     selectNumPlayers();
                     break;
                 
                 case TITLE_OPTION_GAME_DIFFICULTY:
-                    pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                     g_Game.gameDifficulty++;
                     sanitizeValue(&g_Game.gameDifficulty, 0, GAME_DIFFICULTY_MAX);
                     break;
@@ -658,27 +658,26 @@ void menuScreen_input(void)
             switch(titleScreen.menuChoice)
             {
                 case TITLE_OPTION_GAME_MODE:
-                    pcm_play(g_Assets.nextPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[NextSnd], PlayMode::Volatile, 6);
                     titleScreen.menuLastChoice = titleScreen.menuChoice;
                     titleScreen.menuChoice++;
                     break;
 
                 case TITLE_OPTION_GAME_PLAYERS:
-                    pcm_play(g_Assets.nextPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[NextSnd], PlayMode::Volatile, 6);
                     titleScreen.menuLastChoice = titleScreen.menuChoice;
                     titleScreen.menuChoice++;
                     break;
                 
                 case TITLE_OPTION_GAME_DIFFICULTY:
-                    pcm_play(g_Assets.nextPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[NextSnd], PlayMode::Volatile, 6);
                     titleScreen.menuLastChoice = titleScreen.menuChoice;
                     titleScreen.menuChoice++;
                     break;
                     
                 case TITLE_OPTION_GAME_START: {
-                    pcm_play(g_Assets.nextPcm8, PCM_VOLATILE, 7);
+                    Pcm::Play(Sounds.Core[NextSnd], PlayMode::Volatile, 6);
                     if (g_Game.gameMode == GAME_MODE_STORY) {
-                        // transitionState(GAME_STATE_GAMEPLAY);
                         transitionState(GAME_STATE_CHARACTER_SELECT);
                     }
                     else {
@@ -688,7 +687,7 @@ void menuScreen_input(void)
                 }
                     
                 case TITLE_OPTION_GAME_OPTIONS:
-                    pcm_play(g_Assets.nextPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[NextSnd], PlayMode::Volatile, 6);
                     g_Game.nextState = GAME_STATE_TITLE_OPTIONS;
                     changeState(g_Game.nextState);
                     break;
@@ -711,22 +710,22 @@ void menuScreen_input(void)
                     break;
 
                 case TITLE_OPTION_GAME_PLAYERS:
-                    pcm_play(g_Assets.cancelPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
                     titleScreen.menuChoice--;
                     break;
                 
                 case TITLE_OPTION_GAME_DIFFICULTY:
-                    pcm_play(g_Assets.cancelPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
                     titleScreen.menuChoice--;
                     break;
                     
-                case TITLE_OPTION_GAME_START:
-                    pcm_play(g_Assets.cancelPcm8, PCM_VOLATILE, 6);
+                case TITLE_OPTION_GAME_START:                  
+                    Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
                     titleScreen.menuChoice--;
                     break;
                     
                 case TITLE_OPTION_GAME_OPTIONS:
-                    pcm_play(g_Assets.cancelPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
                     titleScreen.h_value = 0;
                     gamePalette.GetData()[28] = white;
                     titleScreen.menuChoice = titleScreen.menuLastChoice;
@@ -1028,13 +1027,13 @@ void optionsScreen_input(void)
     
         if (gamepad.WasPressed(Digital::Button::Up))
         {
-            pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+            Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
             titleScreen.optionChoice--;
         }
 
         if (gamepad.WasPressed(Digital::Button::Down))
         {
-            pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+            Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
             titleScreen.optionChoice++;
         }
 
@@ -1047,30 +1046,30 @@ void optionsScreen_input(void)
             // Change Tracks
             if (gamepad.WasPressed(Digital::Button::Right))
             {
-		g_Audio.currentTrack++;
-		if (g_Audio.currentTrack > LAST_TRACK)
-		{
-		    g_Audio.currentTrack = LOGO_TRACK;
+                g_Audio.currentTrack++;
+                if (g_Audio.currentTrack > LAST_TRACK)
+                {
+                    g_Audio.currentTrack = LOGO_TRACK;
                 }
             }
             // Change Tracks
             if (gamepad.WasPressed(Digital::Button::Left))
             {
-		g_Audio.currentTrack--;
-		if (g_Audio.currentTrack < LOGO_TRACK)
-		{
-		    g_Audio.currentTrack = LAST_TRACK;
+                g_Audio.currentTrack--;
+                if (g_Audio.currentTrack < LOGO_TRACK)
+                {
+                    g_Audio.currentTrack = LAST_TRACK;
                 }
             }            // Change Tracks
             if (gamepad.WasPressed(Digital::Button::A))
             {
-		// SRL::Sound::Cdda::PlaySingle(g_Audio.currentTrack, false);
-		g_Audio.soundTest = true;
+                CD::PlaySingle(g_Audio.currentTrack);
+                g_Audio.soundTest = true;
             }            // Change Tracks
             if (gamepad.WasPressed(Digital::Button::C))
             {
-		// SRL::Sound::Cdda::StopPause();
-		g_Audio.soundTest = true;
+                CD::Stop();
+                g_Audio.soundTest = true;
             }
         }
         
@@ -1080,45 +1079,45 @@ void optionsScreen_input(void)
             {
                 #if ENABLE_DEBUG_MODE == 1
                 case OPTION_DEBUG_MODE:
-                    pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                     g_GameOptions.debug_mode = !g_GameOptions.debug_mode;
                     break;
                 case OPTION_DEBUG_TEXT:
-                    pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                     g_GameOptions.debug_display = !g_GameOptions.debug_display;
                     if (!g_GameOptions.debug_display) {
                         g_Game.vblankClearScreen = true;
                     }
                     break;
                 case OPTION_DEBUG_COLLISION:
-                    pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                     g_GameOptions.testCollision = !g_GameOptions.testCollision;
                     break;
                 #endif
                 case OPTION_DRAWMESH:
-                    pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                     g_GameOptions.mesh_display = !g_GameOptions.mesh_display;
                     break;
                 case OPTION_DRAWMOSAIC:
-                    pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                     g_GameOptions.mosaic_display = !g_GameOptions.mosaic_display;
                     break;
                 case OPTION_USE_RTC:
-                    pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                     g_GameOptions.use_rtc = !g_GameOptions.use_rtc;
                     break;
                 case OPTION_BIG_HEAD:
                     if (g_GameOptions.unlockBigHeadMode) {
-                        pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                        Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                         g_GameOptions.bigHeadMode = !g_GameOptions.bigHeadMode;
                     }
                     break;
                 case OPTION_ITEMS:
-                    pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                     g_GameOptions.enableItems = !g_GameOptions.enableItems;
                     break;
                 case OPTION_MEOW:
-                    pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                    Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                     g_GameOptions.enableMeows = !g_GameOptions.enableMeows;
                     break;
                 default:
@@ -1137,7 +1136,7 @@ void optionsScreen_input(void)
             switch(titleScreen.optionChoice)
             {
                 case OPTION_EXIT:
-                    pcm_play(g_Assets.nextPcm8, PCM_VOLATILE, 7);
+                    Pcm::Play(Sounds.Core[NextSnd], PlayMode::Volatile, 6);
                     // save_game_backup();
                     if (g_Audio.soundTest) {
                         // SRL::Sound::Cdda::PlaySingle(TITLE_TRACK, true);
@@ -1155,11 +1154,11 @@ void optionsScreen_input(void)
         }
         if (gamepad.WasPressed(Digital::Button::B))
         {
-            pcm_play(g_Assets.cancelPcm8, PCM_VOLATILE, 6);
+            Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
             // save_game_backup();
             if (g_Audio.soundTest) {
-                // SRL::Sound::Cdda::PlaySingle(TITLE_TRACK, true);
-                        g_Audio.soundTest = false;
+                CD::PlaySingle(TITLE_TRACK, true);
+                g_Audio.soundTest = false;
             }
             g_Audio.currentTrack = GOAL_SCORED_TRACK_1;
             slColOffsetB(NEUTRAL_FADE, NEUTRAL_FADE, NEUTRAL_FADE);
@@ -1281,9 +1280,6 @@ void drawOptions(void)
     }
     options_y += 2;
     SRL::Debug::Print(title_x, options_y, "Exit");
-    
-    // my_sprite_draw(&menu_bg2); // shadow
-
 }
 
 //

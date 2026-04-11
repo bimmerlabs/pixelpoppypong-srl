@@ -1,6 +1,4 @@
 #include <srl.hpp>
-//#include <stdlib.h>
-//#include <string.h>
 #include "../main.h"
 #include "input.h"
 #include "assets.h"
@@ -15,8 +13,6 @@ using namespace SRL::Math::Types;
 
 int8_t pauseChoice = 0;
 
-// typedef enum _PAUSE_OPTIONS
-// {
 #define PAUSE_OPTIONS_RESUME  (0)
 #define PAUSE_OPTIONS_RESTART (1)
 #define PAUSE_OPTIONS_QUIT    (2)
@@ -28,7 +24,6 @@ int8_t pauseChoice = 0;
 #define PAUSE_OPTIONS_ANALOG  (3)
 #define PAUSE_OPTION_MAX      (4)
     #endif
-// } PAUSE_OPTIONS;
 
 static void drawPauseMenuCursor(void);
 static void drawPauseMenu(int options_y);
@@ -110,7 +105,7 @@ void pauseGame(void)
     g_Game.vblankClearScreen = true;
     g_Game.isPaused = true;
     g_Transition.mosaic_in_rate = MOSAIC_FAST_RATE;
-    pcm_play(g_Assets.startPcm8, PCM_VOLATILE, 6);
+    Pcm::Play(Sounds.Core[StartSnd], PlayMode::Volatile, 6);
     SRL::VDP2::NBG2::ScrollEnable();
 }
 
@@ -141,13 +136,13 @@ static void checkForPauseMenu(void)
     
     if (gamepad.WasPressed(Digital::Button::Up))
     {
-        pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+        Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
         pauseChoice--;
     }
 
     if (gamepad.WasPressed(Digital::Button::Down))
     {
-        pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+        Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
         pauseChoice++;
     } 
      
@@ -157,7 +152,7 @@ static void checkForPauseMenu(void)
         {
             #if ENABLE_DEBUG_MODE == 1
             case PAUSE_OPTIONS_DEBUG:
-                pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                 g_GameOptions.debug_display = !g_GameOptions.debug_display;
                 g_Game.vblankClearScreen = true;
                 break;
@@ -172,7 +167,7 @@ static void checkForPauseMenu(void)
         {
             #if ENABLE_DEBUG_MODE == 1
             case PAUSE_OPTIONS_DEBUG:
-                pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                 g_GameOptions.debug_display = !g_GameOptions.debug_display;
                 g_Game.vblankClearScreen = true;
                 break;
@@ -193,7 +188,7 @@ static void checkForPauseMenu(void)
         {
             case PAUSE_OPTIONS_RESUME:
                 SRL::Debug::PrintClearScreen();
-                pcm_play(g_Assets.cancelPcm8, PCM_VOLATILE, 6);
+                Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
                 // simply unpause
                 g_Transition.mosaic_in_rate = MOSAIC_FAST_RATE;
                 if (g_GameOptions.mosaic_display) {
@@ -205,7 +200,7 @@ static void checkForPauseMenu(void)
 
             case PAUSE_OPTIONS_RESTART:
                 SRL::Debug::PrintClearScreen();
-                pcm_play(g_Assets.nextPcm8, PCM_VOLATILE, 6);
+                Pcm::Play(Sounds.Core[NextSnd], PlayMode::Volatile, 6);
                 // start a new game without going to title or team select
                 g_Transition.mosaic_in_rate = MOSAIC_FAST_RATE;
                 if (g_GameOptions.mosaic_display) {
@@ -217,12 +212,12 @@ static void checkForPauseMenu(void)
 
             case PAUSE_OPTIONS_QUIT:
                 SRL::Debug::PrintClearScreen();
-                pcm_play(g_Assets.cancelPcm8, PCM_VOLATILE, 6);
+                Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
                 transitionState(GAME_STATE_UNINITIALIZED);
                 break;
             #if ENABLE_DEBUG_MODE == 1
             case PAUSE_OPTIONS_DEBUG:
-                pcm_play(g_Assets.cancelPcm8, PCM_VOLATILE, 6);
+                Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
                 // simply unpause
                 g_Transition.mosaic_in_rate = MOSAIC_FAST_RATE;
                 if (g_GameOptions.mosaic_display) {
@@ -233,7 +228,7 @@ static void checkForPauseMenu(void)
                 break;
             #endif
             case PAUSE_OPTIONS_ANALOG:
-                pcm_play(g_Assets.cancelPcm8, PCM_VOLATILE, 6);
+                Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
                 // simply unpause
                 g_Transition.mosaic_in_rate = MOSAIC_FAST_RATE;
                 if (g_GameOptions.mosaic_display) {
@@ -252,7 +247,7 @@ static void checkForPauseMenu(void)
         SRL::VDP2::NBG2::ScrollDisable();
         SRL::Debug::PrintClearScreen();
         // save_game_backup();
-        pcm_play(g_Assets.cancelPcm8, PCM_VOLATILE, 6);
+        Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
         // simply unpause
         g_Transition.mosaic_in_rate = MOSAIC_FAST_RATE;
         if (g_GameOptions.mosaic_display) {

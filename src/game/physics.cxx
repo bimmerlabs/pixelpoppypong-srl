@@ -149,7 +149,7 @@ void update_ball(Sprite *ball) {
     // Check for collisions with walls
     if (ball->pos.x >= SCREEN_RIGHT) {
         ball->pos.x = SCREEN_RIGHT;
-        pcm_play(g_Assets.bumpPcm16, PCM_VOLATILE, 6);
+        Pcm::Play(Sounds.Game[BumpSnd], PlayMode::Volatile, 6);
         ball->vel.x = -ball->vel.x; // Reverse X velocity
         // moving right
         if (ball->vel.x > MIN_VELOCITY_X) {
@@ -169,7 +169,7 @@ void update_ball(Sprite *ball) {
     }
     if (ball->pos.x <= SCREEN_LEFT) {
         ball->pos.x = SCREEN_LEFT;
-        pcm_play(g_Assets.bumpPcm16, PCM_VOLATILE, 6);
+        Pcm::Play(Sounds.Game[BumpSnd], PlayMode::Volatile, 6);
         ball->vel.x = -ball->vel.x; // Reverse X velocity
         // moving right
         if (ball->vel.x > MIN_VELOCITY_X) {
@@ -189,7 +189,7 @@ void update_ball(Sprite *ball) {
     }
     if (ball->pos.y >= SCREEN_BOTTOM - ball->pos.r) {
         ball->pos.y = SCREEN_BOTTOM - ball->pos.r;
-        pcm_play(g_Assets.bumpPcm16, PCM_VOLATILE, 6);
+        Pcm::Play(Sounds.Game[BumpSnd], PlayMode::Volatile, 6);
         ball->vel.y = -ball->vel.y; // Reverse Y velocity
         // moving up
         if (ball->vel.y < -MIN_VELOCITY_Y) {
@@ -202,7 +202,7 @@ void update_ball(Sprite *ball) {
     }
     if (ball->pos.y <= SCREEN_TOP + ball->pos.r) {
         ball->pos.y = SCREEN_TOP + ball->pos.r;
-        pcm_play(g_Assets.bumpPcm16, PCM_VOLATILE, 6);
+        Pcm::Play(Sounds.Game[BumpSnd], PlayMode::Volatile, 6);
         ball->vel.y = -ball->vel.y; // Reverse Y velocity
         // moving down
         if (ball->vel.y > MIN_VELOCITY_Y) {
@@ -321,14 +321,14 @@ bool detect_player_ball_collision(Sprite *ball, PPLAYER player) {
         // Rectangle extends to the **left** of the semicircle
         player_left   = player->_sprite->pos.x - player_radius;
         player_right  = player->_sprite->pos.x;
-        pcm_parameter_change(g_Assets.meowID, 1, PCM_PAN_RIGHT);
-        pcm_parameter_change(g_Assets.meowID, 7, PCM_PAN_LEFT);
+        // pcm_parameter_change(Sounds.MeowId, 1, PCM_PAN_RIGHT);
+        // pcm_parameter_change(Sounds.MeowId, 7, PCM_PAN_LEFT);
     } else {
         // Rectangle extends to the **right** of the semicircle
         player_left   = player->_sprite->pos.x;
         player_right  = player->_sprite->pos.x + player_radius;
-        pcm_parameter_change(g_Assets.meowID, 7, PCM_PAN_RIGHT);
-        pcm_parameter_change(g_Assets.meowID, 1, PCM_PAN_LEFT);
+        // pcm_parameter_change(Sounds.MeowId, 7, PCM_PAN_RIGHT);
+        // pcm_parameter_change(Sounds.MeowId, 1, PCM_PAN_LEFT);
     }
     player_top    = player->_sprite->pos.y - player_radius;
     player_bottom = player->_sprite->pos.y + player_radius;
@@ -340,10 +340,10 @@ bool detect_player_ball_collision(Sprite *ball, PPLAYER player) {
             updateBallTouch(player);
         }
         if (g_GameOptions.enableMeows && !player->_sprite->isColliding) {
-            pcm_play(g_Assets.meowPcm8[g_Assets.meowID], PCM_PROTECTED, 7);
-            g_Assets.meowID++;
-            if (g_Assets.meowID > MEOW9)
-                g_Assets.meowID = MEOW1;
+            Pcm::Play(Sounds.Meow[Sounds.MeowId]);
+            Sounds.MeowId++;
+            if (Sounds.MeowId > MEOW9)
+                Sounds.MeowId = MEOW1;
         }
         handle_ball_player_reaction(ball, player, distance_squared, dx, dy);
         return true;
@@ -360,10 +360,10 @@ bool detect_player_ball_collision(Sprite *ball, PPLAYER player) {
             updateBallTouch(player);
         }
         if (g_GameOptions.enableMeows && !player->_sprite->isColliding) {
-            pcm_play(g_Assets.meowPcm8[g_Assets.meowID], PCM_PROTECTED, 7);
-            g_Assets.meowID++;
-            if (g_Assets.meowID > MEOW9)
-                g_Assets.meowID = MEOW1;
+            Pcm::Play(Sounds.Meow[Sounds.MeowId]);
+            Sounds.MeowId++;
+            if (Sounds.MeowId > MEOW9)
+                Sounds.MeowId = MEOW1;
         }
         handle_ball_player_reaction(ball, player, distance_squared, dx, dy);
         return true;

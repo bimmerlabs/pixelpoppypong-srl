@@ -201,7 +201,7 @@ void characterSelectInput(void)
         }
         if (characterSelect.selection == 0)
         {
-            pcm_play(g_Assets.cancelPcm8, PCM_VOLATILE, 6);
+            Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
             g_Game.vblankClearScreen = true;
             // SRL::VDP2::NBG2::ScrollDisable();
             transitionState(GAME_STATE_TITLE_SCREEN);
@@ -250,20 +250,20 @@ void characterSelectInput(void)
     {     
         if (characterSelect.finished)
         {
-            pcm_play(g_Assets.load_okPcm8, PCM_VOLATILE, 7);
+            Pcm::Play(Sounds.Name[LoadOkSnd], PlayMode::Volatile);
             characterSelect.end = true;
             return;
         }
 
         if (!characterSelect.finished)
         {
-            pcm_play(g_Assets.name_ketPcm8, PCM_PROTECTED, 7);
+            Pcm::Play(Sounds.Name[NameKetSnd]);
             characterSelect.selection++;
         }
 
         if (characterSelect.selection == CONFIRM_PRESSES)
         {
-            pcm_play(g_Assets.name_brkPcm8, PCM_VOLATILE, 6);
+            Pcm::Play(Sounds.Name[NameBrkSnd], PlayMode::Volatile, 6);
             characterSelect.finished = true;
             characterSelect.isAngleSnapped = false;
         }
@@ -271,8 +271,7 @@ void characterSelectInput(void)
     else if (gamepad.WasPressed(Digital::Button::B) && player->character.selected)
     {
         g_Game.vblankClearScreen = true;
-        pcm_play(g_Assets.name_canPcm8, PCM_PROTECTED, 7);
-
+        Pcm::Play(Sounds.Name[NameCanSnd]);
         if (characterSelect.selection == CONFIRM_PRESSES)
         {
             characterAvailable[player->character.choice] = true;
@@ -362,7 +361,6 @@ void characterSelectDraw(void)
         
     if (characterSelect.isAngleSnapped && characterSelect.start) // take this out of the characterSelectPositionUpdate loop
     {
-        // looped_animation_pow(&paw[characterSelect.spr_id], 4);
         if (!g_GameOptions.debug_display && !gamepad.IsHeld(Digital::Button::Left) && !gamepad.IsHeld(Digital::Button::Right)) 
         {
             SRL::Debug::Print(15, 10, "%s", fullCharacterNames[player->character.choice]);
@@ -614,7 +612,7 @@ int snap_to_nearest_angle(int angle)
     // If angle is now a multiple of CHARACTER_GAP_ANGLE, stop adjusting
     if (angle % (CHARACTER_GAP_ANGLE) == 0)
     {
-        pcm_play(g_Assets.name_curPcm8, PCM_VOLATILE, 7);
+        Pcm::Play(Sounds.Name[NameCurSnd], PlayMode::Volatile);
         if (characterAvailable[player->character.choice])
         {
             characterSelect.isAngleSnapped = true;  // Mark snapping complete
@@ -640,19 +638,6 @@ int snap_to_nearest_angle(int angle)
     return angle;
 }
 
-// // don't think I need this
-// int snap_to_end_character_select(int angle)
-// {
-    // // If already snapped, do nothing
-    // if (characterSelect.isAngleSnapped)
-    // {
-        // return angle;
-    // }
-    // characterSelect.isAngleSnapped = true;  // Mark snapping complete
-
-    // return angle;
-// }
-
 void snap_to_random_character(int targetAngle)
 {  
     if (characterSelect.angle == 360)
@@ -663,15 +648,6 @@ void snap_to_random_character(int targetAngle)
     {
         return;
     }
-    // else if (characterSelect.angle == targetAngle && !player->character.choice == CHARACTER_NONE)
-    // {
-        // characterSelect.isAngleSnapped = true;
-        // return;
-    // }
-    
-    // int testangle = characterSelect.angle;
-    // if (testangle == 0)
-        // testangle = 360;
         
     if (!characterSelect.rotateLeft && !characterSelect.rotateRight)
     {
@@ -689,7 +665,7 @@ void snap_to_random_character(int targetAngle)
     if (characterSelect.rotateRight)
     { // need to compare to original angle value and set a boolean?
         characterSelect.angle -= 5;  // Move counterclockwise
-        pcm_play(g_Assets.name_curPcm8, PCM_VOLATILE, 7);
+        Pcm::Play(Sounds.Name[NameCurSnd], PlayMode::Volatile);
         if (characterSelect.angle < 0)
             characterSelect.angle += 360;
     }
@@ -697,7 +673,7 @@ void snap_to_random_character(int targetAngle)
     if (characterSelect.rotateLeft)
     {
         characterSelect.angle += 5;  // Move clockwise
-        pcm_play(g_Assets.name_curPcm8, PCM_VOLATILE, 7);
+        Pcm::Play(Sounds.Name[NameCurSnd], PlayMode::Volatile);
         if (characterSelect.angle > 360)
             characterSelect.angle -= 360;
     }

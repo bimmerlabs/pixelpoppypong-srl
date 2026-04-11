@@ -31,9 +31,6 @@ typedef enum _CHARACTER_SELECT
     CHARACTER_MAX,
 } CHARACTER_SELECT;
 
-// #define TOTAL_CHARACTERS (CHARACTER_NONE)
-// #define MAX_CHARACTERS TOTAL_CHARACTERS+1
-
 extern bool characterUnlocked[CHARACTER_MAX]; // distinction between selection and what gets saved in backup ram
 extern bool characterAvailable[CHARACTER_MAX];
 

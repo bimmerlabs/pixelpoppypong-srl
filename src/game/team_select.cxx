@@ -341,7 +341,7 @@ void characterSelect_input(void)
             // CHOOSE CHARACTER
             if (port.WasPressed(Digital::Button::Left))
             {
-                pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                 do
                 {
                     player->character.choice--;
@@ -353,7 +353,7 @@ void characterSelect_input(void)
             }
             if (port.WasPressed(Digital::Button::Right))
             {
-                pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                 do
                 {
                     player->character.choice++;
@@ -371,7 +371,7 @@ void characterSelect_input(void)
             if (port.WasPressed(Digital::Button::B) && player->pressedB == false)
             {
                 g_Game.vblankClearScreen = true;
-                pcm_play(g_Assets.cancelPcm8, PCM_VOLATILE, 6);
+                Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
                 player->teamChoice = TEAM_COUNT;
                 player->startSelection = false;
                 characterAvailable[player->character.choice] = true;
@@ -392,7 +392,7 @@ void characterSelect_input(void)
                 port.WasPressed(Digital::Button::C))
             {
                 g_Game.vblankClearScreen = true;
-                pcm_play(g_Assets.nextPcm8, PCM_VOLATILE, 6);
+                Pcm::Play(Sounds.Core[NextSnd], PlayMode::Volatile, 6);
                 // assign to a default team (left vs right)
                 if (i %2 == 0) { // modulus
                     player->teamChoice = TEAM_1;
@@ -414,7 +414,7 @@ void characterSelect_input(void)
             // Once a player starts selection, they shouldn't be able to assign a new id
             if (player->input->isSelected && port.WasPressed(Digital::Button::START)) {
                 g_Game.vblankClearScreen = true;
-                pcm_play(g_Assets.startPcm8, PCM_VOLATILE, 6);
+                Pcm::Play(Sounds.Core[StartSnd], PlayMode::Volatile, 6);
                 player->startSelection = true;
                 player->character.choice = CHARACTER_MACCHI;
                 validateCharacters(player);
@@ -430,7 +430,7 @@ void characterSelect_input(void)
                     if (port.WasPressed(Digital::Button::START))
                     {
                         g_Game.vblankClearScreen = true;
-                        pcm_play(g_Assets.startPcm8, PCM_VOLATILE, 6);
+                        Pcm::Play(Sounds.Core[StartSnd], PlayMode::Volatile, 6);
                         player->input = &g_Inputs[ip];
                         player->input->id = ip;
                         player->input->isSelected = true;
@@ -484,7 +484,7 @@ void teamSelect_input(void)
             }
             // CHOOSE A TEAM
             if (port.WasPressed(Digital::Button::Left) && g_Game.numPlayers != ONE_PLAYER) {
-                pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                 do {
                     player->teamChoice--;
                     if (player->teamChoice < TEAM_1) {
@@ -502,7 +502,7 @@ void teamSelect_input(void)
                 return;
             }
             if (port.WasPressed(Digital::Button::Right) && g_Game.numPlayers != ONE_PLAYER) {
-                pcm_play(g_Assets.cursorPcm8, PCM_VOLATILE, 6);
+                Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                 do {
                     player->teamChoice++;
                     if (player->teamChoice > g_Team.maxTeams) {
@@ -524,7 +524,7 @@ void teamSelect_input(void)
             if (port.WasPressed(Digital::Button::B))
             {
                 g_Game.vblankClearScreen = true;
-                pcm_play(g_Assets.cancelPcm8, PCM_VOLATILE, 6);
+                Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
                 player->pressedB = true;
                 player->teamChoice = TEAM_COUNT;
                 characterAvailable[player->character.choice] = true;
@@ -538,7 +538,7 @@ void teamSelect_input(void)
                 port.WasPressed(Digital::Button::C))
             {
                 g_Game.vblankClearScreen = true;
-                pcm_play(g_Assets.nextPcm8, PCM_VOLATILE, 6);
+                Pcm::Play(Sounds.Core[NextSnd], PlayMode::Volatile, 6);
                 player->teamSelected = true;
                 g_Team.isAvailable[player->teamChoice] = false;
                 g_Team.isActive[player->teamChoice] = true;
@@ -564,7 +564,7 @@ void teamSelect_input(void)
                     return;
                 }
                 g_Game.vblankClearScreen = true;
-                pcm_play(g_Assets.nextPcm8, PCM_VOLATILE, 7);
+                Pcm::Play(Sounds.Core[NextSnd], PlayMode::Volatile, 6);
                 player->isReady = true;
                 g_Game.currentNumPlayers++;
                 return;
@@ -574,7 +574,7 @@ void teamSelect_input(void)
             if (port.WasPressed(Digital::Button::B))
             {   
                 g_Game.vblankClearScreen = true;
-                pcm_play(g_Assets.cancelPcm8, PCM_VOLATILE, 6);
+                Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
                 resetReadyState();
                 all_players_ready = false;
                 player->isReady = false;
