@@ -85,9 +85,12 @@ void adjust_xy_velocity_based_on_spin(Sprite *ball) {
     // Scale tangential velocity by friction
     FIXED friction_effect = jo_fixed_mult(tangential_velocity, FRICTION_COEFFICIENT);
 
+    // jo_nbg0_printf(2, 13, "TENGENTVEL:%3d", toINT(tangential_velocity));
+    // jo_nbg0_printf(2, 14, "FRICTION:%3d", toINT(friction_effect));
+
     // Adjust x and y velocities
-    ball->vel.x += friction_effect; // Modify as per direction of spin
-    ball->vel.y -= friction_effect; // Modify as per direction of spin
+    ball->vel.x += friction_effect;
+    ball->vel.y -= friction_effect;
 }
 
 // Function to update the ball's position and check for collisions
@@ -101,31 +104,33 @@ void update_ball(Sprite *ball) {
     if (!g_Game.explodeBall) {
         Uint8 spin = ABS(ball->vel.z);
         if (spin > 50) {
-            ball->spr_id = ball->anim1.asset[6];
+            ball->spr_id = ball->anim[0].asset[6];
         }
         else if (spin > 40 && spin <= 50) {
-            ball->spr_id = ball->anim1.asset[5];
+            ball->spr_id = ball->anim[0].asset[5];
         }
         else if (spin > 30 && spin <= 40) {
-            ball->spr_id = ball->anim1.asset[4];
+            ball->spr_id = ball->anim[0].asset[4];
         }
         else if (spin > 20 && spin <= 30) {
-            ball->spr_id = ball->anim1.asset[3];
+            ball->spr_id = ball->anim[0].asset[3];
         }
         else if (spin > 10 && spin <= 20) {
-            ball->spr_id = ball->anim1.asset[1];
+            ball->spr_id = ball->anim[0].asset[1];
         }
         else if (spin > 0 && spin <= 10) {
-            ball->spr_id = ball->anim1.asset[0];
+            ball->spr_id = ball->anim[0].asset[0];
         }
     }
     
-    // Check for collisions with goals
-    if (ball->pos.x >= GOAL_RIGHT_BOUNDS) {
-        checkRightGoalCollision(ball);
-    }
-    else if (ball->pos.x <= GOAL_LEFT_BOUNDS) {
-        checkLeftGoalCollision(ball);
+    if (!g_GameOptions.testCollision) {
+        // Check for collisions with goals
+        if (ball->pos.x >= GOAL_RIGHT_BOUNDS) {
+            checkRightGoalCollision(ball);
+        }
+        else if (ball->pos.x <= GOAL_LEFT_BOUNDS) {
+            checkLeftGoalCollision(ball);
+        }
     }
     
     // Check for collisions with walls
@@ -240,6 +245,11 @@ void handle_ball_player_reaction(Sprite *ball, PPLAYER player, int distance_squa
 
     player->_sprite->isColliding = true;
     
+    // FIXED xNormal = dot_product * collision_normal_x * player->power;
+    // FIXED yNormal = dot_product * collision_normal_y * player->power;
+    // jo_nbg0_printf(2, 15, "XNORMAL:%3d    ", toINT(xNormal));
+    // jo_nbg0_printf(2, 16, "YNORMAL:%3d    ", toINT(yNormal));
+    
   if (!g_GameOptions.testCollision) {        
     // Reflect the ball's velocity along the collision normal, factoring in player's movement    
     ball->vel.x -= jo_fixed_mult(jo_fixed_mult(dot_product, collision_normal_x), player->power);
@@ -284,6 +294,8 @@ bool detect_player_ball_collision(Sprite *ball, PPLAYER player) {
     // Distance squared between ball and player center
     int distance_squared = (toINT(dx) * toINT(dx)) + (toINT(dy) * toINT(dy));
     
+    // jo_nbg0_printf(2, 13, "DISTANCE SQRD:%3d    ", distance_squared);
+    
     // Radius of the player (used for the semicircle)
     int player_radius = toINT(player->_sprite->pos.r);
     
@@ -325,6 +337,8 @@ bool detect_player_ball_collision(Sprite *ball, PPLAYER player) {
     int ball_radius = toINT(ball->pos.r);
     int radius_sum = player_radius + ball_radius;
     int radius_squared = radius_sum * radius_sum;
+
+    // jo_nbg0_printf(2, 14, "RADIUS SQRD:%3d    ", radius_squared);
 
     if (distance_squared <= radius_squared) {
         if (!g_Game.explodeBall) {

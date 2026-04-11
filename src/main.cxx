@@ -378,6 +378,8 @@ void			jo_main(void)
 {
     jo_core_init(JO_COLOR_Black);
     
+    // slScrAutoDisp ( NBG0ON | NBG1ON | NBG2ON | SPRON | NBG3OFF );
+    
     // pone-sound
     load_drv(ADX_MASTER_2304);
     jo_core_add_vblank_callback(sdrv_vblank_rq);
@@ -386,14 +388,16 @@ void			jo_main(void)
         slZdspLevel(3); // if not using jo_3d (JO_COMPILE_WITH_3D_MODULE = 0)
     #endif
     jo_core_tv_off();
-    
-    slSetSprTVMode(RESOLUTION_HIGH);
+    #if defined(MY_TV_704x240)
+        slSetSprTVMode(RESOLUTION_HIGH);
+    #endif
     // CRAM mode 0 - required for ngb0 transparency in high-res
     slColRAMMode ( CRM16_1024 ); // must be set before loading any palettes
     
     slColorCalc(CC_RATE | CC_TOP | NBG0ON | NBG1ON);
     slColorCalcOn(NBG0ON);
-    
+   
+     
     // base assets
     init_font(); // this has to happen first (sprites require 1st palette slot)
     init_nbg1_img();
@@ -436,7 +440,23 @@ void			jo_main(void)
     jo_core_add_callback(my_color_calc);
     // jo_core_add_vblank_callback(animateStars);
     jo_core_add_vblank_callback(my_palette_update);
-            
+    
+    // // VF REMIX
+    // Uint32 a0 = 0x0144FFFF;
+    // Uint32 a1 = 0xFFFFFFFF;
+    // Uint32 b0 = 0x4455FFFF;
+    // Uint32 b1 = 0xFFFFFFFF;
+    
+    // // VBT
+    // Uint32 a0 = 0x4EEEEEEE;
+    // Uint32 a1 = 0xFFFFFFFF;
+    // Uint32 b0 = 0x0EEEEEEE;
+    // Uint32 b1 = 0xFFFFFFFF;
+    
+    // slScrCycleSet( a0 , a1 , b0 , b1 );
+    // slScrDisp ( NBG0ON | NBG1ON | NBG2OFF | SPRON ); 
+    
+    slScrAutoDisp ( NBG0ON | NBG1ON | NBG2ON | SPRON );
     jo_core_run();
 }
 

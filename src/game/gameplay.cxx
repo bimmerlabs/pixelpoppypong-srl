@@ -63,12 +63,12 @@ void gameplay_init() {
     }
     if (g_GameOptions.mesh_display) {
         menu_bg1.mesh = MESHon;
-        menu_bg1.spr_id = menu_bg1.anim1.asset[4];
-        // dead.spr_id = dead.anim1.asset[1];
+        menu_bg1.spr_id = menu_bg1.anim[0].asset[4];
+        // dead.spr_id = dead.anim[0].asset[1];
     }
     else {
         menu_bg1.mesh = MESHoff;
-        // dead.spr_id = dead.anim1.asset[0];
+        // dead.spr_id = dead.anim[0].asset[0];
     }
     g_Transition.music_in = true;
     g_Transition.all_in = true;
@@ -102,7 +102,7 @@ void gameplay_init() {
     
     // slScrPosNbg1(FIXED_0, FIXED_0);
     
-    menu_bg1.spr_id = menu_bg1.anim1.asset[4];
+    menu_bg1.spr_id = menu_bg1.anim[0].asset[4];
     set_spr_position(&menu_bg1, 0, -195, 85);
     set_spr_scale(&menu_bg1, 36, 20);
     
@@ -545,7 +545,7 @@ void gameplayUI_draw(PPLAYER player) {
     calculate_sprites_color(&p_rangePmenu[player->playerID]);
     do_update_Pmenu[player->playerID] = true;
 
-    player->_bg->spr_id = player->_bg->anim1.asset[player->playerID];
+    player->_bg->spr_id = player->_bg->anim[0].asset[player->playerID];
     set_spr_scale(player->_bg, player->shield.power, POWER_METER_HEIGHT);        
     int heart_x = 0;
     int heart_y = 0;
@@ -783,19 +783,19 @@ bool drop_ball_animation(Sprite *ball) {
 void drawGameTimer(void) {
     convertSecondsToTime(g_Gameplay.GameTimer);
     // min_ones
-    timer.spr_id =timer.anim1.asset[g_Timer.min_ones];
+    timer.spr_id =timer.anim[0].asset[g_Timer.min_ones];
     set_spr_position(&timer, -30, -210, 80);
     my_sprite_draw(&timer);
     // :
-    timer.spr_id = timer.anim1.asset[11];
+    timer.spr_id = timer.anim[0].asset[11];
     set_spr_position(&timer, -12, -210, 80);
     my_sprite_draw(&timer);
     // sec_tens
-    timer.spr_id = timer.anim1.asset[g_Timer.sec_tens];
+    timer.spr_id = timer.anim[0].asset[g_Timer.sec_tens];
     set_spr_position(&timer, 6, -210, 80);
     my_sprite_draw(&timer);
     // sec_tens
-    timer.spr_id = timer.anim1.asset[g_Timer.sec_ones];
+    timer.spr_id = timer.anim[0].asset[g_Timer.sec_ones];
     set_spr_position(&timer, 36, -210, 80);
     my_sprite_draw(&timer); 
 }

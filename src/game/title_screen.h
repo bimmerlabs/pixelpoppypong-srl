@@ -21,6 +21,7 @@
 #define LOGO_VELOCITY 12
 
 #define MENU_Y 150
+#define ARROW_X toFIXED(120)
 
 #define POPPY_MAX_SCALE 6
 
@@ -79,6 +80,8 @@ typedef struct _TITLESCREEN
     int poppy_animation_id;
     float poppy_scale;
     float poppy_velocity;
+    unsigned char left_arrow_id;
+    unsigned char right_arrow_id;
 } TITLESCREEN;
 
 static inline void selectGameMode(void) {

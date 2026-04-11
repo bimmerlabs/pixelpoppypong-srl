@@ -56,7 +56,7 @@ void initStoryMode(void)
         menu_bg2.mesh = MESHoff;
     }
     menu_bg2.zmode = _ZmCC;
-    menu_bg2.spr_id = menu_bg2.anim1.asset[4];
+    menu_bg2.spr_id = menu_bg2.anim[0].asset[4];
     set_spr_position(&menu_bg2, 0, 0, MENU_BG2_DEPTH);
     set_spr_scale(&menu_bg2, 54, 352);
     
@@ -77,15 +77,18 @@ void initStoryMode(void)
     player->teamSelected = true;
     g_Team.isAvailable[player->teamChoice] = false;
     g_Team.numTeams = ONE_TEAM;
-    // TODO: move to character select
-    player->_sprite = &macchi;
+    
     player->character.selected = true;
     player->character.choice = CHARACTER_MACCHI;
     characterAvailable[player->character.choice] = false;
-    player->_portrait->spr_id = player->_portrait->anim1.asset[player->character.choice];
+    player->_portrait->spr_id = player->_portrait->anim[0].asset[player->character.choice];
+    assignCharacterSprite(player);
     assignCharacterStats(player);
     
-    set_spr_position(player->_cursor, FIXED_0, FIXED_0, CURSOR_DEPTH);
+    player_bg.mesh = MESHoff;
+    
+    set_spr_position(player->_cursor[0], FIXED_0, FIXED_0, CURSOR_DEPTH);
+    set_spr_position(player->_cursor[1], 46, FIXED_0, CURSOR_DEPTH);
     player->objectState = OBJECT_STATE_ACTIVE;
     player->isPlaying = true;
     player->isAI = false;
@@ -166,7 +169,7 @@ void storySelectUpdate(void)
     jo_nbg0_printf(2, 11, "%s", fullCharacterNames[0]);
     jo_nbg0_printf(26, 14, "%s", fullCharacterNames[g_Game.countofRounds+1]);
     
-        character_portrait.spr_id = character_portrait.anim1.asset[0];
+        character_portrait.spr_id = character_portrait.anim[0].asset[0];
         set_spr_position(&character_portrait, -200, 0, PORTRAIT_DEPTH);
         set_spr_scale(&character_portrait, 2.0, 2.0);
         my_sprite_draw(&character_portrait);
@@ -197,10 +200,12 @@ void storySelectUpdate(void)
         draw_story_cursor = !draw_story_cursor;
     }
     if (draw_story_cursor) {
-        g_Players[0]._cursor->mesh = MESHon;
+        g_Players[0]._cursor[0]->mesh = MESHon;
+        g_Players[0]._cursor[1]->mesh = MESHon;
     }
     else {
-        g_Players[0]._cursor->mesh = MESHoff;
+        g_Players[0]._cursor[0]->mesh = MESHoff;
+        g_Players[0]._cursor[1]->mesh = MESHoff;
     }
     drawCharacterList();
     g_StartStoryFrames--;

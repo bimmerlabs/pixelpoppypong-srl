@@ -15,6 +15,7 @@
 #define NUM_FONT_CHARS 40
 
 #define NUM_TITLE_MENU_TEXT 12
+#define NUM_TITLE_MENU_ARROWS 4
 
 #define NUM_GOAL_SPRITES 4
 #define NUM_TIMER_SPRITES 12
@@ -50,6 +51,7 @@ typedef struct _assets
     int font[NUM_FONT_CHARS]; // VDP1 font
     
     int menu[NUM_TITLE_MENU_TEXT];
+    int arrow[NUM_TITLE_MENU_ARROWS];
     
     int timer[NUM_TIMER_SPRITES];
     int heart[NUM_HEART_SPRITES];
@@ -61,27 +63,14 @@ typedef struct _assets
     // team selection
     int characters[NUM_CHARACTER_SPRITES];
     int dead[NUM_X_SPRITES];
-    int pcursor[NUM_PCURSOR_SPRITES];
+    int pcursor[2][NUM_PCURSOR_SPRITES];
     
     // players sprites
-    int paw1[NUM_PAW_SPRITES];
-    int paw2[NUM_PAW_SPRITES];
-    int paw3[NUM_PAW_SPRITES];
-    int paw4[NUM_PAW_SPRITES];
-    int paw5[NUM_PAW_SPRITES];
-    int paw6[NUM_PAW_SPRITES];
-    int paw7[NUM_PAW_SPRITES];
-    int paw8[NUM_PAW_SPRITES];
-    int paw9[NUM_PAW_SPRITES];
-    int paw10[NUM_PAW_SPRITES];
-    int paw11[NUM_PAW_SPRITES];
+    int paw[MAX_CHARACTERS][NUM_PAW_SPRITES];
     
-    int pixel_poppy1[NUM_POPPY_SPRITES];
+    int pixel_poppy[NUM_POPPY_SPRITES];
     
-    int goal1[NUM_GOAL_SPRITES];
-    int goal2[NUM_GOAL_SPRITES];
-    int goal3[NUM_GOAL_SPRITES];
-    int goal4[NUM_GOAL_SPRITES];
+    int goal[MAX_PLAYERS][NUM_GOAL_SPRITES];
     
     // items
     int bomb[NUM_BOMB_SPRITES];
@@ -134,10 +123,9 @@ typedef struct _assets
 } ASSETS, *PASSETS;
 
 extern ASSETS g_Assets;
-extern unsigned int paw_blank_id;
 
 // create sprite / animation object
-void loadSprite(Sprite *sprite, int *asset, const char *file, jo_tile *tileset, unsigned int frames, int w, int h, bool asset1or2);
+void loadSprite(Sprite *sprite, int *asset, const char *file, unsigned int cols, unsigned int rows, int w, int h, unsigned char anim_id);
 
 // assets
 void loadCommonAssets(void);

@@ -48,11 +48,11 @@ void nameEntryInit(void)
     pixel_poppy.rot.z = 0;
     set_spr_position(&pixel_poppy, 0, 0, 100);
     // set to "smile"
-    pixel_poppy.spr_id = pixel_poppy.anim1.asset[1];
+    pixel_poppy.spr_id = pixel_poppy.anim[0].asset[1];
         
     convertNumberToDigits(nameEntry.timer);
-    font.spr_id = font.anim1.asset[tens];
-    font.spr_id = font.anim1.asset[ones];
+    font.spr_id = font.anim[0].asset[tens];
+    font.spr_id = font.anim[0].asset[ones];
     
     g_Game.lastState = GAME_STATE_NAME_ENTRY;
     
@@ -142,17 +142,17 @@ void nameEntryInput(void)
             nameEntry.isAngleSnapped = true;
             nameEntry.rotateRight = false;
             nameEntry.rotateLeft = false;
-            pixel_poppy.spr_id = pixel_poppy.anim1.asset[2];
+            pixel_poppy.spr_id = pixel_poppy.anim[0].asset[2];
         }
         else if (nameEntry.selection > FIRST_INITIAL) {
             nameEntry.selection--;
         }
     }
     if (nameEntry.isAngleSnapped == false) {
-        pixel_poppy.spr_id = pixel_poppy.anim1.asset[0];
+        pixel_poppy.spr_id = pixel_poppy.anim[0].asset[0];
     }
     else {
-        pixel_poppy.spr_id = pixel_poppy.anim1.asset[1];
+        pixel_poppy.spr_id = pixel_poppy.anim[0].asset[1];
     }
 }
 
@@ -174,10 +174,10 @@ void nameEntryUpdate(void)
         convertNumberToDigits(nameEntry.timer);
         set_spr_position(&font, 0, -170, 50);
         set_spr_scale(&font, 1.1, 1.1);
-        font.spr_id = font.anim1.asset[tens];
+        font.spr_id = font.anim[0].asset[tens];
         font.zmode = _ZmRC;
         my_sprite_draw(&font);
-        font.spr_id = font.anim1.asset[ones];
+        font.spr_id = font.anim[0].asset[ones];
         font.zmode = _ZmLC;
         my_sprite_draw(&font);
     }
@@ -186,26 +186,26 @@ void nameEntryUpdate(void)
     if (nameEntry.char_id[FIRST_INITIAL] != 39) {
         set_spr_position(&font, -24, nameEntry.yPos, 50);
         set_spr_scale(&font, 2, 2);
-        font.spr_id = font.anim1.asset[nameEntry.char_id[FIRST_INITIAL]];
+        font.spr_id = font.anim[0].asset[nameEntry.char_id[FIRST_INITIAL]];
         font.zmode = _ZmRC;
         my_sprite_draw(&font);
     }
     if (nameEntry.selection >= 1 && nameEntry.char_id[SECOND_INITIAL] != 39) {
         set_spr_position(&font, 0, nameEntry.yPos, 50);
         set_spr_scale(&font, 2, 2);
-        font.spr_id = font.anim1.asset[nameEntry.char_id[SECOND_INITIAL]];
+        font.spr_id = font.anim[0].asset[nameEntry.char_id[SECOND_INITIAL]];
         font.zmode = _ZmCC;
         my_sprite_draw(&font);
     }
     if (nameEntry.selection >= 2 && nameEntry.char_id[THIRD_INITIAL] != 39) {
         set_spr_position(&font, 24, nameEntry.yPos, 50);
         set_spr_scale(&font, 2, 2);
-        font.spr_id = font.anim1.asset[nameEntry.char_id[THIRD_INITIAL]];
+        font.spr_id = font.anim[0].asset[nameEntry.char_id[THIRD_INITIAL]];
         font.zmode = _ZmLC;
         my_sprite_draw(&font);
     }
     if (nameEntry.end && nameEntry.xRadius > END_RADIUS) {
-        pixel_poppy.spr_id = pixel_poppy.anim1.asset[3];
+        pixel_poppy.spr_id = pixel_poppy.anim[0].asset[3];
         nameEntry.xRadius -= toFIXED(6);
         nameEntry.yRadius -= toFIXED(4);
         nameEntry.angle += 3;
@@ -254,7 +254,7 @@ void nameEntryDraw(void)
         poppyAngle -= 360;
     pixel_poppy.rot.z = -1*poppyAngle;
     set_spr_position(&pixel_poppy, 0, 0, 100);
-    my_sprite_draw(&pixel_poppy);
+    my_sprite_draw_rot(&pixel_poppy);
     
     #if ENABLE_DEBUG_MODE == 1
     if (g_GameOptions.debug_display) {
@@ -323,7 +323,7 @@ void nameEntryPositionUpdate(int angle, int sprAngle) {
         hslSprites.color[colorid].l = 240;
     }
     
-    font.spr_id = font.anim1.asset[spr_id];
+    font.spr_id = font.anim[0].asset[spr_id];
     my_sprite_draw(&font);
 }
 

@@ -26,10 +26,11 @@ void tallyScore(void);
 
 static __jo_force_inline void drawCharacterList(void) {
     my_sprite_draw(&menu_bg2);
-    my_sprite_draw(g_Players[0]._cursor);
+    my_sprite_draw(g_Players[0]._cursor[0]);
+    my_sprite_draw(g_Players[0]._cursor[1]);
     character_pos_y = character_pos_selected;
     for(unsigned int i = 1; i <= MAX_ROUNDS; i++) {
-        character_portrait.spr_id = character_portrait.anim1.asset[i];
+        character_portrait.spr_id = character_portrait.anim[0].asset[i];
         set_spr_position(&character_portrait, character_pos_x, character_pos_y, PORTRAIT_DEPTH);
         set_spr_scale(&character_portrait, 2.0, 2.0);
         my_sprite_draw(&character_portrait);

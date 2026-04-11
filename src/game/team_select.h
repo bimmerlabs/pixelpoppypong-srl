@@ -1,6 +1,4 @@
 #pragma once
-
-#include <jo/jo.h>
 #include "../objects/player.h"
 
 #define TEAM_SELECT_TIMER (1 * 60)
@@ -22,12 +20,20 @@
 #define METER_Y3 29
 #define METER_HEIGHT 10
 #define METER_WIDTH 100
+
 #define PLAYER_OFFSET_Y 112
 #define PLAYER_TEXT_OFFSET_Y 7
-// asset draw depth
-#define PLAYER_BG2_DEPTH 95
+#define PLAYER_BG_DEPTH 95
+#define PLAYER_BG_X1 toFIXED(88)
+#define PLAYER_BG_X2 toFIXED(208)
+#define PLAYER_BG_Y toFIXED(50)
+
+#define MENU_BG2_X -120
+#define MENU_BG2_WIDTH 56
+#define MENU_BG2_HEIGHT 240
 #define MENU_BG2_DEPTH 95
 #define MENU_BG1_DEPTH 92
+
 #define PORTRAIT_DEPTH 90
 #define CURSOR_DEPTH 80
 

@@ -36,6 +36,9 @@ void initTitleScreenStruct(void) {
     titleScreen.poppy_animation_id = 0;
     titleScreen.poppy_scale = 0.1;
     titleScreen.poppy_velocity = 0.0;
+    
+    titleScreen.left_arrow_id = 0;
+    titleScreen.right_arrow_id = 2;
 }
 
 //
@@ -137,12 +140,13 @@ void startScreen_update(void)
             hsl_incSprites[HSL_LOGO].h -= 20;
             do_update_logo1 = true;
         }
-        pixel_poppy.spr_id = pixel_poppy.anim1.asset[1];
+        pixel_poppy.spr_id = pixel_poppy.anim[0].asset[1];
     }
     // check if the frameAnim has expired
     if(titleScreen.timer > TITLE_TIMER)
     {
-        transitionState(g_AttractScreenState);
+        transitionState(g_AttractScreen.state[g_AttractScreen.id]); // super ugly but it works?
+        // transitionState(g_AttractScreenState);
         attract_screen_state();
         titleScreen.timer = 0;
     }
@@ -277,7 +281,7 @@ void titleMenu_init(void)
     else {
         menu_bg1.mesh = MESHoff;
     }
-    menu_bg1.spr_id = menu_bg1.anim1.asset[5];
+    menu_bg1.spr_id = menu_bg1.anim[0].asset[5];
     set_spr_position(&menu_bg1, 0, MENU_Y+5, 95);
     set_spr_scale(&menu_bg1, 0, 0);
 
@@ -389,6 +393,13 @@ void menuScreen_input(void)
                 break;
         }
     }
+    if (jo_is_pad1_key_pressed(JO_KEY_LEFT))
+    {
+        titleScreen.left_arrow_id = 1;
+    }
+    else {
+        titleScreen.left_arrow_id = 0;
+    }
 
     if (jo_is_pad1_key_down(JO_KEY_RIGHT))
     {
@@ -417,6 +428,13 @@ void menuScreen_input(void)
             default:
                 break;
         }
+    }
+    if (jo_is_pad1_key_pressed(JO_KEY_RIGHT))
+    {
+        titleScreen.right_arrow_id = 3;
+    }
+    else {
+        titleScreen.right_arrow_id = 2;
     }
 
     // keep title screen choice in range
@@ -525,7 +543,7 @@ void drawMenu(void)
         if (titleScreen.poppy_animation && titleScreen.poppy_animation_frame % 20 == 0) // modulus
         {
             // PLAY SOUND EFFECT
-            pixel_poppy.spr_id = pixel_poppy.anim1.asset[0];
+            pixel_poppy.spr_id = pixel_poppy.anim[0].asset[0];
             titleScreen.poppy_animation = false;
             titleScreen.poppy_animation_frame = 0;
             titleScreen.poppy_animation_id = 0;
@@ -538,10 +556,10 @@ void drawMenu(void)
         // PLAY SOUND EFFECT
         titleScreen.poppy_animation = true;
         titleScreen.poppy_animation_frame += 1;
-        pixel_poppy.spr_id = pixel_poppy.anim1.asset[2];
+        pixel_poppy.spr_id = pixel_poppy.anim[0].asset[2];
         if (titleScreen.poppy_animation && titleScreen.poppy_animation_frame % 22 == 0) // modulus
         {
-            pixel_poppy.spr_id = pixel_poppy.anim1.asset[1];
+            pixel_poppy.spr_id = pixel_poppy.anim[0].asset[1];
             titleScreen.poppy_animation = false;
             titleScreen.poppy_animation_frame = 0;
             titleScreen.poppy_animation_id = 0;
@@ -555,10 +573,10 @@ void drawMenu(void)
         bool giggle = true;
         titleScreen.poppy_animation = true;
         titleScreen.poppy_animation_frame += 1;
-        pixel_poppy.spr_id = pixel_poppy.anim1.asset[3];
+        pixel_poppy.spr_id = pixel_poppy.anim[0].asset[3];
         if (titleScreen.poppy_animation && titleScreen.poppy_animation_frame % 40 == 0) // modulus
         {
-            pixel_poppy.spr_id = pixel_poppy.anim1.asset[4];
+            pixel_poppy.spr_id = pixel_poppy.anim[0].asset[4];
             set_spr_position(&pixel_poppy, 0, 0, 100);
             titleScreen.poppy_animation = false;
             titleScreen.poppy_animation_frame = 0;
@@ -580,10 +598,10 @@ void drawMenu(void)
         // PLAY SOUND EFFECT
         titleScreen.poppy_animation = true;
         titleScreen.poppy_animation_frame += 1;
-        // pixel_poppy.spr_id = pixel_poppy.anim1.asset[6];
+        // pixel_poppy.spr_id = pixel_poppy.anim[0].asset[6];
         if (titleScreen.poppy_animation && titleScreen.poppy_animation_frame % 10 == 0) // modulus
         {
-            pixel_poppy.spr_id = pixel_poppy.anim1.asset[6];
+            pixel_poppy.spr_id = pixel_poppy.anim[0].asset[6];
             titleScreen.poppy_animation = false;
             titleScreen.poppy_animation_frame = 0;
             titleScreen.poppy_animation_id = 0;
@@ -697,27 +715,38 @@ void drawMenu(void)
     // Options
     menu_text.pos.x = FIXED_0;
     menu_text.pos.y = toFIXED(MENU_Y-10);
-    menu_text.zmode = _ZmCC;
-    menu_text.spr_id = menu_text.anim1.asset[1];
+    menu_text.spr_id = menu_text.anim[0].asset[1];
     if (titleScreen.draw_option_options)
         my_sprite_draw(&menu_text); // options
         
 
             menu_text.pos.y = toFIXED(MENU_Y+20);
+            menu_arrow.pos.y = menu_text.pos.y;
             
-            menu_text.spr_id = menu_text.anim1.asset[g_Game.gameMode+MODE_OFFSET];
+            if (!titleScreen.draw_option_start) {
+                // left
+                menu_arrow.spr_id = menu_arrow.anim[0].asset[titleScreen.left_arrow_id];
+                menu_arrow.pos.x = -ARROW_X;
+                my_sprite_draw(&menu_arrow);
+                // right
+                menu_arrow.spr_id = menu_arrow.anim[0].asset[titleScreen.right_arrow_id];
+                menu_arrow.pos.x = ARROW_X;
+                my_sprite_draw(&menu_arrow);
+            }
+                
+            menu_text.spr_id = menu_text.anim[0].asset[g_Game.gameMode+MODE_OFFSET];
             if (titleScreen.draw_option_mode)
                 my_sprite_draw(&menu_text); // classic, story, vs battle
                 
-            menu_text.spr_id = menu_text.anim1.asset[g_Game.numPlayers+PLAYER_OFFSET];
+            menu_text.spr_id = menu_text.anim[0].asset[g_Game.numPlayers+PLAYER_OFFSET];
             if (titleScreen.draw_option_players)
                 my_sprite_draw(&menu_text); // 1, 2, 3, 4
                 
-            menu_text.spr_id = menu_text.anim1.asset[g_Game.gameDifficulty+DIFF_OFFSET];
+            menu_text.spr_id = menu_text.anim[0].asset[g_Game.gameDifficulty+DIFF_OFFSET];
             if (titleScreen.draw_option_difficulty)
                 my_sprite_draw(&menu_text); // easy, medium, hard
                 
-            menu_text.spr_id = menu_text.anim1.asset[0];
+            menu_text.spr_id = menu_text.anim[0].asset[0];
             if (titleScreen.draw_option_start)
                 my_sprite_draw(&menu_text); // start
 
@@ -746,7 +775,7 @@ void optionsScreen_init(void)
     else {
         menu_bg2.mesh = MESHoff;
     }
-    menu_bg2.spr_id = menu_bg2.anim1.asset[4];
+    menu_bg2.spr_id = menu_bg2.anim[0].asset[4];
     menu_bg2.zmode = _ZmCC;
     set_spr_position(&menu_bg2, 0, 0, 95);
     
@@ -986,7 +1015,7 @@ void drawMenuCursor(void)
     }
     
     FIXED offset = jo_fixed_mult(jo_fixed_sin(jo_fixed_deg2rad(toFIXED(g_Game.cursor_angle))), FIXED_8);
-    cursor.pos.x = toFIXED(-130) + offset;
+    cursor.pos.x = toFIXED(-140) + offset;
     if (titleScreen.menuChoice == TITLE_OPTION_GAME_OPTIONS) {
         cursor.pos.y = toFIXED(MENU_Y);
     }

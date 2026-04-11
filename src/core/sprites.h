@@ -3,12 +3,19 @@
 #include <jo/jo.h>
 #include "../main.h"
 #include "math.h"
+#include "../game/characters.h"
+
+// SGL doesn't have these by default
+#define	    Pclpoff		(1 << 11)	/* No pre-clipping and no horizontal inversion */
+#define	    Pclpon		(0 << 11)	/* Pre-clipping with horizontal inversion (default) */
 
 #define FRAMERATE1 4 // for animation speed (power of 2)
 #define FRAMERATE2 6 // for animation speed
 #define FRAMERATE3 8 // for animation speed (power of 2)
 #define EASY_BALL_RADIUS toFIXED(56)
 #define NORMAL_BALL_RADIUS toFIXED(36)
+
+extern int g_spriteDrawCount;
 
 typedef struct {
     FIXED x, y, z;
@@ -60,8 +67,7 @@ typedef struct {
     int    flip;
     int    mesh;
     int    zmode;
-    Animation anim1;
-    Animation anim2;
+    Animation anim[2];
 } Sprite;
 
 extern Sprite font; // VDP1 font
@@ -72,13 +78,14 @@ extern Sprite logo1;
 extern Sprite logo2;
 extern Sprite cursor;
 extern Sprite menu_text;
-extern Sprite menu_choices;
+extern Sprite menu_arrow;
 extern Sprite menu_bg1;
 extern Sprite menu_bg2;
 extern Sprite character_portrait;
 extern Sprite dead;
 extern Sprite player_bg;
-extern Sprite player_cursor;
+extern Sprite player_cursor1;
+extern Sprite player_cursor2;
 
 // game UI
 extern Sprite timer;
@@ -92,18 +99,7 @@ extern Sprite shield[MAX_PLAYERS];
 // characters
 extern Sprite pixel_poppy;
 extern Sprite pixel_poppy_shadow;
-extern Sprite macchi;
-extern Sprite jelly;
-extern Sprite penny;
-extern Sprite potter;
-extern Sprite sparta;
-extern Sprite poppy;
-extern Sprite tj;
-extern Sprite george;
-extern Sprite wuppy;
-extern Sprite stadler;
-extern Sprite garfield;
-extern Sprite paw_blank;
+extern Sprite paw[MAX_CHARACTERS];
 
 // items
 extern Sprite bomb_item;
@@ -150,21 +146,27 @@ static __jo_force_inline void set_spr_scale(Sprite *sprite, float sx, float sy) 
 // sprHflip : Horizontally flipped display.
 // sprHVflip : Flip the display vertically and horizontally.
 
-static __jo_force_inline void	my_sprite_draw(Sprite *sprite) { // note: switched to using 256bnk mode, so all palette indexes are now 0
+static __jo_force_inline void	my_sprite_draw_rot(Sprite *sprite) { // note: switched to using 256bnk mode, so all palette indexes are now 0
 	FIXED pos[XYZSS] = { sprite->pos.x, sprite->pos.y, sprite->pos.z, sprite->scl.x, sprite->scl.y };
-	SPR_ATTR attr = SPR_ATTRIBUTE( sprite->spr_id, 0, No_Gouraud, sprite->mesh | ECdis | CL256Bnk, sprite->flip | sprite->zmode );
-	slDispSpriteHV(pos, &attr, DEGtoANG(sprite->rot.z));
+	SPR_ATTR attr = SPR_ATTRIBUTE( sprite->spr_id, 0, No_Gouraud, sprite->mesh | HSSon | ECenb | CL256Bnk, sprite->flip | sprite->zmode );
+	slDispSpriteHV(pos, &attr, DEGtoANG(sprite->rot.z));  // TODO: replace all angles with radians to avoid floats
+}
+
+static __jo_force_inline void	my_sprite_draw(Sprite *sprite) {
+	FIXED pos[XYZSS] = { sprite->pos.x, sprite->pos.y, sprite->pos.z, sprite->scl.x, sprite->scl.y };
+	SPR_ATTR attr = SPR_ATTRIBUTE( sprite->spr_id, 0, No_Gouraud, sprite->mesh | Pclpon | HSSon | ECenb | CL256Bnk, sprite->flip | sprite->zmode );
+	slDispSpriteHV(pos, &attr, 0); // faster because it doesn't do a degree-to-angle conversion, which uses floats
 }
 
 // increments 1 frame
 static __jo_force_inline bool static_animation(Sprite *sprite) {
     if (JO_MOD_POW2(g_Game.frame, FRAMERATE1) == 0) { // modulus
-        sprite->anim1.frame++;
-        sprite->spr_id = sprite->anim1.asset[sprite->anim1.frame];
+        sprite->anim[0].frame++;
+        sprite->spr_id = sprite->anim[0].asset[sprite->anim[0].frame];
     }
-    if (sprite->anim1.frame > sprite->anim1.max) {
-        sprite->anim1.frame = 0;
-        sprite->spr_id = sprite->anim1.asset[sprite->anim1.frame];
+    if (sprite->anim[0].frame > sprite->anim[0].max) {
+        sprite->anim[0].frame = 0;
+        sprite->spr_id = sprite->anim[0].asset[sprite->anim[0].frame];
         return false;
     }
     return true;
@@ -174,11 +176,11 @@ static __jo_force_inline bool static_animation(Sprite *sprite) {
 static __jo_force_inline void looped_animation_pow(Sprite *sprite, unsigned int framerate) {
         // move to an animation module
         if (JO_MOD_POW2(g_Game.frame, framerate) == 0) { // modulus
-            sprite->anim1.frame++;
-            if (sprite->anim1.frame > sprite->anim1.max) {
-                sprite->anim1.frame = 0;
+            sprite->anim[0].frame++;
+            if (sprite->anim[0].frame > sprite->anim[0].max) {
+                sprite->anim[0].frame = 0;
             }
-            sprite->spr_id = sprite->anim1.asset[sprite->anim1.frame];
+            sprite->spr_id = sprite->anim[0].asset[sprite->anim[0].frame];
         }
 }
 
@@ -186,32 +188,32 @@ static __jo_force_inline void looped_animation_pow(Sprite *sprite, unsigned int 
 static __jo_force_inline void looped_animation_mod(Sprite *sprite, unsigned int framerate) {
         // move to an animation module
         if (g_Game.frame % framerate == 0) { // modulus
-            sprite->anim2.frame++;
-            if (sprite->anim2.frame > sprite->anim2.max) {
-                sprite->anim2.frame = 0;
+            sprite->anim[1].frame++;
+            if (sprite->anim[1].frame > sprite->anim[1].max) {
+                sprite->anim[1].frame = 0;
             }
-            sprite->spr_id = sprite->anim2.asset[sprite->anim2.frame];
+            sprite->spr_id = sprite->anim[1].asset[sprite->anim[1].frame];
         }
 }
 
 static __jo_force_inline bool explode_animation(Sprite *sprite) {
     if (g_Game.frame % 6 == 0) { // modulus
-        sprite->anim2.frame++;
+        sprite->anim[1].frame++;
     }
-    if (sprite->anim2.frame > sprite->anim2.max) {
-        sprite->spr_id = sprite->anim2.asset[sprite->anim2.max];
+    if (sprite->anim[1].frame > sprite->anim[1].max) {
+        sprite->spr_id = sprite->anim[1].asset[sprite->anim[1].max];
         return false;
     }
     else {
-        sprite->spr_id = sprite->anim2.asset[sprite->anim2.frame];
+        sprite->spr_id = sprite->anim[1].asset[sprite->anim[1].frame];
     }
     return true;
 }
 
 static __jo_force_inline void sprite_frame_reset(Sprite *sprite) {
-    sprite->anim1.frame = 0;
-    sprite->spr_id = sprite->anim1.asset[sprite->anim1.frame];
-    sprite->anim2.frame = 0;
+    sprite->anim[0].frame = 0;
+    sprite->spr_id = sprite->anim[0].asset[sprite->anim[0].frame];
+    sprite->anim[1].frame = 0;
 }
 
 void ball_animation_reset(Sprite *ball);
