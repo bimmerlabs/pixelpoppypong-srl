@@ -4,6 +4,7 @@ An original Sega Saturn game created for the SegaXtreme 30th annual homebrew com
 
 Currently being ported from Jo Engine to Saturn Ring Library / C++
 https://srl.reye.me
+<img width="604" height="481" alt="image" src="https://github.com/user-attachments/assets/ba5bc11b-52fc-4c09-8a62-6f9cec397cdc" />
 
 For more information, see the resource page:
 https://segaxtreme.net/resources/pixel-poppy-pong.282/
