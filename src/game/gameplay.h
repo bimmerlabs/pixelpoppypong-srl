@@ -95,19 +95,19 @@ static __jo_force_inline void initPixelPoppy(void) {
     for (int i = 0; i < player->numLives; i++) {
         set_spr_position(sprite, x, y, 90);
         if (lives > player->totalLives) {
-            sprite->spr_id = sprite->anim1.asset[1];
+            sprite->spr_id = sprite->anim[0].asset[1];
             x += offset;
             my_sprite_draw(sprite);
         }
         else if (player->numLives - player->totalLives < lives) {
-	    sprite->spr_id = sprite->anim1.asset[0];
+	    sprite->spr_id = sprite->anim[0].asset[0];
             x += offset;
             my_sprite_draw(sprite);  
 	}
         lives--;
     }
     if (player->numLives < player->totalLives) {
-	sprite->spr_id = sprite->anim1.asset[2];
+	sprite->spr_id = sprite->anim[0].asset[2];
 	for (int i = 0; i < (player->totalLives - player->numLives); i++) {
 	    set_spr_position(sprite, x, y, 90);
 	    my_sprite_draw(sprite);
@@ -175,7 +175,7 @@ static __jo_force_inline void gameplayScore_draw(PPLAYER player) {
                     // handleItemCollision()
                 // }
             }
-            my_sprite_draw(&pixel_poppy);
+            my_sprite_draw_rot(&pixel_poppy);
             return;
         }
         if (g_Game.isGoalScored) {         
@@ -195,7 +195,7 @@ static __jo_force_inline void gameplayScore_draw(PPLAYER player) {
             if (g_Game.isBallActive) {
                 update_ball(&pixel_poppy);
             }
-            my_sprite_draw(&pixel_poppy);
+            my_sprite_draw_rot(&pixel_poppy);
             return;
         }
         if (g_Game.isGoalScored) {
@@ -220,8 +220,7 @@ static __jo_force_inline void drawGameUI(void) {
             looped_animation_pow(&shield[i], 4);
             my_sprite_draw(&shield[i]);
         }
-        looped_animation_pow(player->_sprite, 4); // TODO: change animations based on player input
-        player->_portrait->spr_id = player->_portrait->anim1.asset[player->character.choice];
+        player->_portrait->spr_id = player->_portrait->anim[0].asset[player->character.choice];
         gameplayUI_draw(player);
     }
     drawGameTimer();

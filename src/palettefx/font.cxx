@@ -22,5 +22,7 @@ void init_font(void) {
     jo_free_img(&img);
     #if defined(MY_TV_704x240)
         slZoomNbg0(toFIXED(0.5), toFIXED(1.0));
+    #elif defined(MY_TV_704x480)
+        slZoomNbg0(toFIXED(0.5), toFIXED(0.5));
     #endif
 }

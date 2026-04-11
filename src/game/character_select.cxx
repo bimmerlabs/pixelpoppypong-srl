@@ -55,12 +55,12 @@ void characterSelectInit(void)
     pixel_poppy.rot.z = 0;
     set_spr_position(&pixel_poppy, 0, 0, 100);
     // set to "smile"
-    pixel_poppy.spr_id = pixel_poppy.anim1.asset[1];
+    pixel_poppy.spr_id = pixel_poppy.anim[0].asset[1];
         
     g_CharacterEntryTimer = CHARACTER_ENTRY_TIMER;    
     convertNumberToDigits(g_CharacterEntryTimer);
-    font.spr_id = font.anim1.asset[tens];
-    font.spr_id = font.anim1.asset[ones];
+    font.spr_id = font.anim[0].asset[tens];
+    font.spr_id = font.anim[0].asset[ones];
     
     g_Game.lastState = GAME_STATE_NAME_ENTRY;
     
@@ -155,7 +155,7 @@ void characterEntryInput(void)
             // player->character.selected = true;
             // player->character.choice = CHARACTER_MACCHI;
             // characterAvailable[player->character.choice] = false;
-            // player->_portrait->spr_id = player->_portrait->anim1.asset[player->character.choice];
+            // player->_portrait->spr_id = player->_portrait->anim[0].asset[player->character.choice];
             // assignCharacterStats(player);
             
             // initNameEntryColors();
@@ -163,7 +163,7 @@ void characterEntryInput(void)
             isAngleSnapped = true;
             rotateRight = false;
             rotateLeft = false;
-            pixel_poppy.spr_id = pixel_poppy.anim1.asset[2];
+            pixel_poppy.spr_id = pixel_poppy.anim[0].asset[2];
             pcm_play(g_Assets.bumpPcm16, PCM_VOLATILE, 7);
         }
         // else if (g_CharacterEntrySelection > FIRST_INITIAL) { // TODO: unselect character
@@ -172,11 +172,11 @@ void characterEntryInput(void)
         // }
     }
     if (isAngleSnapped == false) {
-        pixel_poppy.spr_id = pixel_poppy.anim1.asset[0];
+        pixel_poppy.spr_id = pixel_poppy.anim[0].asset[0];
         pcm_play(g_Assets.bumpPcm16, PCM_VOLATILE, 7);
     }
     else {
-        pixel_poppy.spr_id = pixel_poppy.anim1.asset[1];
+        pixel_poppy.spr_id = pixel_poppy.anim[0].asset[1];
     }
 }
 
@@ -198,10 +198,10 @@ void characterEntryUpdate(void)
         convertNumberToDigits(g_CharacterEntryTimer);
         set_spr_position(&font, 0, -170, 50);
         set_spr_scale(&font, 1.1, 1.1);
-        font.spr_id = font.anim1.asset[tens];
+        font.spr_id = font.anim[0].asset[tens];
         font.zmode = _ZmRC;
         my_sprite_draw(&font);
-        font.spr_id = font.anim1.asset[ones];
+        font.spr_id = font.anim[0].asset[ones];
         font.zmode = _ZmLC;
         my_sprite_draw(&font);
     }
@@ -214,7 +214,7 @@ void characterEntryUpdate(void)
     my_sprite_draw(&character_portrait);
         
     if (endCharacterEntry && xRadius > END_RADIUS) {
-        pixel_poppy.spr_id = pixel_poppy.anim1.asset[3];
+        pixel_poppy.spr_id = pixel_poppy.anim[0].asset[3];
         xRadius -= toFIXED(6);
         yRadius -= toFIXED(4);
         characterEntryAngle += 3;
@@ -266,7 +266,7 @@ void characterEntryDraw(void)
         poppyAngle -= 360;
     pixel_poppy.rot.z = -1*poppyAngle;
     set_spr_position(&pixel_poppy, 0, 0, 100);
-    my_sprite_draw(&pixel_poppy);
+    my_sprite_draw_rot(&pixel_poppy);
     
     #if ENABLE_DEBUG_MODE == 1
     if (g_GameOptions.debug_display) {
@@ -340,6 +340,6 @@ void characterEntryPositionUpdate(int angle, int sprAngle) {
         // hslSprites.color[colorid].l = 240;
     // }
     
-    character_portrait.spr_id = character_portrait.anim1.asset[spr_id];
+    character_portrait.spr_id = character_portrait.anim[0].asset[spr_id];
     my_sprite_draw(&font);
 }

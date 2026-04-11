@@ -96,7 +96,11 @@ void init_nbg1_img(void) {
     jo_free_img(&img);
     jo_set_tga_default_palette(JO_NULL);
     
-    slZoomNbg1(toFIXED(0.50), toFIXED(1.00));
+    #if defined(MY_TV_704x240)
+        slZoomNbg1(toFIXED(0.5), toFIXED(1.0));
+    #elif defined(MY_TV_704x480)
+        slZoomNbg1(toFIXED(0.5), toFIXED(0.5));
+    #endif
     
     MultiRgbToHsl(&hslNbg1, &rgbNbg1, &p_rangeNbg1[NBG1_ALL]);
     min_max_sl_id(&hslNbg1, &p_rangeNbg1[NBG1_ALL], &attrNbg1);

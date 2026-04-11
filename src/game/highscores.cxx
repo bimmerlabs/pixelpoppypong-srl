@@ -54,7 +54,7 @@ void init_scores(void)
     else {
         menu_bg2.mesh = MESHoff;
     }
-    menu_bg2.spr_id = menu_bg2.anim1.asset[4];
+    menu_bg2.spr_id = menu_bg2.anim[0].asset[4];
     menu_bg2.zmode = _ZmCC;
     set_spr_position(&menu_bg2, 0, 0, 95);
     set_spr_scale(&menu_bg2, 200, 480);

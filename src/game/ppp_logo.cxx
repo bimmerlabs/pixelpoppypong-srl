@@ -227,7 +227,7 @@ void pppLogo_draw(void)
     my_sprite_draw(&ppplogo);
     my_sprite_draw(&pppshadow);
     
-    my_sprite_draw(&pixel_poppy);
+    my_sprite_draw_rot(&pixel_poppy);
     jo_nbg0_printf(17, 19, "PRESENTS...");
     #if ENABLE_DEBUG_MODE == 1
     if (g_GameOptions.debug_display) {

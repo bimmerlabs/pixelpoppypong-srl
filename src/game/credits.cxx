@@ -41,7 +41,7 @@ void init_credits(void)
     
     initCreditsStruct();
     
-    menu_bg1.spr_id = menu_bg1.anim1.asset[credits.bg_spr_id];
+    menu_bg1.spr_id = menu_bg1.anim[0].asset[credits.bg_spr_id];
     set_spr_position(&menu_bg1, 0, 0, 95);
     set_spr_scale(&menu_bg1, 0, 0);
 
@@ -129,7 +129,7 @@ void display_credits(void)
             if (credits.delay_timer == 0) {
                 menu_bg1.scl.x = FIXED_0;
                 menu_bg1.scl.y = toFIXED(bg_height); // test
-                menu_bg1.spr_id = menu_bg1.anim1.asset[credits.bg_spr_id];
+                menu_bg1.spr_id = menu_bg1.anim[0].asset[credits.bg_spr_id];
                 if (!g_GameOptions.debug_display && g_GameOptions.mosaic_display) {
                     g_Transition.mosaic_in = true;
                 }

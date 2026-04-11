@@ -16,7 +16,13 @@
 
 Uint16 state_fade_timer = STATE_FADE_TIMER;
 
-unsigned int g_AttractScreenState = ATTRACT_SCREEN_1;
+
+AttractScreenState g_AttractScreen = {
+    .state = { ATTRACT_SCREEN_1, ATTRACT_SCREEN_2, ATTRACT_SCREEN_3, ATTRACT_SCREEN_4 },
+    .id = 0,
+};
+
+// unsigned int g_AttractScreenState = ATTRACT_SCREEN_1;
 
 // transistions between game states
 void changeState(GAME_STATE newState)
@@ -197,9 +203,17 @@ void game_state_update(void)
 
 void attract_screen_state(void)
 {
-    g_AttractScreenState++;
-    if (g_AttractScreenState == ATTRACT_SCREEN_MAX) {
-        g_AttractScreenState = ATTRACT_SCREEN_1;
+    g_AttractScreen.id++;
+    if (g_AttractScreen.id >= ATTRACT_SCREEN_MAX) {
+        g_AttractScreen.id = 0; // this will be 0 when demo mode is enabled
     }
 }
+
+// void attract_screen_state(void)
+// {
+    // g_AttractScreenState++;
+    // if (g_AttractScreenState == ATTRACT_SCREEN_MAX) {
+        // g_AttractScreenState = ATTRACT_SCREEN_1;
+    // }
+// }
 

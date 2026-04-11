@@ -94,11 +94,12 @@ void teamSelect_init(void)
     jo_set_displayed_screens(JO_NBG0_SCREEN | JO_SPRITE_SCREEN | JO_NBG1_SCREEN);
     
     // some assets don't change in scale
-    menu_bg1.spr_id = menu_bg1.anim1.asset[4];
-    set_spr_scale(&menu_bg1, 46, 46);
-    menu_bg2.spr_id = menu_bg2.anim1.asset[5];
-    set_spr_position(&menu_bg2, -120, 240, MENU_BG2_DEPTH);
-    set_spr_scale(&menu_bg2, 54, 352);
+    menu_bg1.spr_id = menu_bg1.anim[0].asset[4];
+    set_spr_scale(&menu_bg1, 48, 48);
+    menu_bg2.spr_id = menu_bg2.anim[0].asset[5];
+    menu_bg2.zmode = _ZmCC;
+    set_spr_position(&menu_bg2, MENU_BG2_X, 0, MENU_BG2_DEPTH);
+    set_spr_scale(&menu_bg2, MENU_BG2_WIDTH, MENU_BG2_HEIGHT);
     
     g_Transition.mosaic_in = true;
     g_Transition.music_in = true;
@@ -178,19 +179,21 @@ void drawCharacterSelectGrid(void)
         portrait_y = -118;
         text_y = 5;
     }
-    
-    if (g_Game.frame % 3 == 0) { // modulus
+    if (JO_MOD_POW2(g_Game.frame, 2) == 0) { // modulus
         draw_cursor = !draw_cursor;
     }
-    if (g_Game.frame % 20 == 0) { // modulus
+    if (JO_MOD_POW2(g_Game.frame, 16) == 0) { // modulus
         draw_portrait = !draw_portrait;
     }
+    
+    // looped_animation_pow(&paws, 4);
+    looped_animation_pow(&paw[CHARACTER_NONE], 4);
     
     for(unsigned int i = 0; i < (g_Game.numPlayers+1); i++)
     {
         PPLAYER player = &g_Players[i];
         
-        if (!g_GameOptions.debug_display) {
+        // if (!g_GameOptions.debug_display) {
             jo_nbg0_printf(text_x, text_y, "PLAYER %i:", i+1);
             if (player->character.choice != CHARACTER_NONE || g_Game.numPlayers > ONE_PLAYER) {
                 jo_nbg0_printf(text_x, text_y+CHARACTER_TEXT_Y, "%s", characterNames[player->character.choice]);
@@ -198,7 +201,7 @@ void drawCharacterSelectGrid(void)
             if (player->teamSelected && g_Game.numPlayers > ONE_PLAYER) {
                 jo_nbg0_printf(text_x, text_y+CHARACTER_TEXT_Y+2, "TEAM %i", player->teamChoice+1);
             }
-        }
+        // }
             
         if (player->character.selected) {
             if (player->isReady) {
@@ -222,54 +225,72 @@ void drawCharacterSelectGrid(void)
                 jo_nbg0_printf(text_x+TEAM_TEXT_X2, text_y+TEAM_TEXT_Y, "%i", player->teamChoice+1);
             }
         }
-
-        // VERTICAL STRIPE (animate?)
-        menu_bg2.zmode = _ZmCB;
-        my_sprite_draw(&menu_bg2);
+        
+        // HORIZONTAL STRIPE
+        // WARNING: doesn't work on hardware (VDP1 is too slow)
+        // alternatives: create new bg? use second bg layer?
+        if (g_Game.numPlayers < THREE_PLAYER) { // only draw for up to 2 players
+            player->_bg->spr_id = player->_bg->anim[0].asset[i];
+            // LEFT
+            set_spr_position(player->_bg, MENU_BG2_X-MENU_BG2_WIDTH, portrait_y, PLAYER_BG_DEPTH);
+            player->_bg->scl.x = PLAYER_BG_X1;
+            player->_bg->zmode = _ZmRC;
+            my_sprite_draw(player->_bg);
+            // RIGHT
+            set_spr_position(player->_bg, MENU_BG2_X+MENU_BG2_WIDTH, portrait_y, PLAYER_BG_DEPTH);
+            player->_bg->scl.x = PLAYER_BG_X2;
+            player->_bg->zmode = _ZmLC;
+            my_sprite_draw(player->_bg);
+        }
                 
         // SELECTION BOX
         switch (player->character.selected) {
             case false: // SELECT CHARACTER
-                set_spr_position(player->_cursor, portrait_x, portrait_y, CURSOR_DEPTH);
-                
-                // CURSOR BACKGROUND
-                set_spr_position(&menu_bg1, portrait_x, portrait_y, MENU_BG1_DEPTH);
-                my_sprite_draw(&menu_bg1);
+                set_spr_position(player->_cursor[0], portrait_x, portrait_y, CURSOR_DEPTH);
+                set_spr_position(player->_cursor[1], portrait_x+46, portrait_y, CURSOR_DEPTH);
                 // PAW
                 set_spr_position(player->_sprite, paw_x, portrait_y, PORTRAIT_DEPTH);
                 my_sprite_draw(player->_sprite);
                 break;
             case true: // SELECT TEAM
-                set_spr_position(player->_cursor, paw_x, portrait_y, CURSOR_DEPTH);
-                
+                set_spr_position(player->_cursor[0], paw_x, portrait_y, CURSOR_DEPTH);                
+                set_spr_position(player->_cursor[1], paw_x+46, portrait_y, CURSOR_DEPTH);                
                 // CURSOR BACKGROUND
                 set_spr_position(&menu_bg1, paw_x, portrait_y, MENU_BG1_DEPTH);
                 my_sprite_draw(&menu_bg1);
                 // PAW
-                looped_animation_pow(player->_sprite, 4);
                 set_spr_position(player->_sprite, paw_x, portrait_y, PORTRAIT_DEPTH);
+                looped_animation_pow(player->_sprite, 4);
                 my_sprite_draw(player->_sprite);
                 break;
         }
         
         // CURSOR
         if (draw_cursor) {
-            player->_cursor->mesh = MESHon;
+            player->_cursor[0]->mesh = MESHon;
+            player->_cursor[1]->mesh = MESHon;
         }
         else {
-            player->_cursor->mesh = MESHoff;
+            player->_cursor[0]->mesh = MESHoff;
+            player->_cursor[1]->mesh = MESHoff;
         }
-        player->_cursor->spr_id = player->_cursor->anim1.asset[i];
-        my_sprite_draw(player->_cursor);
+        player->_cursor[0]->spr_id = player->_cursor[0]->anim[0].asset[i];
+        my_sprite_draw(player->_cursor[0]);
+        player->_cursor[1]->spr_id = player->_cursor[1]->anim[0].asset[i];
+        my_sprite_draw(player->_cursor[1]);
         
         // PORTRAIT
-        set_spr_scale(player->_portrait, 2, 2);
-        player->_portrait->spr_id = player->_portrait->anim1.asset[player->character.choice];
+        player->_portrait->spr_id = player->_portrait->anim[0].asset[player->character.choice];
         set_spr_position(player->_portrait, portrait_x, portrait_y, PORTRAIT_DEPTH);
         if (player->character.choice == CHARACTER_NONE) {
-            if (draw_portrait) {
-                my_sprite_draw(player->_portrait);
+            if (draw_portrait) {                
+                jo_nbg0_printf(text_x+10, text_y+1, "PRESS");
+                jo_nbg0_printf(text_x+10, text_y+3, "START");
+                // my_sprite_draw(player->_portrait);
             }
+            // CURSOR BACKGROUND
+            set_spr_position(&menu_bg1, portrait_x, portrait_y, MENU_BG1_DEPTH);
+            my_sprite_draw(&menu_bg1);
         }
         else {
                 my_sprite_draw(player->_portrait);
@@ -289,12 +310,12 @@ void drawCharacterSelectGrid(void)
             }
             #endif
             // yellow
-            meter.spr_id = meter.anim1.asset[7];
+            meter.spr_id = meter.anim[0].asset[7];
             set_spr_scale(&meter, player->maxSpeed, METER_HEIGHT);
             set_spr_position(&meter, METER_X, portrait_y-METER_Y1, PORTRAIT_DEPTH);
             my_sprite_draw(&meter);
             // red
-            meter.spr_id = meter.anim1.asset[8];
+            meter.spr_id = meter.anim[0].asset[8];
             set_spr_scale(&meter, (METER_WIDTH-player->maxSpeed), METER_HEIGHT);
             set_spr_position(&meter, (METER_X+(2*player->maxSpeed)), portrait_y-METER_Y1, PORTRAIT_DEPTH);
             my_sprite_draw(&meter);
@@ -311,12 +332,12 @@ void drawCharacterSelectGrid(void)
             }
             #endif
             // yellow       
-            meter.spr_id = meter.anim1.asset[7];
+            meter.spr_id = meter.anim[0].asset[7];
             set_spr_scale(&meter, acceleration, METER_HEIGHT);
             set_spr_position(&meter, METER_X, portrait_y-METER_Y2, PORTRAIT_DEPTH);
             my_sprite_draw(&meter);
             // red
-            meter.spr_id = meter.anim1.asset[8];
+            meter.spr_id = meter.anim[0].asset[8];
             set_spr_scale(&meter, (METER_WIDTH-acceleration), METER_HEIGHT);
             set_spr_position(&meter, (METER_X+(2*acceleration)), portrait_y-METER_Y2, PORTRAIT_DEPTH);
             my_sprite_draw(&meter);
@@ -328,12 +349,12 @@ void drawCharacterSelectGrid(void)
                 jo_nbg0_printf(text_x+METER_TEXT_X, text_y+METER_TEXT_Y3, "POWER");
             }
             // yellow
-            meter.spr_id = meter.anim1.asset[7];
+            meter.spr_id = meter.anim[0].asset[7];
             set_spr_scale(&meter, player->power, METER_HEIGHT);
             set_spr_position(&meter, METER_X, portrait_y+METER_Y3, PORTRAIT_DEPTH);
             my_sprite_draw(&meter);
             // red
-            meter.spr_id = meter.anim1.asset[8];
+            meter.spr_id = meter.anim[0].asset[8];
             set_spr_scale(&meter, (METER_WIDTH-player->power), METER_HEIGHT);
             set_spr_position(&meter, (METER_X+(2*player->power)), portrait_y+METER_Y3, PORTRAIT_DEPTH);
             my_sprite_draw(&meter);
@@ -341,6 +362,9 @@ void drawCharacterSelectGrid(void)
         
         portrait_y += PLAYER_OFFSET_Y;
         text_y += PLAYER_TEXT_OFFSET_Y;
+        
+        // VERTICAL STRIPE
+        my_sprite_draw(&menu_bg2);
     }
 }
 
@@ -395,11 +419,11 @@ void characterSelect_input(void)
                 player->teamChoice = TEAM_COUNT;
                 player->startSelection = false;
                 characterAvailable[player->character.choice] = true;
-                player->_sprite = &paw_blank;
                 player->character.choice = CHARACTER_NONE;
                 player->maxSpeed = 0;
                 player->acceleration = 0;
                 player->power = 0;
+                assignCharacterSprite(player);
                 return;
             }
             
@@ -421,47 +445,9 @@ void characterSelect_input(void)
                 player->character.selected = true;
                 characterAvailable[player->character.choice] = false;
             }
-                switch (player->character.choice)
-                {
-                 case CHARACTER_MACCHI:
-                    player->_sprite = &macchi;
-                    break;
-                 case CHARACTER_JELLY:
-                    player->_sprite = &jelly;
-                    break;
-                 case CHARACTER_PENNY:
-                    player->_sprite = &penny;
-                    break;
-                 case CHARACTER_POPPY:
-                    player->_sprite = &poppy;
-                    break;
-                 case CHARACTER_POTTER:
-                    player->_sprite = &potter;
-                    break;
-                 case CHARACTER_SPARTA:
-                    player->_sprite = &sparta;
-                    break;
-                 case CHARACTER_TJ:
-                    player->_sprite = &tj;
-                    break;
-                 case CHARACTER_GEORGE:
-                    player->_sprite = &george;
-                    break;
-                 case CHARACTER_WUPPY:
-                    player->_sprite = &wuppy;
-                    break;
-                 case CHARACTER_WALRUS:
-                    player->_sprite = &stadler;
-                    break;
-                 case CHARACTER_GARF:
-                    player->_sprite = &garfield;
-                    break;
-                 default:
-                    break;
-                }
-                // set to first frame and make sure the scale is normal
-                set_spr_scale(player->_sprite, 2, 2);
-               player->_sprite->spr_id = player->_sprite->anim1.asset[0];
+            assignCharacterSprite(player);
+            // make sure the scale is normal
+            set_spr_scale(player->_sprite, 2, 2);
         }
         // BEGIN CHARACTER SELECTION
         if (!player->startSelection) {
@@ -471,6 +457,7 @@ void characterSelect_input(void)
                 player->startSelection = true;
                 player->character.choice = CHARACTER_MACCHI;
                 validateCharacters(player);
+                assignCharacterSprite(player);
             }
             else {
                 for(unsigned int ip = 0; ip < COUNTOF(g_Inputs); ip++)
@@ -489,6 +476,8 @@ void characterSelect_input(void)
                         player->startSelection = true;
                         player->character.choice = CHARACTER_MACCHI;
                         validateCharacters(player);
+                        assignCharacterSprite(player);
+                        
                         player->teamChoice = TEAM_1;
                         validateTeam(player);
                        return;

@@ -1,6 +1,7 @@
 #pragma once
 #include "../core/sprites.h"
 #include "../core/input.h"
+#include "../game/characters.h"
 #include "object.h"
 #include "teams.h"
 
@@ -71,50 +72,12 @@ typedef struct _SCORE
 
 } SCORE, *PSCORE;
 
-typedef struct _CHARACTER_ATTRIBUTES
-{
-    int maxSpeed;     // Speed on a scale of 1-10
-    int acceleration; // Acceleration rate on a scale of 1-10
-    int power;        // Power on a scale of 1-10
-} CHARACTER_ATTRIBUTES;
-
 typedef struct _SHIELD
 {
     Uint8 power;
     bool activate;
 } SHIELD;
 
-typedef enum _CHARACTER_SELECT
-{
-    CHARACTER_MACCHI = 0,
-    CHARACTER_JELLY,
-    CHARACTER_PENNY,
-    CHARACTER_POTTER,
-    CHARACTER_SPARTA,
-    CHARACTER_POPPY,
-    CHARACTER_TJ,
-    CHARACTER_GEORGE,
-    CHARACTER_WUPPY,
-    CHARACTER_WALRUS,
-    CHARACTER_GARF,
-    CHARACTER_NONE,
-} CHARACTER_SELECT;
-
-#define TOTAL_CHARACTERS (CHARACTER_NONE)
-
-extern bool characterUnlocked[TOTAL_CHARACTERS]; // distinction between selection and what gets saved in backup ram
-extern bool characterAvailable[TOTAL_CHARACTERS];
-
-// Array to hold attributes for each character
-extern const CHARACTER_ATTRIBUTES characterAttributes[];
-
-typedef struct _CHARACTER
-{
-    int  choice;
-    bool selected;
-} CHARACTER, *PCHARACTER;
-
-// This structure represents the player
 typedef struct _PLAYER
 {
     GAME_OBJECT;
@@ -174,7 +137,7 @@ typedef struct _PLAYER
     
     // sprites
     Sprite *_bg;
-    Sprite *_cursor;
+    Sprite *_cursor[2];
     Sprite *_sprite;
     Sprite *_portrait;
     FIXED shield_pos;
@@ -226,6 +189,7 @@ static __jo_force_inline void drawPlayers(void)
             continue;
         }
         my_sprite_draw(player->_sprite);
+        looped_animation_pow(player->_sprite, 4); // TODO: change animations based on player input
     }
 }
 

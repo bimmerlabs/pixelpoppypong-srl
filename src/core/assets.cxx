@@ -6,39 +6,11 @@
 // NOTE: Palette is loaded with the font and shared with all other sprites.
 
 Uint8 palette_transparent_index = 2;
-unsigned int paw_blank_id = 0;
 
 ASSETS g_Assets = {
     .GameplaySoundsLoaded = false,
     .NameEntrySoundsLoaded = false,
 };
-
-// tilesets
-jo_tile paw_tileset[NUM_PAW_SPRITES] = {0};
-
-jo_tile pixel_poppy1_tileset[NUM_POPPY_SPRITES] = {0};
-
-jo_tile goal_tileset[NUM_GOAL_SPRITES] = {0};
-
-jo_tile font_char_tileset[NUM_FONT_CHARS] = {0};
-
-jo_tile menu_text_tileset[NUM_TITLE_MENU_TEXT] = {0};
-
-jo_tile timer_tileset[NUM_TIMER_SPRITES] = {0};
-
-jo_tile heart_tileset[NUM_HEART_SPRITES] = {0};
-jo_tile shield_tileset[NUM_SHIELD_SPRITES] = {0};
-
-jo_tile menubg_tileset[NUM_MENUBG_SPRITES] = {0};
-
-jo_tile character_tileset[NUM_CHARACTER_SPRITES] = {0};
-jo_tile dead_tileset[NUM_X_SPRITES] = {0};
-jo_tile pcursor_tileset[NUM_PCURSOR_SPRITES] = {0};
-
-jo_tile bomb_tileset[NUM_BOMB_SPRITES] = {0};
-jo_tile explode_tileset[NUM_EXPLOD_SPRITES] = {0};
-jo_tile fishtank_tileset[NUM_FISH_SPRITES] = {0};
-jo_tile shroom_tileset[NUM_SHROOM_SPRITES] = {0};
 
 static void initTileset(jo_tile* tileset, unsigned int numSprites, unsigned int spritesPerRow, int width, int height)
 {
@@ -57,23 +29,18 @@ static void initTileset(jo_tile* tileset, unsigned int numSprites, unsigned int 
     }
 }
 
-void loadSprite(Sprite *sprite, int *asset, const char *file, jo_tile *tileset, unsigned int frames, int w, int h, bool asset1or2) {
-    initTileset(tileset, frames, 1, w, h);
-    asset[0] = jo_sprite_add_tga_tileset(NULL, file, palette_transparent_index, tileset, frames);
-        for(unsigned int i = 0; i < frames; i++)
+void loadSprite(Sprite *sprite, int *asset, const char *file, unsigned int cols, unsigned int rows, int w, int h, unsigned char anim_id) {
+    jo_tile tileset[cols*rows];
+    initTileset(tileset, (cols*rows), rows, w, h);
+    asset[0] = jo_sprite_add_tga_tileset(NULL, file, palette_transparent_index, tileset, cols*rows);
+        for(unsigned int i = 0; i < (cols*rows); i++)
         {
             asset[i] = asset[0] + i;
         }
-        if (asset1or2) { // use asset1
-            sprite->anim1.asset = asset;
-            sprite->anim1.max = frames-1;
-            sprite->spr_id = sprite->anim1.asset[sprite->anim1.frame];
-        }
-        else { // use asset2
-            sprite->anim2.asset = asset;
-            sprite->anim2.max = frames-1;
-        }
-        sprite->pos.r = h; // is this needed?
+        sprite->anim[anim_id].asset = asset;
+        sprite->anim[anim_id].max = (cols*rows)-1;
+        sprite->spr_id = sprite->anim[anim_id].asset[sprite->anim[anim_id].frame];
+        sprite->pos.r = w; // is this needed?
 }
 
 void loadCoreSoundAssets(void)
@@ -141,18 +108,18 @@ void loadCommonAssets(void)
 {
     jo_sprite_free_all();
     // pixel poppy
-    loadSprite(&pixel_poppy, g_Assets.pixel_poppy1, "POPPY.TGA", pixel_poppy1_tileset, NUM_POPPY_SPRITES, 64, 50, true);
+    loadSprite(&pixel_poppy, g_Assets.pixel_poppy, "POPPY.TGA", NUM_POPPY_SPRITES, 1, 64, 50, 0);
     // menu cursor
     cursor.spr_id = jo_sprite_add_tga(NULL, "CURSOR.TGA", palette_transparent_index);
     
     // background / UI layers
-    loadSprite(&menu_bg1, g_Assets.menubg, "MENUBG.TGA", menubg_tileset, NUM_MENUBG_SPRITES, 2, 2, true);
-    menu_bg1.spr_id = menu_bg1.anim1.asset[6];
-    menu_bg2.anim1.asset = g_Assets.menubg;
-    menu_bg2.spr_id = menu_bg2.anim1.asset[5];
-    player_bg.anim1.asset = g_Assets.menubg;
-    meter.anim1.asset = g_Assets.menubg;
-    meter.spr_id = meter.anim1.asset[7];
+    loadSprite(&menu_bg1, g_Assets.menubg, "MENUBG.TGA", NUM_MENUBG_SPRITES, 1, 2, 2, 0);
+    menu_bg1.spr_id = menu_bg1.anim[0].asset[6];
+    menu_bg2.anim[0].asset = g_Assets.menubg;
+    menu_bg2.spr_id = menu_bg2.anim[0].asset[5];
+    player_bg.anim[0].asset = g_Assets.menubg;
+    meter.anim[0].asset = g_Assets.menubg;
+    meter.spr_id = meter.anim[0].asset[7];
     
     ppplogo.spr_id = jo_sprite_add_tga(NULL, "PPPLOGO.TGA", palette_transparent_index);
     pppshadow.spr_id = jo_sprite_add_tga(NULL, "PPPSHDW.TGA", palette_transparent_index); 
@@ -176,7 +143,7 @@ void unloadPPPLogoAssets(void)
 
 void loadNameEntryAssets(void)
 {
-    loadSprite(&font, g_Assets.font, "FONT2.TGA", font_char_tileset, NUM_FONT_CHARS, 24, 24, true);
+    loadSprite(&font, g_Assets.font, "FONT2.TGA", NUM_FONT_CHARS, 1, 24, 24, 0);
     if (!g_Assets.NameEntrySoundsLoaded) {
             g_Game.isSoundLoading = true;
             g_Assets.NameEntrySoundsLoaded = loadNameEntrySoundAssets();
@@ -196,7 +163,8 @@ void loadTitleScreenAssets(void)
 {        
     logo1.spr_id = jo_sprite_add_tga(NULL, "LOGO1.TGA", palette_transparent_index);
     logo2.spr_id = jo_sprite_add_tga(NULL, "LOGO2.TGA", palette_transparent_index);
-    loadSprite(&menu_text, g_Assets.menu, "TMENU.TGA", menu_text_tileset, NUM_TITLE_MENU_TEXT, 240, 22, true);    
+    loadSprite(&menu_text, g_Assets.menu, "TMENU.TGA", NUM_TITLE_MENU_TEXT, 1, 216, 22, 0);    
+    loadSprite(&menu_arrow, g_Assets.arrow, "ARROWS.TGA", NUM_TITLE_MENU_ARROWS, 1, 8, 10, 0);    
     
     g_Game.isLoading = false;
 }
@@ -210,29 +178,25 @@ void unloadTitleScreenAssets(void)
 
 void loadCharacterAssets(void)
 {
-    loadSprite(&macchi, g_Assets.paw1, "PAW1.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
-    loadSprite(&jelly, g_Assets.paw2, "PAW2.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
+    loadSprite(&character_portrait, g_Assets.characters, "PORTRAIT.TGA", NUM_CHARACTER_SPRITES, 1, 48, 48, 0);
     
-    loadSprite(&penny, g_Assets.paw3, "PAW3.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
-    loadSprite(&potter, g_Assets.paw4, "PAW4.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
-    
-    loadSprite(&sparta, g_Assets.paw5, "PAW5.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
-    
-    loadSprite(&poppy, g_Assets.paw6, "PAW6.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
-    loadSprite(&tj, g_Assets.paw7, "PAW7.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
-    loadSprite(&george, g_Assets.paw8, "PAW8.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
-    loadSprite(&wuppy, g_Assets.paw9, "PAW9.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
-         
-    loadSprite(&stadler, g_Assets.paw10, "PAW10.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
-    loadSprite(&garfield, g_Assets.paw11, "PAW11.TGA", paw_tileset, NUM_PAW_SPRITES, 32, 32, true);
+    loadSprite(&player_cursor1, g_Assets.pcursor[0], "SELECT.TGA", NUM_PCURSOR_SPRITES, 1, 32, 32, 0);
+    // loadSprite(&player_cursor1, g_Assets.pcursor[0], "SELECT_R.TGA", NUM_PCURSOR_SPRITES, 1, 8, 32, 0);
+    loadSprite(&player_cursor2, g_Assets.pcursor[1], "SELECT_R.TGA", NUM_PCURSOR_SPRITES, 1, 8, 32, 0);
+    // loadSprite(&player_cursor2, g_Assets.pcursor[1], "SELECT.TGA", NUM_PCURSOR_SPRITES, 1, 32, 32, 0);
 
-    paw_blank_id = 0;
-    paw_blank_id = jo_sprite_add_tga(NULL, "PAW0.TGA", palette_transparent_index);
-    paw_blank.spr_id = paw_blank_id; // not sure why this is needed - if I set directly, the id is 0
-    
-    loadSprite(&character_portrait, g_Assets.characters, "PORTRAIT.TGA", character_tileset, NUM_CHARACTER_SPRITES, 48, 48, true);
-    
-    loadSprite(&player_cursor, g_Assets.pcursor, "SELECT.TGA", pcursor_tileset, NUM_PCURSOR_SPRITES, 24, 24, true);
+    loadSprite(&paw[CHARACTER_MACCHI], g_Assets.paw[CHARACTER_MACCHI], "PAW0.TGA",  1, NUM_PAW_SPRITES, 32, 24, 0);
+    loadSprite(&paw[CHARACTER_JELLY],  g_Assets.paw[CHARACTER_JELLY],  "PAW1.TGA",  1, NUM_PAW_SPRITES, 32, 24, 0);
+    loadSprite(&paw[CHARACTER_PENNY],  g_Assets.paw[CHARACTER_PENNY],  "PAW2.TGA",  1, NUM_PAW_SPRITES, 32, 24, 0);
+    loadSprite(&paw[CHARACTER_POTTER], g_Assets.paw[CHARACTER_POTTER], "PAW3.TGA",  1, NUM_PAW_SPRITES, 32, 24, 0);
+    loadSprite(&paw[CHARACTER_SPARTA], g_Assets.paw[CHARACTER_SPARTA], "PAW4.TGA",  1, NUM_PAW_SPRITES, 32, 24, 0);
+    loadSprite(&paw[CHARACTER_POPPY],  g_Assets.paw[CHARACTER_POPPY],  "PAW5.TGA",  1, NUM_PAW_SPRITES, 32, 24, 0);
+    loadSprite(&paw[CHARACTER_TJ],     g_Assets.paw[CHARACTER_TJ],     "PAW6.TGA",  1, NUM_PAW_SPRITES, 32, 24, 0);
+    loadSprite(&paw[CHARACTER_GEORGE], g_Assets.paw[CHARACTER_GEORGE], "PAW7.TGA",  1, NUM_PAW_SPRITES, 32, 24, 0);
+    loadSprite(&paw[CHARACTER_WUPPY],  g_Assets.paw[CHARACTER_WUPPY],  "PAW8.TGA",  1, NUM_PAW_SPRITES, 32, 24, 0);
+    loadSprite(&paw[CHARACTER_WALRUS], g_Assets.paw[CHARACTER_WALRUS], "PAW9.TGA",  1, NUM_PAW_SPRITES, 32, 24, 0);
+    loadSprite(&paw[CHARACTER_GARF],   g_Assets.paw[CHARACTER_GARF],   "PAW10.TGA", 1, NUM_PAW_SPRITES, 32, 24, 0);
+    loadSprite(&paw[CHARACTER_NONE],   g_Assets.paw[CHARACTER_NONE],   "PAW11.TGA", 1, NUM_PAW_SPRITES, 32, 24, 0);
         
     g_Game.isLoading = false;
 }
@@ -243,47 +207,47 @@ void loadGameAssets(void)
     g_Game.isLoading = true;
     
     // Items (load first so the explosion can be re-used for other elements)
-    loadSprite(&bomb_item, g_Assets.bomb, "BOMB.TGA", bomb_tileset, NUM_BOMB_SPRITES, 24, 24, true);
-    loadSprite(&bomb_item, g_Assets.explosion, "EXPLOD.TGA", explode_tileset, NUM_EXPLOD_SPRITES, 72, 72, false);
-    loadSprite(&fishtank_item, g_Assets.fishtank, "FISH.TGA", fishtank_tileset, NUM_FISH_SPRITES, 24, 24, true);
-    loadSprite(&shroom_item, g_Assets.shroom, "SHROOM.TGA", shroom_tileset, NUM_SHROOM_SPRITES, 24, 24, true);
+    loadSprite(&bomb_item, g_Assets.bomb, "BOMB.TGA", NUM_BOMB_SPRITES, 1, 24, 24, 0);
+    loadSprite(&bomb_item, g_Assets.explosion, "EXPLOD.TGA", NUM_EXPLOD_SPRITES, 1, 72, 72, 1);
+    loadSprite(&fishtank_item, g_Assets.fishtank, "FISH.TGA", NUM_FISH_SPRITES, 1, 24, 24, 0);
+    loadSprite(&shroom_item, g_Assets.shroom, "SHROOM.TGA", NUM_SHROOM_SPRITES, 1, 24, 24, 0);
     
     // UI elements
-    loadSprite(&timer, g_Assets.timer, "NUM1X1.TGA", timer_tileset, NUM_TIMER_SPRITES, 16, 16, true);
+    loadSprite(&timer, g_Assets.timer, "NUM1X1.TGA", NUM_TIMER_SPRITES, 1, 16, 16, 0);
 
-    loadSprite(&goal[0], g_Assets.goal1, "GOAL1.TGA", goal_tileset, NUM_GOAL_SPRITES, 32, 12, true);
-    loadSprite(&goal[1], g_Assets.goal2, "GOAL2.TGA", goal_tileset, NUM_GOAL_SPRITES, 32, 12, true);
-    loadSprite(&goal[2], g_Assets.goal3, "GOAL3.TGA", goal_tileset, NUM_GOAL_SPRITES, 32, 12, true);
-    loadSprite(&goal[3], g_Assets.goal4, "GOAL4.TGA", goal_tileset, NUM_GOAL_SPRITES, 32, 12, true);
+    loadSprite(&goal[0], g_Assets.goal[0], "GOAL1.TGA", NUM_GOAL_SPRITES, 1, 32, 12, 0);
+    loadSprite(&goal[1], g_Assets.goal[1], "GOAL2.TGA", NUM_GOAL_SPRITES, 1, 32, 12, 0);
+    loadSprite(&goal[2], g_Assets.goal[2], "GOAL3.TGA", NUM_GOAL_SPRITES, 1, 32, 12, 0);
+    loadSprite(&goal[3], g_Assets.goal[3], "GOAL4.TGA", NUM_GOAL_SPRITES, 1, 32, 12, 0);
     
-    goal[0].anim2.asset = g_Assets.explosion;
-    goal[0].anim2.max = bomb_item.anim2.max;   
-    goal[1].anim2.asset = g_Assets.explosion;
-    goal[1].anim2.max = bomb_item.anim2.max;   
-    goal[2].anim2.asset = g_Assets.explosion;
-    goal[2].anim2.max = bomb_item.anim2.max;   
-    goal[3].anim2.asset = g_Assets.explosion;
-    goal[3].anim2.max = bomb_item.anim2.max;
+    goal[0].anim[1].asset = g_Assets.explosion;
+    goal[0].anim[1].max = bomb_item.anim[1].max;   
+    goal[1].anim[1].asset = g_Assets.explosion;
+    goal[1].anim[1].max = bomb_item.anim[1].max;   
+    goal[2].anim[1].asset = g_Assets.explosion;
+    goal[2].anim[1].max = bomb_item.anim[1].max;   
+    goal[3].anim[1].asset = g_Assets.explosion;
+    goal[3].anim[1].max = bomb_item.anim[1].max;
     
-    loadSprite(&heart, g_Assets.heart, "HEARTS.TGA", heart_tileset, NUM_HEART_SPRITES, 8, 8, true);
-    star.anim1.asset = g_Assets.heart;
-    star.spr_id = star.anim1.asset[3];
+    loadSprite(&heart, g_Assets.heart, "HEARTS.TGA", NUM_HEART_SPRITES, 1, 8, 8, 0);
+    star.anim[0].asset = g_Assets.heart;
+    star.spr_id = star.anim[0].asset[3];
     
-    loadSprite(&shield[0], g_Assets.shield, "SHIELD.TGA", shield_tileset, NUM_SHIELD_SPRITES, 32, 64, true);
-    shield[1].anim1.asset = g_Assets.shield,
-    shield[1].anim1.max = 6,
-    shield[1].spr_id = shield[1].anim1.asset[6];
-    shield[2].anim1.asset = g_Assets.shield,
-    shield[2].anim1.max = 6,
-    shield[2].spr_id = shield[2].anim1.asset[6];
-    shield[3].anim1.asset = g_Assets.shield,
-    shield[3].anim1.max = 6,
-    shield[3].spr_id = shield[3].anim1.asset[6];
+    loadSprite(&shield[0], g_Assets.shield, "SHIELD.TGA", NUM_SHIELD_SPRITES, 1, 32, 64, 0);
+    shield[1].anim[0].asset = g_Assets.shield,
+    shield[1].anim[0].max = 6,
+    shield[1].spr_id = shield[1].anim[0].asset[6];
+    shield[2].anim[0].asset = g_Assets.shield,
+    shield[2].anim[0].max = 6,
+    shield[2].spr_id = shield[2].anim[0].asset[6];
+    shield[3].anim[0].asset = g_Assets.shield,
+    shield[3].anim[0].max = 6,
+    shield[3].spr_id = shield[3].anim[0].asset[6];
     
-    loadSprite(&dead, g_Assets.dead, "X.TGA", dead_tileset, NUM_X_SPRITES, 24, 24, true);
+    loadSprite(&dead, g_Assets.dead, "X.TGA", NUM_X_SPRITES, 1, 24, 24, 0);
         
-    pixel_poppy.anim2.asset = g_Assets.explosion;
-    pixel_poppy.anim2.max = bomb_item.anim2.max;
+    pixel_poppy.anim[1].asset = g_Assets.explosion;
+    pixel_poppy.anim[1].max = bomb_item.anim[1].max;
     
     craig_item.spr_id = jo_sprite_add_tga(NULL, "CRAIG.TGA", palette_transparent_index);
     garfield_item.spr_id = jo_sprite_add_tga(NULL, "GARFIELD.TGA", palette_transparent_index);
@@ -300,6 +264,6 @@ void unloadGameAssets(void)
 {
     g_Game.isLoading = true;
     // unloads everything after this point
-    jo_sprite_free_from(macchi.anim1.asset[0]);
+    jo_sprite_free_from(character_portrait.anim[0].asset[0]);
     
 }

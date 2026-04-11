@@ -279,12 +279,13 @@ void initPlayers(void)
         
         // SPRITES
         // assign cursor & bg tile to each player
-        player->_cursor = &player_cursor;
+        player->_cursor[0] = &player_cursor1;
+        player->_cursor[1] = &player_cursor2;
         player->_bg = &player_bg;
+        player->_bg->scl.y = PLAYER_BG_Y;
         player->_bg->zmode = _ZmLC;
-        player->_sprite = &paw_blank;
+        assignCharacterSprite(player);
         set_spr_scale(player->_sprite, 2, 2);
-        player->_sprite->spr_id = paw_blank_id; // not sure why this changes
         player->_sprite->isColliding = false;
         
         // cursors
@@ -314,6 +315,7 @@ void initPlayers(void)
         player->shield.activate = false;
         
         player->_portrait = &character_portrait;
+        set_spr_scale(player->_portrait, 2, 2);
         
         player->isBig = false;
         player->isSmall = false;
@@ -334,30 +336,20 @@ void initAiPlayers(void)
         
         player->teamChoice = TEAM_1;
         validateTeam(player);
-        // do {
-            // player->teamChoice++;
-            // if (player->teamChoice > g_Team.maxTeams) {
-                // player->teamChoice = TEAM_1;
-            // }
-        // } while (!g_Team.isAvailable[player->teamChoice]);
-        // if (player->teamChoice == TEAM_2 || player->teamChoice == TEAM_4) {
-            // player->_sprite->flip = sprHflip;
-        // }
-        // else {
-            // player->_sprite->flip = sprNoflip;
-        // }
         g_Team.isAvailable[player->teamChoice] = false;
         g_Team.objectState[player->teamChoice] = OBJECT_STATE_ACTIVE;
         g_Team.numTeams++;
         g_Game.currentNumPlayers++;
         
-        player->_bg->spr_id = player->_bg->anim1.asset[i];
+        player->_bg->spr_id = player->_bg->anim[0].asset[i];
         player->character.choice = my_random_range(CHARACTER_MACCHI, CHARACTER_GARF);
         validateCharacters(player);
         characterAvailable[player->character.choice] = false;
                         
         assignCharacterSprite(player);        
         assignCharacterStats(player);
+        
+        player_bg.mesh = MESHoff;
         
         player->_sprite->pos.r = PLAYER_RADIUS;
         player->shield.activate = false;
@@ -377,12 +369,14 @@ void initStoryCharacters(void)
     g_Team.isAvailable[player->teamChoice] = false; 
     g_Team.objectState[player->teamChoice] = OBJECT_STATE_ACTIVE;
     
-    player->_bg->spr_id = player->_bg->anim1.asset[1];
+    player->_bg->spr_id = player->_bg->anim[0].asset[1];
     player->character.choice = g_Game.countofRounds +1;
     characterAvailable[player->character.choice] = false;
 
     assignCharacterSprite(player);
     assignCharacterStats(player);
+    
+    player_bg.mesh = MESHoff;
     
     player->isPlaying = true;
     player->objectState = OBJECT_STATE_ACTIVE;
@@ -413,9 +407,9 @@ void initVsModePlayers(void)
     {
         player = &g_Players[i];
         
-        player->_sprite->spr_id = player->_sprite->anim1.asset[0];
         set_spr_scale(player->_portrait, 1.1, 1);
-        player->_bg->spr_id = player->_bg->anim1.asset[i];
+        player->_bg->spr_id = player->_bg->anim[0].asset[i];
+        player_bg.mesh = MESHoff;
         player->_sprite->isColliding = false;
         assignCharacterStats(player);
         
@@ -525,8 +519,8 @@ void initDemoPlayers(void)
     {
         player = &g_Players[i];
         if (i == 0) {
-            player->_sprite = &macchi;
-            player->_sprite->spr_id = player->_sprite->anim1.asset[0];
+            player->_sprite = &paw[CHARACTER_MACCHI];
+            player->_sprite->spr_id = player->_sprite->anim[0].asset[0];
             player->_sprite->flip = sprNoflip;
             player->onLeftSide = true;
             player->teamChoice = TEAM_1;
@@ -543,18 +537,18 @@ void initDemoPlayers(void)
         }
         else if (i == 1) {
             if (JO_MOD_POW2(jo_random(999), 2)) { // modulus
-                player->_sprite = &jelly;
+                player->_sprite = &paw[CHARACTER_JELLY];
                 player->character.choice = 1;
             }
             else if (JO_MOD_POW2(jo_random(999), 9)) { // modulus
-                player->_sprite = &garfield;
+                player->_sprite = &paw[CHARACTER_GARF];
                 player->character.choice = 10;
             }
             else {
-                player->_sprite = &sparta;
+                player->_sprite = &paw[CHARACTER_SPARTA];
                 player->character.choice = 4;
             }
-            player->_sprite->spr_id = player->_sprite->anim1.asset[0];
+            player->_sprite->spr_id = player->_sprite->anim[0].asset[0];
             player->_sprite->flip = sprHflip;
             player->onLeftSide = false;
             player->teamChoice = TEAM_2;
@@ -571,18 +565,18 @@ void initDemoPlayers(void)
         }
         else if (i == 2) { // set up player 3 last (we need to know the team count)
             if (JO_MOD_POW2(jo_random(999), 2)) { // modulus
-                player->_sprite = &poppy;
+                player->_sprite = &paw[CHARACTER_POPPY];
                 player->character.choice = 5;
             }
             else if (JO_MOD_POW2(jo_random(999), 9)) { // modulus
-                player->_sprite = &stadler;
+                player->_sprite = &paw[CHARACTER_WALRUS];
                 player->character.choice = 9;
             }
             else {
-                player->_sprite = &penny;
+                player->_sprite = &paw[CHARACTER_PENNY];
                 player->character.choice = 2;
             }
-            player->_sprite->spr_id = player->_sprite->anim1.asset[0];
+            player->_sprite->spr_id = player->_sprite->anim[0].asset[0];
             player->_sprite->flip = sprVflip;
             player->onLeftSide = true;
             player->teamChoice = TEAM_3;
@@ -593,18 +587,18 @@ void initDemoPlayers(void)
         }
         else if (i == 3) {
             if (JO_MOD_POW2(jo_random(999), 2)) { // modulus
-                player->_sprite = &potter;
+                player->_sprite = &paw[CHARACTER_POTTER];
                 player->character.choice = 3;
             }
             else if (JO_MOD_POW2(jo_random(999), 9)) { // modulus
-                player->_sprite = &wuppy;
+                player->_sprite = &paw[CHARACTER_WUPPY];
                 player->character.choice = 8;
             }
             else {
-                player->_sprite = &tj;
+                player->_sprite = &paw[CHARACTER_TJ];
                 player->character.choice = 6;
             }
-            player->_sprite->spr_id = player->_sprite->anim1.asset[0];
+            player->_sprite->spr_id = player->_sprite->anim[0].asset[0];
             player->_sprite->flip = sprHVflip;
             player->onLeftSide = false;
             player->teamChoice = TEAM_4;
@@ -620,8 +614,8 @@ void initDemoPlayers(void)
 
         player->_sprite->pos.r = PLAYER_RADIUS;
         player->shield.activate = false;
-        
-        player->_portrait->spr_id = player->_portrait->anim1.asset[player->character.choice];
+        player_bg.mesh = MESHoff;
+        player->_portrait->spr_id = player->_portrait->anim[0].asset[player->character.choice];
         set_spr_scale(player->_portrait, 1.1, 1);
         player->objectState = OBJECT_STATE_ACTIVE;
         player->isPlaying = true;
@@ -633,45 +627,10 @@ void initDemoPlayers(void)
 }
 
 void assignCharacterSprite(PPLAYER player) {
-    switch (player->character.choice)
-    {
-        case CHARACTER_MACCHI:
-            player->_sprite = &macchi;
-            break;
-        case CHARACTER_JELLY:
-            player->_sprite = &jelly;
-            break;
-        case CHARACTER_PENNY:
-            player->_sprite = &penny;
-            break;
-        case CHARACTER_POPPY:
-            player->_sprite = &poppy;
-            break;
-        case CHARACTER_POTTER:
-            player->_sprite = &potter;
-            break;
-        case CHARACTER_SPARTA:
-            player->_sprite = &sparta;
-            break;
-        case CHARACTER_TJ:
-            player->_sprite = &tj;
-            break;
-        case CHARACTER_GEORGE:
-            player->_sprite = &george;
-            break;
-        case CHARACTER_WUPPY:
-            player->_sprite = &wuppy;
-            break;
-        case CHARACTER_WALRUS:
-            player->_sprite = &stadler;
-            break;
-        case CHARACTER_GARF:
-            player->_sprite = &garfield;
-            break;
-        default:
-        break;
-    }
-    player_bg.mesh = MESHoff;
+    player->_sprite = &paw[player->character.choice];
+    player->_sprite->anim[0].frame = 0;
+    player->_sprite->spr_id = player->_sprite->anim[0].asset[player->_sprite->anim[0].frame];
+    // player_bg.mesh = MESHoff;
 }
 
 void assignCharacterStats(PPLAYER player) {
