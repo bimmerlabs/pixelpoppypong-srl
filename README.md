@@ -109,13 +109,13 @@ Attacks and blocking all draw from the power meter. It regenerates over time, bu
 
 ## Scoring
 
-Points are awarded based on two factors:
+### Points are awarded based on two factors:
 
 **Poppy's mood:** derived from her current velocity and spin. The faster she is moving and spinning at the moment of a score, the more points she is worth.
 
 **Score multiplier:** increases each time you touch the ball or collect a special item, up to a maximum of 99×. It resets to zero if you are scored on, lose a life, or are blown up by a bomb.
 
-For every 1,000,000 points earned, you gain an extra life. Playing well compounds your advantage: a high multiplier means more points, more points mean more extra lives, and more lives make the game easier to complete.
+For every 1,000,000 points earned, you gain an extra life. Playing well compounds your advantage: a high multiplier means more points, more points mean more extra lives, and more lives make the game easier to complete!
 
 ---
 
@@ -128,11 +128,12 @@ Five items appear during play. All items award points on collection, except the 
 | **Fish** | Awards extra hearts (lives). Always beneficial. |
 | **Mushroom** | Color-dependent. Touch the wrong color and your paw shrinks. Touch the right color and you grow, giving you a size advantage over your opponent.  It's like identifying mushrooms in the wild: if you know, you know. |
 | **Bomb** | Generally something to avoid. Using your shield lets you smash it toward your opponent, but be careful, this can backfire! |
-| **Craig Stadler** | Grants a 2× power meter bonus. That's great, unless you already got the Garfield powerup. :D |
-| **Garfield** | Grants a 4× power bonus and instantly applies a 10× score multiplier. The most powerful item in the game. |
+| **Craig Stadler** | Grants a 2x power meter bonus. That's great, unless you already got the Garfield powerup. :D |
+| **Garfield** | Grants a 4x power bonus and instantly applies a 10× score multiplier. The most powerful item in the game. |
 
 #### Shield Interactions
-The shield can be used to deflect mushrooms and bombs into your opponent. I kind of added this by accident, because you can also deflect Poppy when she is exploding, which was basically a bug I decided to incorporate into the game. The upside is this introduces a risk/reward: a deflected mushroom could land favorably for your enemy, and a deflected bomb can come right back at you. Watch out!
+The shield can be used to deflect mushrooms and bombs into your opponent. I kind of added this by accident, because you can also deflect Poppy when she is exploding, which was basically a bug I decided to incorporate into the game. The upside is this introduces a risk/reward: a deflected mushroom could land favorably for your enemy, and a deflected bomb can come right back at you. 
+However, you have to time this perfectly, and it may distract you from being scored on by your opponent. Watch out!
 
 ---
 
@@ -158,7 +159,7 @@ Four characters are available from the start. Additional characters are unlocked
 | **Starter characters** | 4 characters available from the beginning. |
 | **Story unlocks** | Most opponents are unlocked by defeating them in story mode. |
 | **Special unlocks** | 2 characters unlocked by completing story mode as Wuppy. |
-| **Hidden character** | Cannot be unlocked through normal play, but the lucky may find a way. |
+| **Hidden character** | Cannot be unlocked through normal play, but the lucky may still find a way! |
 
 ---
 
@@ -200,11 +201,11 @@ In story mode and standard 2-player matches, only teams 1 and 2 are active. Up t
 
 **Hearts:** a row of heart icons indicating remaining lives.
 
-**Continues:** displayed as '*' next to `Hearts`. In story mode, losing all hearts costs a continue and restarts the current battle.
+**Continues:** displayed as `*` next to `Hearts`. In story mode, losing all hearts costs a continue and restarts the current battle.
 
-**Character portrait:** shows the cat the player selected, matching their paw and goal color on the field.
+**Character portrait:** shows the character the player selected, matching their paw (and dialogue in story mode).
 
-**Power meter:** a horizontal bar below the character portrait. Starts green and shifts toward red as it depletes.
+**Power meter:** a thin horizontal bar below the character portrait. Starts green and shifts toward red as it depletes.  Can be extended with special items.
 
 **Timer:** displayed at the top center of the screen. In battle mode, expiry ends the match. In story mode, expiry costs a continue and restarts the current battle.
 
@@ -240,7 +241,8 @@ Both digital and analog controllers are supported. With an analog controller, in
 
 ## Audio
 
-Music is composed by Random. This version features two new tracks: an all-new boss theme composed specifically for Pixel Poppy Pong, and a previously unreleased match ending track recovered from an old hard drive. Originally intended for the game but never included until now.
+Big thanks to Random for his awesome compositions, based on samples from Virtua Racing.  You may notice that music doesn't play continually during gameplay: this was intentional - reflecting on how music played when you crossed a goal in Virtua Racing, something we both clicked on early in the project.
+This version features two new tracks: an all-new boss theme composed specifically for Pixel Poppy Pong, and a previously unreleased match ending track recovered from an old hard drive. Originally intended for the game but never included until now, because I forgot it existed! :D
 
 #### Sound Test
 
@@ -256,11 +258,11 @@ A sound test is available from the options menu, with separate entries for music
 
 ## Options
 
-All options are saved to backup memory automatically.
+All options (and high scores) are saved to backup memory automatically.  If you have a BUP Cart, it will choose that first.
 
 | Option | Description |
 |---|---|
-| **Mosaic effect** | Toggles the mosaic effect on or off. Recommended off on emulators, which may not render this effect correctly. |
+| **Mosaic effect** | Toggles the mosaic effect on or off. Leave on normally, turn off on emulators which do not render this effect correctly. |
 | **Background mode** | **Auto** cycles through background color variations. **RTC** uses the Saturn's internal clock to display a background matching the current time of day. |
 | **Big Head Mode** *(unlockable)* | Makes the ball twice its normal size. Purely for fun. |
 | **Music test** | See [Sound Test](#sound-test). |
@@ -277,7 +279,8 @@ When left idle at the title screen, the game enters attract mode and cycles thro
 2. Title screen
 3. Demo: 45 seconds of live CPU-vs-CPU gameplay (no pre-recorded sequences)
 4. Credits
-5. High scores
+5: Demo (again)
+6. High scores
 
 Press **Start** at any point during the attract cycle to return to the title screen.
 
