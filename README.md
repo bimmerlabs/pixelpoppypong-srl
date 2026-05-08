@@ -36,63 +36,70 @@ https://srl.reye.me
 ### Engine & Platform
 
 #### Rewritten in C++ using Saturn Ring Library
-The game was fully ported from Jo-Engine/C to [Saturn Ring Library](https://srl.reye.me)/C++. The primary motivation was Jo-Engine's inability to support 4bpp graphics, limitations in TGA loading, and the pain of pure C implentations of fixed point match.
-
-#### High-resolution display: 704×480 (non-interlaced)
-The game runs at 704×480. VDP2 doubles vertical pixels internally, so the working resolution is 704×240.  I had tried interlaced 704x480 - on a CRT, in my opinion, it is painful to look at.  For a 2D game, non-interlaced is a must.  in Jo Engine, I really had to hack things to make this mode work.
+The game was fully ported from Jo-Engine/C to [Saturn Ring Library](https://srl.reye.me)/C++. The primary motivation was Jo-Engine's inability to support 4bpp graphics, limitations in TGA loading, and the pain of pure C implentations of fixed point math.
 
 #### New backup memory module
-I made a backup memory module from scratch, replacing `sega_bup.h`. Basic SMPC functionality required by this module was also implemented.  This is currently available as a plugin module for SRL. It's working great for the game but consider it a work in progress.
+I made a backup memory module from scratch, replacing `sega_bup.h`. Basic SMPC functionality required by this module was also implemented.  This is currently available as a [plugin module for SRL](https://github.com/bimmerlabs/backup-srl). It's working great for the game but consider it a work in progress.
 
 #### New SRL wrapper for Ponesound
-A new C++ wrapper was written for Ponesound (originally by Ponut64), along with the SMPC support it requires.  This is also available as a plugin module for SRL - the only missing feature is real time streaming from the CD, which I plan to work on after the 2026 showcase.
+A new C++ wrapper was written for Ponesound (originally by Ponut64), along with the SMPC support it requires.  This is also available as a [plugin module for SRL](https://github.com/bimmerlabs/Ponesound-SRL) - the only missing feature is real time streaming from the CD, which I plan to work on after the 2026 showcase.
 
 ---
 
 ### Asset Pipeline & Format
 
 #### TMSF: Tile Map Sprite Format *(work in progress)*
-A custom sprite format developed for efficiently loading 2d assets. TMSF supports tilemaps and animations, with a compression ration of around 4:1 (currently only supports paletted format). This enables roughly 2× as many individual sprite frames compared to loading individual TGA files, at significantly faster load times. Additionally, the TGA format became burdensom, I couldn't pack all of the "paw" sprites into a single file, I had to load them individually, because the Saturn didn't have enough ram to process a TGA file that large.  Now, I can pack almost as many sprites as I want into a single file, which makes asset management easier, with faster loading times as a bonus.  In the future, I plan to integrate with SRL's delta-time system to enable frame-rate-independent animations without manual frame counting.
+A custom sprite format developed for efficiently loading 2d assets. TMSF supports tilemaps and animations, with a compression ration of around 4:1 (currently only supports paletted format). This enables roughly 2× as many individual sprite frames compared to loading individual TGA files, at significantly faster load times. 
+
+I made TMSF because the TGA format became burdensom; I couldn't pack all of the "paw" sprites into a single file for example.  Instead, I loaded them individually, because the Saturn didn't have enough ram to process a TGA file that large.  This also made loading slow, since the CD had to process and load individual files. Now, I can pack as many sprites as I want into a single file (as long as they fit decompressed in VRAM), which makes asset management easier, with faster loading times as a bonus.
+
+In the future, I plan to integrate with SRL's delta-time system to enable frame-rate-independent animations without manual frame counting.
 
 #### Compressed PCM audio samples
-The same compression scheme used for sprites has been extended to PCM audio samples, contributing to the overall reduction in load times.  This is built into the Ponesound-Srl module, with relatively easy to use tools to generate the neccesary assets (feedback is appreciated).
+The same compression scheme used for sprites has been extended to PCM audio samples, contributing to the overall reduction in load times.  This is built into the [Ponesound-Srl](https://github.com/bimmerlabs/Ponesound-SRL) module, with relatively easy to use tools to generate the neccesary assets (feedback is appreciated).
 
 ---
 
 ## Graphics
 
+#### High-resolution display: 704×240p (non-interlaced)
+VDP2 runs at 704x240, while VDP1 runs at 704x480, but effectively it's 240p. This seems confusing, but basically, VDP2 vertically doubles VDP1 pixels internally, so the output resolution is 704×240.  However, all the "screen space" math on VDP1 is 704x480.  These kinds of display modes are actually common on Saturn - VDP1 and VDP2 do not need to run at the same vertical resolution.
+
+This gave me extra space to scale the phsyics I wanted.  I have also tried running both chips at 704x480i.  But on a CRT, in my opinion, fast moving 2d graphics look bad due to interlacing.  So I chose to stick to non-interlaced, but half the vertical resolution, and 60fps.
+
 #### 4bpp background support
 Switching to SRL unlocked 4bpp backgrounds which are not possible in Jo-Engine. Also, the Cubetile format (by 7shades) packs the background layers into a single .bin, so I can easily load/unload different backgrounds for the UI without the user being able to notice.
 
-#### Higher quality assets
-I've improved asset quality across the board, made practical by the TMSF compression format, better tools, and faster loading pipeline.
-
 #### All New Artwork
-Basically every sprite in the game was redrawn from scratch in Aseprite. Basically, this is not a regurgitation using last year's assets. Almost every animation has additional frames, a number of sprites are larger, and many new sprites have been added.  I should have ditched Paint sooner!  Despite the increased content and asset quality across the board, disc footprint and loading times are smaller and faster than the previous version.
+I've improved asset quality across the board, made practical by the TMSF compression format, better tools such as Aseprite, and faster loading pipeline.
+
+Basically every sprite in the game was redrawn from scratch in Aseprite. This is not a regurgitation using last year's assets - almost every animation has additional frames, a number of sprites are larger, and many new sprites have been added.  
+
+I should have ditched Paint sooner!  Despite the increased content and asset quality across the board, disc footprint and loading times are smaller and faster than the previous version.
 
 #### Revised Backgrounds
-Backgrounds have been reworked with updated colors and new compositions.
+Backgrounds have been reworked with updated colors and new compositions.  Most of the work was tweaking palettes, and adding new "seasons".
 
 #### Seasons & Special Dates *(secrets)*
 The game reads the Saturn's internal clock and alters the presentation accordingly. There are four seasons, each with their own effects and visual modes. A handful of special dates unlock additional content beyond the seasons. Players are encouraged to experiment with their Saturn's clock settings - try it out, there are secrets to find!
 
 #### Aseprite to Saturn Tilemap Tool
-A tilemap conversion tool contributed by **purist** ([GitHub repository](#)) significantly reduced the effort involved in generating tilemaps for VDP2. Now I can easily draw assets directly in Aseprite, then convert them to a VDP2-friendly format with minimal friction. I made a batch script ([download](#)) so the workflow is as simple as dragging an Aseprite file onto it to produce the output `.bin` file. An [SRL walkthrough](#) is also available that covers the tool and makes getting started easier.
+A tilemap conversion tool by **purist** ([saturn-aseprite](https://github.com/buhman/saturn-aseprite)) significantly reduced the effort involved in generating tilemaps for VDP2. Now I can easily draw assets directly in Aseprite, then convert them to a VDP2-friendly format with minimal friction. I made a batch script ([download](#)) so the workflow is as simple as dragging an Aseprite file onto it to produce the output `.bin` file. An [SRL walkthrough](#) is also available that covers the tool and makes getting started easier.
 
-This tool was instrumental in adding NBG2 backgrounds to the user interfaces. Previously, UI elements were drawn with VDP1, which created a fillrate problem. It was impossible to draw the UI I wanted to, and what I could do used mesh transparencies as an ugly workaround. Moving that work to VDP2 tilemaps solved the problem entirely and opened up a much cleaner visual result. Tools like this make experimenting with new ideas and iterating on assets dramatically faster.
+This tool was instrumental in adding NBG2 backgrounds to the user interfaces. Previously, UI elements were drawn with VDP1, which created a fillrate problems due to the resolution I chose. It was physically impossible to draw the UI I wanted to, and what I could do used mesh transparencies as an ugly workaround. Moving that work to VDP2 tilemaps solved the problem entirely and opened up a much cleaner visual result. ([saturn-aseprite](https://github.com/buhman/saturn-aseprite)) made experimenting with new ideas and iterating on assets dramatically faster!
 
 ---
 
 ## VDP1 Particle Generator
 
 #### A sprite-based particle system rendered with VDP1
-I really had a great time making this, it's enabled effects I had long wanted to add to the game. A standalone demo was also submitted separately for the 2026 showcase. It's also a tool - I used to build/test effects for Pixel Poppy Pong, since compiling a small demo is much faster.
+I really had a great time making this, it's enabled effects I had long wanted to add to the game. A [standalone demo](https://segaxtreme.net/resources/particle-effects-generator.505/) was also submitted separately for the 2026 showcase. It's primairlly designed as a tool - I used the demo to build and test effects for Pixel Poppy Pong. Compiling a small demo is much faster than compiling an entire game, and I could edit the effects in real-time to get the output I wanted.
 
 ---
 
 ## Menus
 
-Menu layouts are largely unchanged from the previous version but have been cleaned up with better presentation. New VDP2 backgrounds and a VDP1-rendered font give them a more polished look. All menu flows have been thoroughly tested, navigation should feel straightforward and reliable.
+Menu layouts will feel familliar to the 2025 version, but they have been cleaned up with better presentation. New VDP2 backgrounds and a VDP1-rendered font give them a more polished look. All menu flows have been thoroughly tested, navigation should feel straightforward and reliable.
 
 ---
 
@@ -102,7 +109,7 @@ Menu layouts are largely unchanged from the previous version but have been clean
 This is not a traditional pong game with axis-aligned bounding box collisions. Collisions are resolved based on the actual contact angle between objects, which feels way better (to me, at least). The ball - Poppy - has a spin value that curves her trajectory through the air. Friction is also modelled, meaning the feel of every rally is shaped by your inputs.
 
 #### Player Interaction Matters
-How you hit the ball has meaningful consequences. Swiping upward imparts spin, curving Poppy's path. The attack button adds extra speed. Playing for angles and bouncing the ball behind your opponent is a viable and rewarding strategy.
+How you hit the ball has consequences. Swiping upward imparts spin, curving Poppy's path. The attack button adds extra speed. Playing for angles and bouncing the ball behind your opponent is a viable and rewarding strategy.
 
 #### Power Meter
 Attacks and blocking all draw from the power meter. It regenerates over time, but the rate depends on your position on the field. Inside your goal, it recharges at full speed. Moving outside your goal slows regeneration. Venture too far from your goal and it stops regenerating entirely. Running out while playing aggressively can leave you completely vulnerable until you retreat. Players who camp in the center spamming attacks and shields will find their power draining with no way to recover it!
@@ -117,7 +124,7 @@ Attacks and blocking all draw from the power meter. It regenerates over time, bu
 
 **Score multiplier:** increases each time you touch the ball or collect a special item, up to a maximum of 99×. It resets to zero if you are scored on, lose a life, or are blown up by a bomb.
 
-For every 1,000,000 points earned, you gain an extra life. Playing well compounds your advantage: a high multiplier means more points, more points mean more extra lives, and more lives make the game easier to complete!
+**Tip:** For every `1,000,000` points earned, you gain an extra life. Playing well compounds your advantage: a high multiplier means more points, more points mean more extra lives, and more lives make the game easier to complete!
 
 ---
 
@@ -134,7 +141,10 @@ Five items appear during play. All items award points on collection, except the 
 | **Garfield** | Grants a 4x power bonus and instantly applies a 10× score multiplier. The most powerful item in the game. |
 
 #### Shield Interactions
-The shield can be used to deflect mushrooms and bombs into your opponent. I kind of added this by accident, because you can also deflect Poppy when she is exploding, which was basically a bug I decided to incorporate into the game. The upside is this introduces a risk/reward: a deflected mushroom could land favorably for your enemy, and a deflected bomb can come right back at you. 
+The shield can be used to deflect mushrooms and bombs into your opponent. I kind of added this by accident, because you can also deflect Poppy when she is exploding, which was basically a bug I decided to incorporate into the game. 
+
+The upside is this introduces a risk/reward: a deflected mushroom could land favorably for your enemy, and a deflected bomb can come right back at you. 
+
 However, you have to time this perfectly, and it may distract you from being scored on by your opponent. Watch out!
 
 ---
@@ -145,10 +155,18 @@ However, you have to time this perfectly, and it may distract you from being sco
 A stripped-back 2-player mode close to the original Pong concept. Players cannot leave their goal area and items do not appear, though the full physics and input system is still in effect. Useful as a practice mode or for a shorter, more focused match. Supports CPU or human opponents.
 
 #### Battle Mode
-A versus mode for up to 4 players using the Multitap peripheral. All gameplay mechanics are active, and players can move freely out of their goal to intercept the ball, collect items, or coordinate with whoever shares their side of the screen. The goal is to be the last player standing. CPU opponents fill any unoccupied slots automatically, and mixed human/CPU configurations are supported.  The ideal way to play this is with other humans - my AI coding skills are not great (hah!).  But I promise, vs mode is absolutely chaotic and fun.
+A versus mode for up to 4 players using the Multitap peripheral. All gameplay mechanics are active, and players can move freely out of their goal to intercept the ball, collect items, or coordinate with whoever shares their side of the screen. The goal is to be the last player standing. 
+
+CPU opponents fill any unoccupied slots automatically, and mixed human/CPU configurations are supported.  
+
+The ideal way to play this is with other humans - my AI coding skills are not great (hah!).  But I promise, Battle Mode is insanely chaotic fun.
 
 #### Story Mode
-The main single-player experience. Mechanics are identical to battle mode, but you face a ladder of 12 computer opponents, one at a time. It's basically inspired by games like Mortal Kombat or Virtua Fighter.  Each character is searching for a lost item they believe has been taken, eaten, or simply lost by Wuppy, a dog who has become the most feared figure among the cats. That is despite the fact that he loves cats and just wants to play! Each character has their own individual dialogue and personality. Beating the game unlocks your name on the high scores list, saved to backup memory.  Can you reach the top score?
+The main single-player experience. Mechanics are identical to battle mode, but you face a ladder of 12 computer opponents, one at a time. It's somewhat  inspired by 1v1 fighting games like Mortal Kombat or Virtua Fighter.  
+
+Each character is searching for a lost item they believe has been taken, eaten, or simply lost by Wuppy, a dog who has become the most feared figure among the cats. That is despite the fact that he loves cats and just wants to play! 
+
+Each character has their own individual dialogue and personality. Beating the game unlocks your name on the high scores list, saved to backup memory.  Can you reach the top score?
 
 ---
 
@@ -197,17 +215,17 @@ In story mode and standard 2-player matches, only teams 1 and 2 are active. Up t
 
 #### HUD Elements
 
-**Score:** displayed as a row of digit sprites. Digits appear square when all zeros and become more visually distinct as the score climbs.
+**Score:** the score for the current round.  In story mode, your total score is added up at the end of each round (you can see the total on the Pawsed screen).
 
 **Score Multiplier:** displayed as `*N` alongside the score. Resets to 0 if you are scored on or get hit with a bomb, or otherwise die.
 
 **Hearts:** a row of heart icons indicating remaining lives.
 
-**Continues:** displayed as `*` next to `Hearts`. In story mode, losing all hearts costs a continue and restarts the current battle.
+**Continues:** displayed as a `Star` next to `Hearts`. In story mode, losing all hearts costs a continue and restarts the current battle.
 
-**Character portrait:** shows the character the player selected, matching their paw (and dialogue in story mode).
+**Character portrait:** a picture of your favorite fuzzy friend.  Or perhaps your frenemy..
 
-**Power meter:** a thin horizontal bar below the character portrait. Starts green and shifts toward red as it depletes.  Can be extended with special items.
+**Power meter:** a thin horizontal bar directly below the character portrait. Starts green and shifts toward red as it depletes.  Can be extended with special items.
 
 **Timer:** displayed at the top center of the screen. In battle mode, expiry ends the match. In story mode, expiry costs a continue and restarts the current battle.
 
@@ -243,8 +261,11 @@ Both digital and analog controllers are supported. With an analog controller, in
 
 ## Audio
 
-Big thanks to Random for his awesome compositions, based on samples from Virtua Racing.  You may notice that music doesn't play continually during gameplay: this was intentional - reflecting on how music played when you crossed a goal in Virtua Racing, something we both clicked on early in the project.
-This version features two new tracks: an all-new boss theme composed specifically for Pixel Poppy Pong, and a previously unreleased match ending track recovered from an old hard drive. Originally intended for the game but never included until now, because I forgot it existed! :D
+Big thanks to Random for his awesome compositions, based on samples from Virtua Racing!
+
+You may notice that music doesn't play continually during gameplay: this was intentional - reflecting on how music played when you crossed a goal in Virtua Racing, something we both clicked on early in the project.
+
+This version features two new tracks: an all-new boss theme composed specifically for Pixel Poppy Pong, and a previously unreleased match ending track recovered from an old hard drive.
 
 #### Sound Test
 
