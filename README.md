@@ -6,10 +6,11 @@ Currently being ported from Jo Engine to Saturn Ring Library / C++
 https://srl.reye.me
 <img width="604" height="481" alt="image" src="https://github.com/user-attachments/assets/ba5bc11b-52fc-4c09-8a62-6f9cec397cdc" />
 
-# Pixel Poppy Pong
 ### Manual & Technical Reference
 
 ---
+
+<img width="480" height="200" alt="image" src="https://github.com/user-attachments/assets/a40105b3-3b9b-4f50-8087-07b1de98513e" />
 
 ## Table of Contents
 
@@ -51,6 +52,8 @@ A new C++ wrapper was written for Ponesound (originally by Ponut64), along with 
 ### Asset Pipeline & Format
 
 #### TMSF: Tile Map Sprite Format *(work in progress)*
+<img width="1440" height="32" alt="image" src="https://github.com/user-attachments/assets/beb878e1-c944-477d-bbf9-a293fac5be70" />
+
 A custom sprite format developed for efficiently loading 2d assets. TMSF supports tilemaps and animations, with a compression ration of around 4:1 (currently only supports paletted format). This enables roughly 2× as many individual sprite frames compared to loading individual TGA files, at significantly faster load times. 
 
 I made TMSF because the TGA format became burdensom; I couldn't pack all of the "paw" sprites into a single file for example.  Instead, I loaded them individually, because the Saturn didn't have enough ram to process a TGA file that large.  This also made loading slow, since the CD had to process and load individual files. Now, I can pack as many sprites as I want into a single file (as long as they fit decompressed in VRAM), which makes asset management easier, with faster loading times as a bonus.
@@ -73,9 +76,9 @@ This gave me extra space to scale the phsyics I wanted.  I have also tried runni
 Switching to SRL unlocked 4bpp backgrounds which are not possible in Jo-Engine. Also, the Cubetile format (by 7shades) packs the background layers into a single .bin, so I can easily load/unload different backgrounds for the UI without the user being able to notice.
 
 #### All New Artwork
-I've improved asset quality across the board, made practical by the TMSF compression format, better tools such as Aseprite, and a faster loading pipeline.
+<img width="64" height="50" alt="image" src="https://github.com/user-attachments/assets/f1a7cf31-402f-45a8-8333-31ac650c2336" /> I've improved asset quality across the board, made practical by the TMSF compression format, better tools such as Aseprite, and a faster loading pipeline.
 
-Basically every sprite in the game was redrawn from scratch in Aseprite - this is not a regurgitation using last year's assets. Almost every animation has additional frames, a number of sprites are larger, and many new sprites have been added.  I also worked a lot on the palette, trying to make things look good both on modern displays and CRTs.
+<img width="32" height="30" alt="FISH" src="https://github.com/user-attachments/assets/3de605da-01f7-49b6-b5cc-1e4a56306536" /> Basically every sprite in the game was redrawn from scratch in Aseprite - this is not a regurgitation using last year's assets. Almost every animation has additional frames, a number of sprites are larger, and many new sprites have been added.  I also worked a lot on the palette, trying to make things look good both on modern displays and CRTs.
 
 Despite the increased content and asset quality across the board, disc footprint and loading times are smaller and much faster than the previous version.
 
@@ -83,6 +86,7 @@ Despite the increased content and asset quality across the board, disc footprint
 Backgrounds have been reworked with updated colors and new compositions.  Most of the work was tweaking palettes and adding new "seasons".
 
 #### Seasons & Special Dates *(top secret - shhh!)*
+<img width="32" height="19" alt="image" src="https://github.com/user-attachments/assets/c6173ea5-cc4d-42e5-a047-799c20649ce0" />
 Pixel Poppy Pong reads the Saturn's internal clock and alters the presentation accordingly. There are four seasons, each with their own effects and visual modes. A handful of special dates unlock additional content beyond the seasons. Players are encouraged to experiment with their Saturn's clock settings - try it out, there are secrets to find!
 
 #### Aseprite to Saturn Tilemap Tool
@@ -141,18 +145,22 @@ Five items appear during play. All items award points on collection, except the 
 
 | Item | Effect |
 |---|---|
-| **Fish** | Awards extra hearts (lives). Always beneficial. |
-| **Mushroom** | Color-dependent. Touch the wrong color and your paw shrinks. Touch the right color and you grow, giving you a size advantage over your opponent.  It's like identifying mushrooms in the wild: if you know, you know. |
-| **Bomb** | Generally something to avoid. Using your shield lets you smash it toward your opponent, but be careful, this can backfire! |
-| **Craig Stadler** | Grants a 2x power meter bonus. That's great, unless you already got the Garfield powerup. :D |
-| **Garfield** | Grants a 4x power bonus and instantly applies a 10× score multiplier. The most powerful item in the game. |
+| **Fish** <img width="32" height="30" alt="FISH" src="https://github.com/user-attachments/assets/3de605da-01f7-49b6-b5cc-1e4a56306536" />| Awards extra hearts (lives). Always beneficial. |
+| **Mushroom** <img width="24" height="24" alt="SHROOM" src="https://github.com/user-attachments/assets/34f9266e-070e-4f29-bb47-9d019ed73881" />| Color-dependent. Touch the wrong color and your paw shrinks. Touch the right color and you grow, giving you a size advantage over your opponent.  It's like identifying mushrooms in the wild: if you know, you know. |
+| **Bomb** <img width="24" height="21" alt="BOMB" src="https://github.com/user-attachments/assets/75b9b4ca-7d8a-4ce1-b92a-b8b0e41f8975" />| Generally something to avoid. Using your shield lets you smash it toward your opponent, but be careful, this can backfire! |
+| **Craig Stadler** <img width="24" height="29" alt="image" src="https://github.com/user-attachments/assets/733c0598-e863-4906-95c4-dc8790860958" />| Grants a 2x power meter bonus. That's great, unless you already got the Garfield powerup. :D |
+| **Garfield** <img width="48" height="48" alt="image" src="https://github.com/user-attachments/assets/fb0fb717-e87c-4b92-bffa-31e05fbed67f" />| Grants a 4x power bonus and instantly applies a 10× score multiplier. The most powerful item in the game. |
 
 #### Shield Interactions
 The shield can be used to deflect mushrooms and bombs into your opponent. I kind of added this by accident, because you can also deflect Poppy when she is exploding, which was basically a bug I decided to incorporate into the game. 
 
 The upside is this introduces a risk/reward: a deflected mushroom could land favorably for your enemy, and a deflected bomb can come right back at you. 
 
+<img width="72" height="72" alt="EXPLOD" src="https://github.com/user-attachments/assets/97437583-9d12-4db2-8743-b8e3a2ee4cb0" />
+
 However, you have to time this perfectly, and it may distract you from being scored on by your opponent. Watch out!
+
+
 
 ---
 
@@ -226,10 +234,11 @@ In story mode and standard 2-player matches, only teams 1 and 2 are active. Up t
 
 **Score Multiplier:** displayed as `*N` alongside the score. Resets to 0 if you are scored on or get hit with a bomb, or otherwise die.
 
-**Hearts:** a row of heart icons indicating remaining lives.
+<img width="8" height="8" alt="image" src="https://github.com/user-attachments/assets/62f8b146-fee1-46ed-98f3-3f28924fca4e" />**Hearts:** a row of heart icons indicating remaining lives.
 
-**Continues:** displayed as a `Star` next to `Hearts`. In story mode, losing all hearts costs a continue and restarts the current battle.
+<img width="8" height="8" alt="image" src="https://github.com/user-attachments/assets/0cbc5978-a18c-41cf-8f4c-f0956f801de5" />**Continues:** displayed as a `Star` next to `Hearts`. In story mode, losing all hearts costs a continue and restarts the current battle.
 
+<img width="48" height="48" alt="image" src="https://github.com/user-attachments/assets/759e2bb5-3a71-4ca2-806a-250ac3c159da" />
 **Character portrait:** a picture of your favorite fuzzy friend.  Or perhaps your frenemy..
 
 **Power meter:** a thin horizontal bar directly below the character portrait. Starts green and shifts toward red as it depletes.  Can be extended with special items.
@@ -263,6 +272,8 @@ Both digital and analog controllers are supported. With an analog controller, in
 | B | Block / shield:temporarily increases your hitbox size. Costs the most power. Can be used to deflect bombs and mushrooms into opponents, though deflected items can backfire. |
 | Start | Pause / unpause (the game is "pawsed"). Opens a menu to continue, restart, or quit. |
 | A+B+C+Start | Reset to title screen at any time. Only active for the controller in port 0. |
+
+<img width="32" height="64" alt="shield" src="https://github.com/user-attachments/assets/456ea348-f063-4efb-a185-f3d6918377fc" />
 
 ---
 
