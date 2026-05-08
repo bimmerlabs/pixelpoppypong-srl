@@ -22,7 +22,7 @@ That said, I hope you like it!
 
 ### A Note for Aspiring Saturn Developers
 
-If you've ever thought about developing for the Saturn but felt intimidated by it, I want to say something directly: don't be. Old hardware can feel like an impenetrable wall of obscure documentation and arcane constraints. But it's really more like a puzzle. The pieces are all there — it just takes time to fit them together. And today, we have modern tools, modern languages, and a community of people sharing knowledge that simply didn't exist when the Saturn was a commercial product. The most difficult part isn't the hardware itself. The hardest part is deciding to actually try.
+If you've ever thought about developing for the Saturn but felt intimidated by it, I want to say something directly: don't be. Old hardware can feel like an impenetrable wall of obscure documentation and arcane constraints. But it's really more like a puzzle. The pieces are all there - it just takes time to fit them together. And today, we have modern tools, modern languages, and a community of people sharing knowledge that simply didn't exist when the Saturn was a commercial product. The most difficult part isn't the hardware itself. The hardest part is deciding to actually try.
 
 ---
 
@@ -96,11 +96,11 @@ This gave me extra space to scale the phsyics I wanted.  I have also tried runni
 Switching to SRL unlocked 4bpp backgrounds which are not possible in Jo-Engine. Also, the Cubetile format (by 7shades) packs the background layers into a single .bin, so I can easily load/unload different backgrounds for the UI without the user being able to notice.
 
 #### All New Artwork
-<img width="64" height="50" alt="image" src="https://github.com/user-attachments/assets/f1a7cf31-402f-45a8-8333-31ac650c2336" /> I've improved asset quality across the board, made practical by the TMSF compression format, better tools such as Aseprite, and a faster loading pipeline.
+<img width="64" height="50" alt="image" src="https://github.com/user-attachments/assets/f1a7cf31-402f-45a8-8333-31ac650c2336" /> I've improved asset quality wherever possible, made practical by the TMSF compression format, better tools such as Aseprite, and a faster loading pipeline.
 
 <img width="32" height="30" alt="FISH" src="https://github.com/user-attachments/assets/3de605da-01f7-49b6-b5cc-1e4a56306536" /> Basically every sprite in the game was redrawn from scratch in Aseprite - this is not a regurgitation using last year's assets. Almost every animation has additional frames, a number of sprites are larger, and many new sprites have been added.  I also worked a lot on the palette, trying to make things look good both on modern displays and CRTs.
 
-Despite the increased content and asset quality across the board, disc footprint and loading times are smaller and much faster than the previous version.
+Despite the increased content and asset quality, disc footprint and loading times are smaller and much faster than the previous version.
 
 #### Revised Backgrounds
 Backgrounds have been reworked with updated colors and new compositions.  Most of the work was tweaking palettes and adding new "seasons".
