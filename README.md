@@ -14,18 +14,20 @@ https://srl.reye.me
 ## Table of Contents
 
 1. [Technical Changes Since 2025 Competition](#technical-changes-since-2025)
-2. [New Features](#new-features)
-3. [Menus](#menus)
-4. [Gameplay](#gameplay)
-5. [Scoring](#scoring)
-6. [Items](#items)
-7. [Game Modes](#game-modes)
-8. [Characters & Unlocks](#characters--unlocks)
-9. [User Interface](#user-interface)
-10. [Controls](#controls)
-11. [Audio](#audio)
-12. [Options](#options)
-13. [Attract Mode](#attract-mode)
+2. [Assets](#asset-pipeline--format)
+3. [Graphics](#graphics)
+4. [Particle Generator](#vdp1-particle-generator)
+5. [Menus](#menus)
+6. [Gameplay](#gameplay)
+7. [Scoring](#scoring)
+8. [Items](#items)
+9. [Game Modes](#game-modes)
+10. [Characters & Unlocks](#characters--unlocks)
+11. [User Interface](#user-interface)
+12. [Controls](#controls)
+13. [Audio](#audio)
+14. [Options](#options)
+15. [Attract Mode](#attract-mode)
 
 ---
 
@@ -57,13 +59,6 @@ The same compression scheme used for sprites has been extended to PCM audio samp
 
 ---
 
-## VDP1 Particle Generator
-
-#### A sprite-based particle system rendered with VDP1
-I really had a great time making this, it's enabled effects I had long wanted to add to the game. A standalone demo was also submitted separately for the 2026 showcase. It's also a tool - I used to build/test effects for Pixel Poppy Pong, since compiling a small demo is much faster.
-
----
-
 ## Graphics
 
 #### 4bpp background support
@@ -85,6 +80,13 @@ The game reads the Saturn's internal clock and alters the presentation according
 A tilemap conversion tool contributed by **purist** ([GitHub repository](#)) significantly reduced the effort involved in generating tilemaps for VDP2. Now I can easily draw assets directly in Aseprite, then convert them to a VDP2-friendly format with minimal friction. I made a batch script ([download](#)) so the workflow is as simple as dragging an Aseprite file onto it to produce the output `.bin` file. An [SRL walkthrough](#) is also available that covers the tool and makes getting started easier.
 
 This tool was instrumental in adding NBG2 backgrounds to the user interfaces. Previously, UI elements were drawn with VDP1, which created a fillrate problem. It was impossible to draw the UI I wanted to, and what I could do used mesh transparencies as an ugly workaround. Moving that work to VDP2 tilemaps solved the problem entirely and opened up a much cleaner visual result. Tools like this make experimenting with new ideas and iterating on assets dramatically faster.
+
+---
+
+## VDP1 Particle Generator
+
+#### A sprite-based particle system rendered with VDP1
+I really had a great time making this, it's enabled effects I had long wanted to add to the game. A standalone demo was also submitted separately for the 2026 showcase. It's also a tool - I used to build/test effects for Pixel Poppy Pong, since compiling a small demo is much faster.
 
 ---
 
@@ -278,15 +280,14 @@ When left idle at the title screen, the game enters attract mode and cycles thro
 1. Pixel Poppy Productions logo
 2. Title screen
 3. Demo: 45 seconds of live CPU-vs-CPU gameplay (no pre-recorded sequences)
-4. Credits
-5: Demo (again)
-6. High scores
+4. High scores
+5. Credits
 
 Press **Start** at any point during the attract cycle to return to the title screen.
 
 ---
 
-*High scores and game options are saved to the Saturn's internal backup memory.*
+*High scores and game options are saved to the Saturn's internal backup memory, or the BUP cart if you have one installed.*
 
 For more information, see the resource page:
 https://segaxtreme.net/resources/pixel-poppy-pong.282/
