@@ -6,6 +6,26 @@ Currently being ported from Jo Engine to Saturn Ring Library / C++
 https://srl.reye.me
 <img width="604" height="481" alt="image" src="https://github.com/user-attachments/assets/ba5bc11b-52fc-4c09-8a62-6f9cec397cdc" />
 
+---
+
+## Introduction
+
+It wouldn't be accurate to say that "Pixel Poppy Pong" is a game made by one person. I am the primary developer and did basically all of the work, but I couldn't have done anything myself without prior art.  For example, the people who made and contributed to Jo Engine, where I learned C; the people who helped me with music, the inspiration for the background art, the team who built SRL, and Sega themselves.
+
+At its core, the concept is Pong - a ball, some paddles, two goals. But somewhere along the way it grew into something much more than that: physics, spin, items, seasons, unlockable characters, a story, four-player support, particle effects, and a custom sprite format. It's a lot for a game that started as a learning experiment on hardware that hasn't been commercially relevant for thirty years.
+
+So why do it? The honest answer is that it's just what I like to do. I require a creative outlet. I don't expect many people to play this, and I definitely don't expect (or want) to make money from it. Some people might see that as a waste of time. That's fine. For me, the value was never really about cat-pong.
+
+Pixel Poppy Pong was always meant to be a stepping stone. I started knowing basically nothing, I didn't even know how rasterization worked.  Through making it, I learned how sprite animations work, how CRAM and palettes behave, how to manipulate Saturn resolutions, how to process and compress images and audio for faster loading, and how some of the Saturn's deeper hardware functions actually operate. That knowledge is what this was always really about. If the game also happens to be fun, that's just icing on the cake.
+
+That said, I hope you like it!
+
+### A Note for Aspiring Saturn Developers
+
+If you've ever thought about developing for the Saturn but felt intimidated by it, I want to say something directly: don't be. Old hardware can feel like an impenetrable wall of obscure documentation and arcane constraints. But it's really more like a puzzle. The pieces are all there — it just takes time to fit them together. And today, we have modern tools, modern languages, and a community of people sharing knowledge that simply didn't exist when the Saturn was a commercial product. The most difficult part isn't the hardware itself. The hardest part is deciding to actually try.
+
+---
+
 ### Manual & Technical Reference
 
 ---
