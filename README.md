@@ -13,21 +13,24 @@ https://srl.reye.me
 
 ## Table of Contents
 
+### 2026 Updates
 1. [Technical Changes Since 2025 Competition](#technical-changes-since-2025)
 2. [Assets](#asset-pipeline--format)
 3. [Graphics](#graphics)
 4. [Particle Generator](#vdp1-particle-generator)
-5. [Menus](#menus)
-6. [Gameplay](#gameplay)
-7. [Scoring](#scoring)
-8. [Items](#items)
-9. [Game Modes](#game-modes)
-10. [Characters & Unlocks](#characters--unlocks)
-11. [User Interface](#user-interface)
-12. [Controls](#controls)
-13. [Audio](#audio)
-14. [Options](#options)
-15. [Attract Mode](#attract-mode)
+---
+### Gameplay
+1. [Menus](#menus)
+2. [Gameplay](#gameplay)
+3. [Scoring](#scoring)
+4. [Items](#items)
+5. [Game Modes](#game-modes)
+6. [Characters & Unlocks](#characters--unlocks)
+7. [User Interface](#user-interface)
+8. [Controls](#controls)
+9. [Audio](#audio)
+10. [Options](#options)
+11. [Attract Mode](#attract-mode)
 
 ---
 
@@ -71,22 +74,26 @@ This gave me extra space to scale the phsyics I wanted.  I have also tried runni
 Switching to SRL unlocked 4bpp backgrounds which are not possible in Jo-Engine. Also, the Cubetile format (by 7shades) packs the background layers into a single .bin, so I can easily load/unload different backgrounds for the UI without the user being able to notice.
 
 #### All New Artwork
-I've improved asset quality across the board, made practical by the TMSF compression format, better tools such as Aseprite, and faster loading pipeline.
+I've improved asset quality across the board, made practical by the TMSF compression format, better tools such as Aseprite, and a faster loading pipeline.
 
-Basically every sprite in the game was redrawn from scratch in Aseprite. This is not a regurgitation using last year's assets - almost every animation has additional frames, a number of sprites are larger, and many new sprites have been added.  
+Basically every sprite in the game was redrawn from scratch in Aseprite - this is not a regurgitation using last year's assets. Almost every animation has additional frames, a number of sprites are larger, and many new sprites have been added.  I also worked a lot on the palette, trying to make things look good both on modern displays and CRTs.
 
-I should have ditched Paint sooner!  Despite the increased content and asset quality across the board, disc footprint and loading times are smaller and faster than the previous version.
+Despite the increased content and asset quality across the board, disc footprint and loading times are smaller and much faster than the previous version.
 
 #### Revised Backgrounds
-Backgrounds have been reworked with updated colors and new compositions.  Most of the work was tweaking palettes, and adding new "seasons".
+Backgrounds have been reworked with updated colors and new compositions.  Most of the work was tweaking palettes and adding new "seasons".
 
-#### Seasons & Special Dates *(secrets)*
-The game reads the Saturn's internal clock and alters the presentation accordingly. There are four seasons, each with their own effects and visual modes. A handful of special dates unlock additional content beyond the seasons. Players are encouraged to experiment with their Saturn's clock settings - try it out, there are secrets to find!
+#### Seasons & Special Dates *(top secret - shhh!)*
+Pixel Poppy Pong reads the Saturn's internal clock and alters the presentation accordingly. There are four seasons, each with their own effects and visual modes. A handful of special dates unlock additional content beyond the seasons. Players are encouraged to experiment with their Saturn's clock settings - try it out, there are secrets to find!
 
 #### Aseprite to Saturn Tilemap Tool
-A tilemap conversion tool by **purist** ([saturn-aseprite](https://github.com/buhman/saturn-aseprite)) significantly reduced the effort involved in generating tilemaps for VDP2. Now I can easily draw assets directly in Aseprite, then convert them to a VDP2-friendly format with minimal friction. I made a batch script ([download](#)) so the workflow is as simple as dragging an Aseprite file onto it to produce the output `.bin` file. An [SRL walkthrough](#) is also available that covers the tool and makes getting started easier.
+A tilemap conversion tool by **purist** ([saturn-aseprite](https://github.com/buhman/saturn-aseprite)) significantly reduced the effort involved in generating tilemaps for VDP2. Now I can easily draw assets directly in Aseprite, then convert them to a VDP2-friendly format with minimal friction. 
 
-This tool was instrumental in adding NBG2 backgrounds to the user interfaces. Previously, UI elements were drawn with VDP1, which created a fillrate problems due to the resolution I chose. It was physically impossible to draw the UI I wanted to, and what I could do used mesh transparencies as an ugly workaround. Moving that work to VDP2 tilemaps solved the problem entirely and opened up a much cleaner visual result. ([saturn-aseprite](https://github.com/buhman/saturn-aseprite)) made experimenting with new ideas and iterating on assets dramatically faster!
+I made a batch script ([download](#)) so the workflow is as simple as dragging an Aseprite file onto it to produce the output `.bin` file. An [SRL walkthrough](#) is also available that covers the tool and makes getting started easier.
+
+This tool was instrumental in adding NBG2 backgrounds to the user interfaces. Previously, UI elements were drawn with VDP1, which created a fillrate problems due to the resolution I chose. It was physically impossible to draw the UI I wanted to, and what I could do used mesh transparencies as an ugly workaround. 
+
+Moving that work to VDP2 tilemaps solved the problem entirely and opened up a much cleaner visual result. ([saturn-aseprite](https://github.com/buhman/saturn-aseprite)) made experimenting with new ideas and iterating on assets dramatically faster!
 
 ---
 
