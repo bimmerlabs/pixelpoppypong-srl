@@ -18,7 +18,7 @@ https://srl.reye.me
 2. [Assets](#asset-pipeline--format)
 3. [Graphics](#graphics)
 4. [Particle Generator](#vdp1-particle-generator)
-### Gameplay
+### How to Play
 5. [Menus](#menus)
 6. [Gameplay](#gameplay)
 7. [Scoring](#scoring)
@@ -103,7 +103,7 @@ I really had a great time making this, it's enabled effects I had long wanted to
 
 ---
 
-# Gameplay
+# How to Play
 ## Menus
 
 Menu layouts will feel familliar to the 2025 version, but they have been cleaned up with better presentation. New VDP2 backgrounds and a VDP1-rendered font give them a more polished look. All menu flows have been thoroughly tested, navigation should feel straightforward and reliable.
