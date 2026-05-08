@@ -74,7 +74,7 @@ A new C++ wrapper was written for Ponesound (originally by Ponut64), along with 
 #### TMSF: Tile Map Sprite Format *(work in progress)*
 <img width="1440" height="32" alt="image" src="https://github.com/user-attachments/assets/beb878e1-c944-477d-bbf9-a293fac5be70" />
 
-A custom sprite format developed for efficiently loading 2d assets. TMSF supports tilemaps and animations, with a compression ration of around 4:1 (currently only supports paletted format). This enables roughly 2× as many individual sprite frames compared to loading individual TGA files, at significantly faster load times. 
+A custom sprite format developed for efficiently loading 2d assets. TMSF supports tilemaps and animations, with a compression ratio of around 4:1 (currently only supports paletted format). This enables roughly 2× as many individual sprite frames compared to loading individual TGA files, at significantly faster load times. 
 
 I made TMSF because the TGA format became burdensom; I couldn't pack all of the "paw" sprites into a single file for example.  Instead, I loaded them individually, because the Saturn didn't have enough ram to process a TGA file that large.  This also made loading slow, since the CD had to process and load individual files. Now, I can pack as many sprites as I want into a single file (as long as they fit decompressed in VRAM), which makes asset management easier, with faster loading times as a bonus.
 
