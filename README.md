@@ -19,17 +19,17 @@ https://srl.reye.me
 3. [Graphics](#graphics)
 4. [Particle Generator](#vdp1-particle-generator)
 ### How to Play
-5. [Menus](#menus)
-6. [Gameplay](#gameplay)
-7. [Scoring](#scoring)
-8. [Items](#items)
-9. [Game Modes](#game-modes)
-10. [Characters & Unlocks](#characters--unlocks)
-11. [User Interface](#user-interface)
-12. [Controls](#controls)
-13. [Audio](#audio)
-14. [Options](#options)
-15. [Attract Mode](#attract-mode)
+1. [Menus](#menus)
+2. [Gameplay](#gameplay)
+3. [Scoring](#scoring)
+4. [Items](#items)
+5. [Game Modes](#game-modes)
+6. [Characters & Unlocks](#characters--unlocks)
+7. [User Interface](#user-interface)
+8. [Controls](#controls)
+9. [Audio](#audio)
+10. [Options](#options)
+11. [Attract Mode](#attract-mode)
 
 ---
 
