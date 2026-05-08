@@ -92,7 +92,7 @@ Pixel Poppy Pong reads the Saturn's internal clock and alters the presentation a
 #### Aseprite to Saturn Tilemap Tool
 A tilemap conversion tool by **purist** ([saturn-aseprite](https://github.com/buhman/saturn-aseprite)) significantly reduced the effort involved in generating tilemaps for VDP2. Now I can easily draw assets directly in Aseprite, then convert them to a VDP2-friendly format with minimal friction. 
 
-I made a batch script ([download](#)) so the workflow is as simple as dragging an Aseprite file onto it to produce the output `.bin` file. An [SRL walkthrough](#) is also available that covers the tool and makes getting started easier.
+I made a batch script so the workflow is as simple as dragging an Aseprite file onto it to produce the output `.bin` file. An [SRL walkthrough]([#](https://github.com/jae686/srl-tutorials/blob/main/08_first_background/08_first_background.md)) by **jae686** is also available that covers the tool and makes getting started easier.
 
 This tool was instrumental in adding NBG2 backgrounds to the user interfaces. Previously, UI elements were drawn with VDP1, which created a fillrate problems due to the resolution I chose. It was physically impossible to draw the UI I wanted to, and what I could do used mesh transparencies as an ugly workaround. 
 
