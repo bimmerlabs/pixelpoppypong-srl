@@ -28,7 +28,7 @@ void init_font(void) {
     SRL::VDP2::NBG0::SetPriority(SRL::VDP2::Priority::Layer7);
     SRL::VDP2::NBG0::ScrollEnable();
     
-    #ifdef SRL_HIGH_RES_NON_INTERLACED
+    // #ifdef SRL_HIGH_RES_NON_INTERLACED
         slZoomNbg0(toFIXED(0.50), toFIXED(1.0));
-    #endif
+    // #endif
 }

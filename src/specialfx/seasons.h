@@ -22,6 +22,7 @@ typedef enum _SEASON
 {
     S_NORMAL = 0,
     S_SPRING,
+    S_SUMMER,
     S_APRIL_FOOLS,
     S_OCTOBER,
     S_HALLOWEEN,

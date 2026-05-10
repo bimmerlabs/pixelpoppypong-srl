@@ -1,5 +1,6 @@
 #pragma once
 #include <srl.hpp>
+#include "dialog.hpp"
 
 using namespace SRL::Types;
 using namespace SRL::Math::Types;
@@ -13,6 +14,9 @@ using namespace SRL::Math::Types;
 #define METER_Y3 Fxp(29)
 #define METER_HEIGHT Fxp(0.9)
 #define METER_WIDTH Fxp(25)
+
+#define STADLER_QUOTES (8)
+#define GARFIELD_QUOTES (5)
 
 typedef enum _CHARACTER_SELECT
 {
@@ -33,7 +37,14 @@ typedef enum _CHARACTER_SELECT
 
 extern bool characterUnlocked[CHARACTER_MAX]; // distinction between selection and what gets saved in backup ram
 extern bool characterAvailable[CHARACTER_MAX];
-extern bool storyCharacterAvailable[CHARACTER_MAX]; // only used for story mode
+
+typedef struct
+{
+    bool available[CHARACTER_MAX];
+    bool finished[CHARACTER_MAX];
+} StoryProgressData;
+
+extern StoryProgressData g_StoryProgress;
 
 typedef struct _CHARACTER_ATTRIBUTES
 {
@@ -50,6 +61,24 @@ typedef struct _CHARACTER
     bool selected;
 } CHARACTER, *PCHARACTER;
 
+
+enum class Align {
+    None,
+    CenterX,
+    CenterY,
+    CenterBoth
+};
+
+struct BossQuotes {
+    const char* phase1;  // first taunt, weakest (~4 lives)
+    const char* phase2;  // getting serious (~2 lives)
+    const char* phase3;  // desperate (~1 life)
+    const char* mushroom;
+};
+
+extern BossQuotes bossQuotes[CHARACTER_MAX];
+
+
 extern const char *characterNames[];
 
 extern const char *classicCharacterNames[];
@@ -60,16 +89,28 @@ extern const char *characterQuotes[];
 
 extern const char *characterBios[];
 
+extern const char *stadlerItemQuotes[];
+
+extern const char *garfieldItemQuotes[];
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+static inline int centeredX(int lineLen) {
+    return (44 - lineLen) / 2; // 352 / 8 = 44 chars
+}
+
+static inline int centeredY(int totalLines) {
+    return (30 - totalLines) / 2; // 240 / 8 = 30 lines
+}
+
+void initBossQuotes(void);
 void initUnlockedCharacters(void);
 void initAvailableCharacters(void);
-void initAvailableStoryCharacters(void);
 
-void PrintWrapped(int x, int y, int maxCharsPerLine, const char *text);
+void PrintWrapped(int x, int y, int maxCharsPerLine, const char* text, Align align = Align::None);
 
 #ifdef __cplusplus
 }

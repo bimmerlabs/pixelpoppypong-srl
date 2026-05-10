@@ -6,7 +6,6 @@
 #include "../objects/teams.h"
 #include "../core/vdp1print.h"
 
-// #define SCORE_DISPLAY_TIME (15 * 60)
 #define SCORE_EXIT_TIME (15 * 60)
 
 #define INITIALS_LENGTH 3  // Three-letter initials like "ABC"
@@ -59,6 +58,7 @@ void display_scores(void);
 void score_input(void);
 
 void sortHighScores(HighScoreEntry scores[]);
+bool checkHighScore(uint32_t newScore);
 void addHighScore(uint32_t newScore, const char *initials, uint8_t character);
 void update_bg_position(void);
 

@@ -1,5 +1,6 @@
 #include "highscores.h"
 #include "name_entry.h"
+#include "gameplay_state.hpp"
 #include "../main.h"
 #include "../core/assets.h"
 #include "../core/state.h"
@@ -42,9 +43,6 @@ void initNameEntryStruct(void)
 
 void nameEntryInit(void)
 {
-    // if (g_Assets.titleAssetsLoaded) {
-        // unloadTitleAssets();
-    // }
     if (g_Assets.characterAssetsLoaded) {
         unloadGameAssets();
     }
@@ -57,6 +55,9 @@ void nameEntryInit(void)
     }
     
     SRL::Debug::PrintClearScreen();
+    
+    init_nbg2_img();
+    SRL::VDP2::NBG2::ScrollEnable();
     
     reset_sprites();
     
@@ -91,7 +92,7 @@ void nameEntryInput(void)
     
     // todo:  what?  why do I need this?  maybe it was from before I had inputs figured out
     // need to change this to if debug is enabled in the options instead of being from the makefile
-    PPLAYER player = &g_Players[g_Game.winner];
+    PPLAYER player = &g_Players[Gameplay::g_GameState.winner];
     #if ENABLE_DEBUG_MODE == 1
         Digital gamepad(0);
     #else
@@ -218,10 +219,10 @@ void nameEntryUpdate(void)
     }
 
     // SRL::Debug::Print(17, 2, "Name Entry");
-    nameEntryTitleDraw();
     
     if (nameEntry.timer > 0 && !nameEntry.end)
     {
+        nameEntryTitleDraw();
         // make an inline sub for this
         convertNumberToDigits(nameEntry.timer);
         set_spr_position(&font, 0, -170, 50);
@@ -232,6 +233,9 @@ void nameEntryUpdate(void)
         font.id = font.anim[0].asset + ones;
         font.zmode = _ZmLC;
         my_sprite_draw(&font);
+    }
+    else {
+        SRL::VDP2::NBG2::ScrollDisable();
     }
     
     // make an inline sub for this
@@ -286,7 +290,7 @@ void nameEntryUpdate(void)
     if(nameEntry.timer == 0 || nameEntry.xRadius <= END_RADIUS)
     {
         SRL::Debug::PrintClearScreen();
-        PPLAYER winner = &g_Players[g_Game.winner];
+        PPLAYER winner = &g_Players[Gameplay::g_GameState.winner];
         addHighScore(winner->score.points, nameEntry.initials, winner->character.choice);
         save_game_backup();
         g_Game.lastState = GAME_STATE_NAME_ENTRY;

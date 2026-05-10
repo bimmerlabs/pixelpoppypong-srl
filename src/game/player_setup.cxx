@@ -4,6 +4,7 @@
 #include "../objects/characters.h"
 
 // again.. why is this in player anything?
+// well - it works.. so I'm not changing it... :D
 void check_player_inputs(void) {
     for(unsigned int p = 0; p < MAX_INPUTS; p++)
     {
@@ -36,7 +37,9 @@ void check_player_inputs(void) {
                 player->input->id = p;
                 player->input->isSelected = true;
                 
-                player->startSelection = true;
+                player->pressedStart = true;
+                
+                // player->startSelection = true;
                 player->character.choice = CHARACTER_MACCHI;
                 validateCharacters(player);
                 assignCharacterSprite(player);
@@ -47,48 +50,11 @@ void check_player_inputs(void) {
             }
         }
     }    
-    
-        // this version loops backwards I think (player to input, instead of input to player)
-    // for(int8_t i = 0; i <= g_Game.numPlayers; i++)
-    // {
-        // PPLAYER player = &g_Players[i];
-
-        // if (player->input->isSelected || player->startSelection) {
-            // continue;
-        // }
-
-        // check_multiplayer_inputs(i);
-        
-        // if (player->input->isSelected)
-        // {
-            // Pcm::Play(Sounds.Core[StartSnd], PlayMode::Volatile, 6);
-
-            // player->startSelection = true;
-            // player->character.choice = CHARACTER_MACCHI;
-            // validateCharacters(player);
-            // assignCharacterSprite(player);
-
-            // player->teamChoice = TEAM_1;
-            // validateTeam(player);
-            // return;
-        // }
-    // }
 }
 
 // only select available characters
 void validateCharacters(PLAYER *player) {
     while (!characterAvailable[player->character.choice]) {
-        player->character.choice++;
-        if (player->character.choice >= CHARACTER_NONE) // Was MAX
-        {
-            player->character.choice = CHARACTER_MACCHI;
-        }
-    }
-}
-
-// only select available characters
-void validateStoryCharacters(PLAYER *player) {
-    while (!storyCharacterAvailable[player->character.choice]) {
         player->character.choice++;
         if (player->character.choice >= CHARACTER_NONE) // Was MAX
         {

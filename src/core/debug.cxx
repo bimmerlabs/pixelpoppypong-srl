@@ -12,6 +12,7 @@ using namespace SRL::Types;
 #include "../game/character_select.h"
 #include "../game/credits.h"
 #include "../game/name_entry.h"
+#include "../game/gameplay_state.hpp"
 
 
 const char *deviceName[] = { // only used for testing / this demo - not neccesary for using the Bup library
@@ -31,6 +32,16 @@ const char *deviceStatus[] = { // only used for testing / this demo - not necces
         "NoMatch",
         "Broken"
 };
+            
+const char *roundState[] = {
+        "CharacterSelect",
+        "Playing",
+        "NextRound",
+        "ShowMessage",
+        "ShowResult",
+        "Ending",
+        "Transition"
+};
 
 void debux_text(void)
 {
@@ -40,12 +51,24 @@ void debux_text(void)
         SRL::Debug::Print(2, 2, "GameState:%2d", g_Game.gameState);
         SRL::Debug::Print(18, 2, "Last:%2d", g_Game.lastState);
         SRL::Debug::Print(29, 2, "Next:%2d", g_Game.nextState);
-        SRL::Debug::Print(2, 3, "Frame:%3d", g_Game.frame);
+        // SRL::Debug::Print(2, 3, "Frame:%3d", g_Game.frame);
         SRL::Debug::Print(2, 4, "MasterVolume:%3d", g_Audio.masterVolume);
+        SRL::Debug::Print(2, 5, "cdIsPlaying:%d", g_Audio.cdIsPlaying);
         SRL::Debug::Print(20, 3, "Sprites:%d    ", SRL::VDP1::GetTextureCount());
-        SRL::Debug::Print(20, 4, "VDP1 Memory:%6d", SRL::VDP1::GetAvailableMemory());
-        SRL::Debug::Print(20, 5, "HWRAM free space:%6d", SRL::Memory::HighWorkRam::GetFreeSpace());
-        SRL::Debug::Print(20, 6, "HWRAM used space:%6d", SRL::Memory::HighWorkRam::GetUsedSpace());
+        SRL::Debug::Print(20, 4, "VDP1 Memory:%06d", SRL::VDP1::GetAvailableMemory());
+        SRL::Debug::Print(20, 5, "HWRAM free space:%06d", SRL::Memory::HighWorkRam::GetFreeSpace());
+        SRL::Debug::Print(20, 6, "HWRAM used space:%06d", SRL::Memory::HighWorkRam::GetUsedSpace());
+        
+        // SRL::Debug::Print(2, 11, "isBoss:%d", g_Game.isBoss);
+        // SRL::Debug::Print(2, 12, "countofRounds:%d", g_Game.countofRounds);
+        // PPLAYER computer = &g_Players[1];
+        // SRL::Debug::Print(2, 13, "computer->isAI:%d", computer->isAI);
+        
+        // for (int i = 0; i < CHARACTER_MAX; i++)
+        // {
+            // SRL::Debug::Print(2, 10 + i, "char:%d avail:%d finished:%d", 
+                // i, g_StoryProgress.available[i], g_StoryProgress.finished[i]);
+        // }
                 
         // SRL::Debug::Print(2, 6, "coreAssetsLoaded:%d", g_Assets.coreAssetsLoaded);
         // SRL::Debug::Print(2, 7, "titleAssetsLoaded:%d", g_Assets.titleAssetsLoaded);
@@ -164,7 +187,8 @@ void debux_text(void)
             case GAME_STATE_TITLE_MENU: // menu
                 // SRL::Debug::Print(2, 6, "GameMode:%d", g_Game.gameMode);
                 // SRL::Debug::Print(2, 7, "GameDifficulty:%d", g_Game.gameDifficulty);
-                // SRL::Debug::Print(2, 7, "TITLE CHOICE:%d", g_TitleScreenChoice);
+                SRL::Debug::Print(2, 8, "menuChoice:%d", titleScreen.menuChoice);
+                SRL::Debug::Print(2, 9, "menuLastChoice:%d", titleScreen.menuLastChoice);
                 // SRL::Debug::Print(2, 7, "LOGO1_POS:%d", logo1_pos);
                 // SRL::Debug::Print(20, 7, "LOGO1:%d", logo1.pos.y);
                 // SRL::Debug::Print(2, 8, "LOGO2_POS:%d", logo2_pos);
@@ -365,8 +389,29 @@ void debux_text(void)
                 // SRL::Debug::Print(2, 18, "endDelayTimer:%d", g_Game.endDelayTimer);
                 // SRL::Debug::Print(2, 19, "currentNumPlayers:%d", g_Game.currentNumPlayers);
                 
-                SRL::Debug::Print(2, 11, "countofRounds:%d", g_Game.countofRounds);
-                SRL::Debug::Print(2, 12, "isBoss:%d", g_Game.isBoss);
+                SRL::Debug::Print(2, 8, "Winner:%2d", Gameplay::g_GameState.winner);
+                SRL::Debug::Print(2, 9, "endDelayTimer:%2d", Gameplay::g_GameState.endDelayTimer);
+                SRL::Debug::Print(2, 10, "timeOver:%d", Gameplay::g_GameState.timeOver);
+                SRL::Debug::Print(2, 11, "roundState:%s", roundState[Gameplay::g_GameState.roundState]);
+                SRL::Debug::Print(2, 12, "GameOverTimer:%2d", Gameplay::g_GameState.GameOverTimer);
+                SRL::Debug::Print(2, 13, "gameOverSndPlayed:%d", Gameplay::g_GameState.gameOverSndPlayed);
+                SRL::Debug::Print(2, 15, "textFramesRemaining:%3d", g_item.textFramesRemaining);
+                
+                // SRL::Debug::Print(2, 8, "isBoss:%d", g_Game.isBoss);
+                // // SRL::Debug::Print(2, 9, "initialLives:%d", g_BossState.initialLives);
+                // SRL::Debug::Print(2, 10, "emitFramesRemaining:%d", g_BossState.emitFramesRemaining);
+                // SRL::Debug::Print(2, 11, "phase1Triggered:%d", g_BossState.phase1Triggered);
+                // SRL::Debug::Print(2, 12, "phase2Triggered:%d", g_BossState.phase2Triggered);
+                // SRL::Debug::Print(2, 13, "phase3Triggered:%d", g_BossState.phase3Triggered);
+                        
+                // SRL::Debug::Print(2, 10, "countofRounds:%d", g_Game.countofRounds);
+                // SRL::Debug::Print(2, 11, "isBoss:%d", g_Game.isBoss);
+                // SRL::Debug::Print(2, 12, "gameMode:%2d", g_Game.gameMode);
+                
+                // if (g_Game.gameMode == GAME_MODE_STORY)
+                // {
+                    // SRL::Debug::Print(2, 13, "AI Character:%2d", g_Players[1].character.choice);                    
+                // }
                 
                 // SRL::Debug::Print(2, 10, "P2 isBig:  %d", g_Players[1].isBig);
                 // SRL::Debug::Print(2, 11, "P2 isSmall:%d", g_Players[1].isSmall);
@@ -395,7 +440,7 @@ void debux_text(void)
                 // Fxp RotZ = pixel_poppy.rot.z.ToDegrees();
                 // SRL::Debug::Print(22, 12, "Ball.Rot.Z:%3d", RotZ.As<int16_t>());
 
-                // // SRL::Debug::Print(22, 15, "BALL.COLLIDING:%d", pixel_poppy.isColliding);
+                // SRL::Debug::Print(22, 15, "BallColliding:%d", pixel_poppy.isColliding);
                 // // SRL::Debug::Print(2,  16, "P1.COLLIDING:%d", g_Players[0]._sprite->isColliding);
                 // // SRL::Debug::Print(2,  17, "P1.LEFTSIDE:%d", g_Players[0].onLeftSide);
                 // // SRL::Debug::Print(22, 16, "P2.COLLIDING:%d", g_Players[1]._sprite->isColliding);
@@ -477,11 +522,11 @@ void debux_text(void)
                 // SRL::Debug::Print(22, 14, "P1 TeamChoice:%d", g_Players[0].teamChoice);
                 // SRL::Debug::Print(22, 15, "P2 TeamChoice:%d", g_Players[1].teamChoice);
                 
-                // // SRL::Debug::Print(20, 10, "GAMEISACTIVE:%d", g_Game.isActive);
+                // SRL::Debug::Print(20, 13, "isGameActive:%d", g_Game.isActive);
                 // // SRL::Debug::Print(20, 11, "BEGINTIMER:%d", g_Game.BeginTimer);
                 // // SRL::Debug::Print(20, 12, "ROUNDS:%d", g_Game.countofRounds);
                 // // SRL::Debug::Print(20, 13, "STARTTIMER:%d", start_gameplay_timer);
-                // // SRL::Debug::Print(20, 14, "ISBALLACTIVE:%d", g_Game.isBallActive);
+                // SRL::Debug::Print(20, 14, "IsBallActive:%d", g_Game.isBallActive);
                 // // SRL::Debug::Print(20, 15, "ROUND_START:%d", round_start);
                 
                 // // SRL::Debug::Print(2, 12, "PLAYER1 RAD:%d", JO_FIXED_TO_INT(g_Players[0]._sprite->pos.r));

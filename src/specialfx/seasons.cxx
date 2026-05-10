@@ -17,13 +17,20 @@ void initSeason(void)
         
         case MARCH:
         case APRIL:
-            g_Game.timeSeason = S_SPRING; // Well, it should be april, but I don't want to rain on the competition..
+            g_Game.timeSeason = S_SPRING; // Well, it should be april/may
             if (time.Month() == APRIL && time.Day() == 1) // april fools!
             {
                 g_GameOptions.unlockBigHeadMode = true;
                 g_GameOptions.bigHeadMode = true;
                 g_Game.timeSeason = S_APRIL_FOOLS;
             }
+            break;
+        
+        case MAY:
+        case JUNE:
+        case JULY:
+        case AUGUST:
+            g_Game.timeSeason = S_SUMMER;
             break;
             
         case OCTOBER:
@@ -97,6 +104,10 @@ bool initNBG1(void)
         LoadBackgroundPalette(nbg1_winter);
     	return true;
     }
+    else if (g_Game.timeSeason == S_FALL) {
+        LoadBackgroundPalette(nbg1_fall);
+    	return true;
+    }
     return false;
 }
 
@@ -118,6 +129,10 @@ void initTitleScreenFx(void)
         case S_OCTOBER:
         case S_FALL:
             initRainFx();
+            break;
+            
+        case S_SUMMER:
+            initFlowersFx();
             break;
             
         case S_HALLOWEEN:
@@ -156,6 +171,13 @@ void initGameplayFx(void)
                 initRainFx();
                 particleCfg.emitRate = 2;
             // }        
+            break;
+        }
+            
+        case S_SUMMER:
+        {
+            initFlowersFx();
+            particleCfg.emitRate = 0;
             break;
         }
         

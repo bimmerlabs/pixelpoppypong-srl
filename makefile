@@ -1,8 +1,8 @@
 # Configuration
 SRL_MAX_TEXTURES = 300          # Number of VDP1 texture slots
 SRL_MODE = NTSC                 # Valid options are PAL or NTSC
-SRL_HIGH_RES = 0                # 480i mode
-SRL_HIGH_RES_NON_INTERLACED = 1 # 240p mode
+SRL_HIGH_RES = 1                # 480i mode
+# SRL_HIGH_RES_NON_INTERLACED = 1 # 240p mode
 SRL_DISABLE_NBG3_FONT = 0	# Don't initialize NBG3 debug font by default
 SRL_VDP1_ATTR_MANUAL_MODE = 1	# allow manual assignment of VDP1 sprite attributes
 SRL_FRAMERATE = 1               # Framerate control (0=dynamic, 1=< 60/value)
@@ -22,7 +22,7 @@ SGL_MAX_EVENTS = 1             # Number of events that can be used
 SGL_MAX_WORKS = 1             # Number of works that can be used
 
 # include extra modules
-MODULES_EXTRA = smpc tmsf backup ponesound decompression checksum particles
+MODULES_EXTRA = smpc tmsf backup ponesound decompression particles
 
 # Custom flags
 CCFLAGS += -DENABLE_DEBUG_MODE=1

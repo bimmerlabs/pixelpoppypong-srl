@@ -37,8 +37,8 @@ void setItemPositions(void) {
         // TODO: make this an option in the menu (need a debug menu)
         // g_item.id = GAME_ITEM_BOMB;
         // g_item.id = GAME_ITEM_FISH;
-        g_item.id = GAME_ITEM_SHROOM;
-        // g_item.id = GAME_ITEM_GARF;
+        // g_item.id = GAME_ITEM_SHROOM;
+        g_item.id = GAME_ITEM_GARF;
         // g_item.id = GAME_ITEM_CRAIG;
         // g_item.id = GAME_ITEM_MAX;
     }
@@ -154,6 +154,7 @@ void setItemPositions(void) {
     g_item.isActive = false;
     g_item.update = false;
     
+    // SRL::Debug::PrintClearScreen();
     // SRL::Debug::Print(2, 13, "g_item.id:%3d", g_item.id);
 }
 
@@ -275,7 +276,7 @@ void handlePlayerItemCollision(PPLAYER player) {
                 player->numLives = player->totalLives * 2;
             }
             fishtank_item.active = false;
-            player->score.points += 10000;
+            player->score.points += 5000;
             g_GameOptions.fishTouchCounter++;
             break;
         }
@@ -288,10 +289,10 @@ void handlePlayerItemCollision(PPLAYER player) {
             }
             else {
                 g_item.isActive = false;
-                if (player->isAI && g_Game.gameMode == GAME_MODE_STORY && player->character.choice == CHARACTER_WUPPY)
+                if (player->isAI && g_Game.gameMode == GAME_MODE_STORY && g_Game.isBoss)
                 {
-                    // select from messages or replace with state system
-                    SRL::Debug::Print(15, 14, "Mwa-ha-ha-ha!");
+                    g_item.textFramesRemaining = 3*60;
+                    PrintWrapped(0, 0, 24, bossQuotes[player->character.choice].mushroom, Align::CenterBoth);
                 }
                 else
                 {
@@ -313,7 +314,7 @@ void handlePlayerItemCollision(PPLAYER player) {
                         player->isSmall = true;
                         g_GameOptions.blueShroomTouchCounter++;
                     }
-                    player->score.points += 50000;
+                    player->score.points += 10000;
                 }
             }
             break;
@@ -322,7 +323,12 @@ void handlePlayerItemCollision(PPLAYER player) {
         {
             g_item.isActive = false;
             garfield_item.active = false;
-            // "i hate mondays" etc
+            
+            g_item.textFramesRemaining = 3*60;
+            uint8_t quote = rnd.GetNumber(0, GARFIELD_QUOTES);
+            PrintWrapped(0, 23, 20, garfieldItemQuotes[quote], Align::CenterX);
+            
+            player->shield.power = SHIELD_POWER * 4;
             if (touchedBy[player->playerID].touchCount == 0) {
                 touchedBy[player->playerID].touchCount = 20;
             }
@@ -332,11 +338,11 @@ void handlePlayerItemCollision(PPLAYER player) {
                     touchedBy[player->playerID].touchCount = 99;
                 }
                 else {
-                    player->score.points += 250000;
+                    player->score.points += 50000;
                 }
             }
             g_GameOptions.garfTouchCounter++;
-            if (g_GameOptions.craigTouchCounter == 200) {
+            if (g_GameOptions.garfTouchCounter == 200) {
                 Pcm::Play(Sounds.Game[StadlerSnd]);
             }
             else {
@@ -348,14 +354,19 @@ void handlePlayerItemCollision(PPLAYER player) {
         {
             g_item.isActive = false;
             craig_item.active = false;
-            // "nice shot"
-            player->score.points += 100000;
+           
+            g_item.textFramesRemaining = 3*60;
+            uint8_t quote = rnd.GetNumber(0, STADLER_QUOTES);
+            PrintWrapped(0, 23, 20, stadlerItemQuotes[quote], Align::CenterX);
+           
+            player->shield.power = SHIELD_POWER * 2;
+            player->score.points += 25000;
             g_GameOptions.craigTouchCounter++;
             if (g_GameOptions.craigTouchCounter == 100) {
-                Pcm::Play(Sounds.Game[Chain5Snd]);
+                Pcm::Play(Sounds.Game[StadlerSnd]);
             }
             else {
-                Pcm::Play(Sounds.Game[StadlerSnd]);
+                Pcm::Play(Sounds.Game[Chain5Snd]);
             }
             break;
         }

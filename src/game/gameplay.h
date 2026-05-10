@@ -22,16 +22,8 @@
 #define TIMEOUT_BATTLE 599 // seconds
 #define TIMEOUT_CLASSIC 240 //
 #define TIMEOUT_STORY_EASY 300
-#define TIMEOUT_STORY_MEDIUM 180
-#define TIMEOUT_STORY_HARD 150
-
-#define BALL_TOUCH_TIMEOUT (5 * 60)
-#define GAME_END_DELAY_TIMEOUT (5 * 60)
-#define LIFE_COUNT_DELAY_TIMEOUT (2 * 60)
-#define NEXT_BATTLE_DELAY_TIMEOUT (1 * 60)
-#define WIN_GAME_DELAY_TIMEOUT (1.5 * 60)
-
-#define MAX_ROUNDS 8
+#define TIMEOUT_STORY_MEDIUM 210
+#define TIMEOUT_STORY_HARD 180
 
 #define COLOR_MULTIPLIER 5
 #define POWER_METER_HEIGHT 3
@@ -49,39 +41,29 @@ typedef struct _GAMEPLAY
 {
     uint16_t GameTimer;
     uint16_t DemoTimer;
-    bool isGameOver;  // not currently used
+    uint16_t GameOverTimer;
+    bool isGameOver;
     
     bool draw_demo_text;
     bool start_gameplay_timer;
     bool round_start;
 } GAMEPLAY, *PGAMEPLAY;
 
-typedef enum
-{
-    ROUND_STATE_PLAYING,
-    ROUND_STATE_NEXTROUND,
-    ROUND_STATE_SHOWMESSAGE,
-    ROUND_STATE_SHOWRESULT,
-    ROUND_STATE_ENDING,
-    ROUND_STATE_TRANSITION
-} RoundState;
-typedef struct
-{
-    // RoundState roundState;
-
-    int winner;
-    int endDelayTimer;
-
-    bool isRoundOver;
-    bool timeOver;
-
-    // GameMode gameMode;
-    // GameState nextState;
-
-    // etc...
-} GameStateData;
 // globals
 extern GAMEPLAY g_Gameplay;
+
+typedef struct
+{
+    bool phase1Triggered;  // 50% lives gone
+    bool phase2Triggered;  // 75% lives gone
+    bool phase3Triggered;  // 90% lives gone
+    uint8_t emitFramesRemaining;
+    uint8_t textFramesRemaining;
+    bool soundPlayed;
+    uint8_t soundDelay;
+} BossState;
+
+extern BossState g_BossState;
 
 void gameplay_init(void);
 void demo_init(void);
@@ -108,6 +90,7 @@ bool drop_ball_animation(Sprite *ball);
 static inline void initPixelPoppy(void) {
     ball_animation_reset(&pixel_poppy);
     reset_ball_movement(&pixel_poppy);
+    initStarsFx();
     pixel_poppy.isColliding = false;
     g_Game.isGoalScored = false;
 }static inline void draw_star_element(Sprite *sprite, uint8_t num, Fxp x, Fxp y, Fxp offset) {
@@ -152,7 +135,7 @@ constexpr uint8_t nameOffset[] = {
     7, // Poppy
     5, // Toe Jam
     6, // George
-    1, // Puppy Wuppy
+    5, // Puppy Wuppy
     4, // Craig S.
     4, // Garfield
     6  // Random
@@ -217,8 +200,8 @@ static inline void gameplayScore_draw(PPLAYER player) {
             break;
     }
 }
-static inline void drawVsMode(void) {
-        // SPRITES        
+static inline void drawVsMode(void)
+{
         drawPlayers();
         if (g_Game.isActive) {
             drawGameItems();
@@ -240,13 +223,12 @@ static inline void gameplayScore_draw(PPLAYER player) {
             g_Game.isBallActive = false;
             g_Game.isActive = false;
             g_Game.BeginTimer = 0;
-            initStarsFx();
         }
 }
-static inline void drawClassicMode(void) {
-        // SPRITES        
+static inline void drawClassicMode(void)
+{
         drawPlayers();
-        updateStarsFx();     
+        updateStarsFx();
         // don't draw until poppy is reset
         if (!g_Game.isGoalScored && !g_Game.isRoundOver) {
             if (g_Game.isBallActive) {
@@ -263,7 +245,6 @@ static inline void gameplayScore_draw(PPLAYER player) {
             g_Game.isBallActive = false;
             g_Game.isActive = false;
             g_Game.BeginTimer = 0;
-            initStarsFx();
         }
 }
 

@@ -424,6 +424,21 @@ Sprite garfield_item = {
     .zmode = _ZmCC
 };
 
+Sprite lock = {
+    .pos = {Fxp(0), Fxp(0), Fxp(100)},     // Position x, y, z (all initialized to 0)
+    .scl = {Fxp(1), Fxp(1)},               // Scale x, y, z (all initialized to 1)
+    .rot = {0, 0, 0},                                  // Rotation x, y, z (all initialized to 0 ANGLE)
+    // .vec2 = {Fxp_0, Fxp_0},                  // 2D Vector (x and y initialized to 0)
+    .vel = {Fxp_0, Fxp_0},                   // Velocity (x and y initialized to 0)
+    .isColliding = false,
+    .id = 0,                                       // Sprite ID initialized to 0
+    .active = true,       
+    .pal_id = 3,                                       // Palette ID initialized to 0
+    .flip = sprNoflip,
+    .mesh = MESHoff,
+    .zmode = _ZmCC
+};
+
 void ball_animation_reset(Sprite *ball) {
     auto spin = ABS(ball->vel.z.As<int16_t>());
     if (spin > 50) {

@@ -9,7 +9,7 @@
     #include "core/debug.h"
 #endif
 
-#define VERSION "0.88.99"
+#define VERSION "0.90.3"
 #define MAX_PLAYERS 4
 
 // Screen position
@@ -33,7 +33,7 @@ typedef struct {
     bool unlockBigHeadMode;
     bool bigHeadMode;
     bool enableItems;
-    bool enableMeows;
+    bool bossMode;
     bool reservedBool;
     unsigned int bombTouchCounter;
     unsigned int fishTouchCounter;
@@ -43,7 +43,7 @@ typedef struct {
     unsigned int garfTouchCounter;
     unsigned int reservedInt;
 } GameOptions, *PGameOptions;
-
+    
 extern GameOptions g_GameOptions;
 
 extern SRL::Math::Random<int32_t> rnd;
@@ -90,16 +90,19 @@ typedef struct _GAME
     // easy, medium, hard
     int8_t gameDifficulty;
     
+    // // gameplay states
+    // RoundState roundState;
+    
     // real time clock
     uint8_t timeSlot;
     uint8_t timeSeason;
     
     // TIMERS
-    uint16_t endDelayTimer;
+    // uint16_t endDelayTimer;
     uint16_t BeginTimer;
     uint16_t roundBeginTimer;
     uint16_t dropBallTimer;
-    bool time_over;
+    // bool time_over;
 
     bool selectStoryCharacter;
     bool isBoss;
@@ -116,10 +119,10 @@ typedef struct _GAME
     signed char goalID;
 
     // is the game finished?
-    bool isRoundOver;
+    bool isRoundOver; // to be deleted
     int countofRounds;
     
-    int winner;
+    // int winner;
     
     // is the game playing?
     bool isActive;

@@ -58,7 +58,8 @@ typedef enum
 
 typedef enum
 {
-    TEAM_SPRITE_METER = 0,
+    TEAM_SPRITE_LOCK = 0,
+    TEAM_SPRITE_METER,
     TEAM_SPRITE_PAWS,
     TEAM_SPRITE_PORTRAIT,
     TEAM_SPRITE_SELECT1,
@@ -110,7 +111,7 @@ typedef enum _GAME_SND
     ExplodeSnd,
     Explode2Snd,
     LaunchSnd,
-    BankSnd,
+    BangSnd,
     GrowSnd,
     ShrinkSnd,
     ScoreAddSnd,
@@ -146,7 +147,6 @@ typedef enum _NAME_SND
     NAME_SND_MAX
 } NAME_SND;
 
-
 // PCM samples / Sound Test
 #define FIRST_SAMPLE 0
 #define LAST_SAMPLE 41
@@ -168,8 +168,6 @@ typedef struct _assets
 
 extern ASSETS g_Assets;
 
-
-// audio assets
 typedef struct _SoundAssets
 {    
     // CORE / MENU SOUNDS
@@ -198,11 +196,12 @@ extern TilemapObject* gameplayTiles;
 extern TilemapObject* fontTiles;
 extern TilemapObject* nameTiles;
 
+extern uint8_t explosionSpr;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// assets
 void loadCoreAssets(void);
 void loadCoreSoundAssets(void);
 
@@ -215,7 +214,7 @@ bool loadGameplaySoundAssets(void);
 void loadNameEntryAssets(void);
 bool loadNameEntrySoundAssets(void);
 
-void unloadTitleAssets(void);
+// void unloadTitleAssets(void);
 void unloadGameAssets(void);
 void unloadNameEntryAssets(void);
 

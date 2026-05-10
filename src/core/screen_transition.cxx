@@ -106,7 +106,9 @@ bool fadeOut(int16_t rate, int16_t min) {
         if (nbg1_rate < min) {
             nbg1_rate = min;
         }
-        slColOffsetA(nbg1_rate, nbg1_rate, nbg1_rate);
+        if (!g_Transition.story_fade_out) {
+            slColOffsetA(nbg1_rate, nbg1_rate, nbg1_rate);
+        }
         slColOffsetB(nbg1_rate, nbg1_rate, nbg1_rate);
         return true;
     }
@@ -121,7 +123,9 @@ bool fadeIn(int16_t rate, int16_t max) {
         if (nbg1_rate > max) {
             nbg1_rate = max;
         }
-        slColOffsetA(nbg1_rate, nbg1_rate, nbg1_rate);
+        if (!g_Transition.story_fade_in) {
+            slColOffsetA(nbg1_rate, nbg1_rate, nbg1_rate);
+        }
         slColOffsetB(nbg1_rate, nbg1_rate, nbg1_rate);
         return true;
     }

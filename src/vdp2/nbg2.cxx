@@ -1,8 +1,5 @@
 #include "nbg2.h"
 #include "../main.h"
-// #include "nbg2_3.cel"
-// #include "nbg2_3.map"
-// #include "nbg2_3.pal"
 
 using namespace SRL::Math::Types;
 
@@ -14,7 +11,6 @@ SRL::Tilemap::Interfaces::CubeTile* PauseTilemap;
 
 void preload_options_bg(void) {
     // keep in hwram so it doesn't stop music playback
-    // OptionsTilemap = new SRL::Tilemap::Interfaces::CubeTile("TEST.BIN");
     OptionsTilemap = new SRL::Tilemap::Interfaces::CubeTile("NBG2_0.BIN");
     GameTilemap1   = new SRL::Tilemap::Interfaces::CubeTile("NBG2GP1.BIN");
     GameTilemap2   = new SRL::Tilemap::Interfaces::CubeTile("NBG2GP2.BIN");
@@ -55,7 +51,13 @@ void init_nbg2_img(void) {
         case GAME_STATE_GAMEPLAY:
         case GAME_STATE_DEMO_LOOP:
         {
-            if (g_Game.numPlayers >= THREE_PLAYER) {
+            if (g_Game.gameMode == GAME_MODE_STORY && g_Game.selectStoryCharacter)
+            {
+                SRL::Tilemap::Interfaces::CubeTile* Tilemap = new SRL::Tilemap::Interfaces::CubeTile("NBG2SM.BIN");
+                SRL::VDP2::NBG2::LoadTilemap(*Tilemap);
+                delete Tilemap;
+            }
+            else if (g_Game.numPlayers >= THREE_PLAYER) {
                 SRL::VDP2::NBG2::LoadTilemap(*GameTilemap2);
             }
             else {
@@ -88,6 +90,14 @@ void init_nbg2_img(void) {
         case GAME_STATE_CHARACTER_SELECT:
         {
             SRL::Tilemap::Interfaces::CubeTile* Tilemap = new SRL::Tilemap::Interfaces::CubeTile("NBG2CS.BIN");
+            SRL::VDP2::NBG2::LoadTilemap(*Tilemap);
+            delete Tilemap;
+            SRL::VDP2::NBG2::SetOpacity(Fxp(0.5));
+            break;
+        }
+        case GAME_STATE_NAME_ENTRY:
+        {
+            SRL::Tilemap::Interfaces::CubeTile* Tilemap = new SRL::Tilemap::Interfaces::CubeTile("NBG2NE.BIN");
             SRL::VDP2::NBG2::LoadTilemap(*Tilemap);
             delete Tilemap;
             SRL::VDP2::NBG2::SetOpacity(Fxp(0.5));

@@ -38,6 +38,7 @@ void stopBallMovement(Sprite *ball) {
     ball->vel.x = 0;
     ball->vel.y = 0;
     ball->vel.z = 0;
+    initStarsFx();
 }
 
 // Function to initialize the ball's movement
@@ -332,7 +333,7 @@ bool detect_player_ball_collision(Sprite *ball, PPLAYER player) {
         if (!g_Game.explodeBall) {
             updateBallTouch(player);
         }
-        if (g_GameOptions.enableMeows && !player->_sprite->isColliding) {
+        if (!player->_sprite->isColliding) {
             playCatSound();
         }
         handle_ball_player_reaction(ball, player, distance_squared, dx, dy);
@@ -349,7 +350,7 @@ bool detect_player_ball_collision(Sprite *ball, PPLAYER player) {
         if (!g_Game.explodeBall) {
             updateBallTouch(player);
         }
-        if (g_GameOptions.enableMeows && !player->_sprite->isColliding) {
+        if (!player->_sprite->isColliding) {
             playCatSound();
         }
         handle_ball_player_reaction(ball, player, distance_squared, dx, dy);

@@ -70,6 +70,7 @@ void changeState(GAME_STATE newState)
             g_Game.nextState = GAME_STATE_DEMO_LOOP;
             demo_init();
             gameplay_init();
+            SRL::VDP2::NBG2::ScrollEnable();
             g_Game.gameState = g_Game.nextState;
             break;
         }
@@ -132,10 +133,10 @@ void changeState(GAME_STATE newState)
         }
         case GAME_STATE_UNINITIALIZED:
         {
-            SRL::TV::TVOff();
             SRL::Debug::PrintClearScreen();
             SRL::VDP2::NBG2::ScrollDisable();
             SRL::VDP2::NBG3::ScrollDisable();
+            SRL::TV::TVOff();
             initGame();
             init_game_palette();
             update_nbg1_time_slot();

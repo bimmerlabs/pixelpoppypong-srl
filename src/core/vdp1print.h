@@ -14,7 +14,8 @@ static inline int16_t GetFontIndex(char c)
     if ((uint8_t)(c - '0') <= 9)  return c - '0';
     if ((uint8_t)(c - 'A') <= 25) return 10 + (c - 'A');
     if ((uint8_t)(c - 'a') <= 25) return 10 + (c - 'a');
-    if (c == '!') return 36;
+    if (c == ':') return 37;
+    if (c == '.') return 38;
     return -1;
 }
 

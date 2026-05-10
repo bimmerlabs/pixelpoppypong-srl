@@ -11,7 +11,7 @@ extern "C" {
 
 void check_player_inputs(void);
 void validateCharacters(PLAYER *player);
-void validateStoryCharacters(PLAYER *player);
+// void validateStoryCharacters(PLAYER *player);
 int selectRandomCharacter(void);
 void validateTeam(PLAYER *player);
 

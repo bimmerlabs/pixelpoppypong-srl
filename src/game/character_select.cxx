@@ -53,21 +53,15 @@ void initCharacterSelectStruct(void)
 
 void characterSelectInit(void)
 {
-    g_Game.lastState = GAME_STATE_CHARACTER_SELECT; // why is this here twice?
-    // if (g_Assets.titleAssetsLoaded) {
-        // unloadTitleAssets();
-    // }
+    g_Game.lastState = GAME_STATE_CHARACTER_SELECT;
+    
     if (!g_Assets.characterAssetsLoaded) {
         loadCharacterAssets();
-    }
-    if (!g_Assets.NameEntryAssetsLoaded)
-    {
-        loadNameEntryAssets();
     }
 
     init_nbg2_img();
     
-    SRL::Debug::PrintClearScreen(); // why is this here?
+    SRL::Debug::PrintClearScreen();
 
     reset_sprites();
 
@@ -80,8 +74,6 @@ void characterSelectInit(void)
     initCharacterSelectStruct();
     initAvailableCharacters(); // this is for the player
     characterAvailable[CHARACTER_NONE] = true; // random
-    
-    initAvailableStoryCharacters(); // this is for the CPU
 
     g_Game.numPlayers = TWO_PLAYER;
     initPlayers();
@@ -128,7 +120,6 @@ void characterSelectInput(void)
         {
             Pcm::Play(Sounds.Name[NameCanSnd]);
             g_Game.vblankClearScreen = true;
-            storyCharacterAvailable[player->character.choice] = true;
             characterSelect.finished = false;
             characterSelect.snapEnd = false;
             randomRotations = 0;
@@ -143,15 +134,17 @@ void characterSelectInput(void)
         }
     }
     
+    int left_char_id = characterSelect.spr_id - 1;
+    if (left_char_id < CHARACTER_MACCHI)
+        left_char_id = CHARACTER_NONE;
+    
+    int right_char_id = characterSelect.spr_id + 1;
+    if (right_char_id > CHARACTER_NONE)
+        right_char_id = CHARACTER_MACCHI;
+    
     if (gamepad.IsHeld(Digital::Button::Left) && !characterSelect.finished)
     {
-        int next_char_id = characterSelect.spr_id -= 1;
-        if (next_char_id < CHARACTER_MACCHI)
-            next_char_id = CHARACTER_NONE;
-        // SRL::Debug::Print(2, 9, "next_char_id:%d  ", next_char_id);
-        // SRL::Debug::Print(2, 10, "characterAvailable:%d", characterAvailable[next_char_id]);
-
-        if (characterAvailable[next_char_id])
+        if (characterAvailable[left_char_id])
         {
             g_Game.vblankClearScreen = true;
             characterSelect.isAngleSnapped = false;
@@ -161,16 +154,10 @@ void characterSelectInput(void)
             if (characterSelect.angle > 360)
                 characterSelect.angle -= 360;
         }
-    }
+    }    
     else if (gamepad.IsHeld(Digital::Button::Right) && !characterSelect.finished)
     {
-        int next_char_id = characterSelect.spr_id += 1;
-        if (next_char_id > CHARACTER_NONE)
-            next_char_id = CHARACTER_MACCHI;
-        // SRL::Debug::Print(2, 9, "next_char_id:%d  ", next_char_id);
-        // SRL::Debug::Print(2, 10, "characterAvailable:%d", characterAvailable[next_char_id]);
-
-        if (characterAvailable[next_char_id])
+        if (characterAvailable[right_char_id])
         {
             g_Game.vblankClearScreen = true;
             characterSelect.isAngleSnapped = false;
@@ -180,20 +167,20 @@ void characterSelectInput(void)
             if (characterSelect.angle < 0)
                 characterSelect.angle += 360;
         }
-    }
-    else if (gamepad.WasPressed(Digital::Button::A) || gamepad.WasPressed(Digital::Button::C))
+    }    
+    else if (
+              // gamepad.WasPressed(Digital::Button::START) || 
+              gamepad.WasPressed(Digital::Button::A) || 
+              gamepad.WasPressed(Digital::Button::C))
     {
         if (!characterSelect.finished)
         {
-            // Pcm::Play(Sounds.Name[NameKetSnd]);
-            // Pcm::Play(Sounds.Name[NameBrkSnd], PlayMode::Volatile);
             Pcm::Play(Sounds.Name[LoadOkSnd], PlayMode::Volatile);
             characterSelect.selection++;
         }
 
         if (characterSelect.selection == CONFIRM_PRESSES)
         {
-            // Pcm::Play(Sounds.Name[NameBrkSnd], PlayMode::Volatile, 6);
             characterSelect.finished = true;
         }
     }
@@ -202,10 +189,17 @@ void characterSelectInput(void)
         if (characterSelect.finished && characterSelect.isAngleSnapped)
         {
             Pcm::Play(Sounds.Name[NameBrkSnd], PlayMode::Volatile);
-            // Pcm::Play(Sounds.Name[LoadOkSnd], PlayMode::Volatile);
             characterSelect.end = true;
+            press_start = false;
+            SRL::Debug::Print(19, 12, "     ");
+            SRL::Debug::Print(20, 13, "     ");
             return;
         }
+    }
+    else
+    {
+        characterSelect.pressedLeft = false;
+        characterSelect.pressedRight = false;
     }
 }
 
@@ -240,7 +234,6 @@ void characterSelectUpdate(void)
         characterSelect.yRadius += Fxp(2);
         characterSelect.angle += 4;
         // SRL::Debug::Print(2, 10, "Rad:X=%3d", characterSelect.xRadius.As<int32_t>());
-        storyCharacterAvailable[player->character.choice] = false;
         player->character.selected = true;
         player->_portrait->id = player->_portrait->anim[0].asset + player->character.choice;
         assignCharacterSprite(player);
@@ -261,7 +254,6 @@ void characterSelectUpdate(void)
         // leave as-is - "random" is playable as a secret character if you let the selection time out
         characterSelect.end = true;
         characterSelect.finished = true;
-        storyCharacterAvailable[player->character.choice] = false;
         player->character.selected = true;
         player->_portrait->id = player->_portrait->anim[0].asset + player->character.choice;
         assignCharacterSprite(player);
@@ -285,6 +277,7 @@ void characterSelectDraw(void)
     {
         if (!characterSelect.snapEnd && player->character.choice == CHARACTER_NONE)
         {
+            SRL::Debug::PrintClearScreen();
             newAngle = selectRandomCharacter();
             characterSelect.isAngleSnapped = false;
             characterSelect.snapEnd = true;
@@ -308,9 +301,10 @@ void characterSelectDraw(void)
         }
     }
 
+        
     if (characterSelect.isAngleSnapped && characterSelect.start) // take this out of the characterSelectPositionUpdate loop
     {
-        if (!g_GameOptions.debug_display && !gamepad.IsHeld(Digital::Button::Left) && !gamepad.IsHeld(Digital::Button::Right))
+        if (!g_GameOptions.debug_display && !characterSelect.pressedLeft && !characterSelect.pressedRight)
         {
             characterNameDraw(fullCharacterNames[player->character.choice]);
             PrintWrapped(4, 19, 36, characterBios[player->character.choice]);
@@ -341,7 +335,6 @@ void characterSelectDraw(void)
         }
     }
     else {
-        // SRL::Debug::Print(12, 2, "Select Your Character");
         characterSelectTitleDraw();
         
         // SRL::Debug::Print(2, 10, "light.x:%3d", light.x.As<int32_t>());
@@ -456,7 +449,10 @@ void characterSelectPositionUpdate(int angle, int sprAngle)
     Fxp fixedAngle = Fxp::Convert(angle * TO_TURNS);
     paw[spr_id].pos.x = 2*SRL::Math::Trigonometry::Cos(fixedAngle) * characterSelect.xRadius + Fxp_8;
     paw[spr_id].pos.y = -2*SRL::Math::Trigonometry::Sin(fixedAngle) * characterSelect.yRadius;
-
+    
+    lock.pos.x = paw[spr_id].pos.x;
+    lock.pos.y = paw[spr_id].pos.y;
+    
     if (angle > 262 && angle < 278)
     {
         paw[spr_id].scl.x = Fxp(3);
@@ -480,6 +476,9 @@ void characterSelectPositionUpdate(int angle, int sprAngle)
 
     paw[spr_id].scl.y = paw[spr_id].scl.x;
     
+    lock.scl.x = paw[spr_id].scl.x;
+    lock.scl.y = paw[spr_id].scl.y;
+    
     if (characterSelect.end && characterSelect.xRadius > CHARACTER_END_RADIUS) {
         paw[spr_id].mesh = MESHoff;
     }
@@ -489,6 +488,9 @@ void characterSelectPositionUpdate(int angle, int sprAngle)
     else {
         paw[spr_id].mesh = MESHoff;
     }
+    
+    lock.mesh = paw[spr_id].mesh;
+    
     paw[spr_id].zmode = _ZmCC;
     
     int zAngle = angle + 91;
@@ -507,9 +509,16 @@ void characterSelectPositionUpdate(int angle, int sprAngle)
     }
 
     paw[spr_id].pos.z = Fxp::Convert(zPos+50.0f);
+    
+    lock.pos.z = paw[spr_id].pos.z;
 
     paw[spr_id].flip = sprNoflip;
     my_sprite_draw(&paw[spr_id]);
+    
+    if (!characterAvailable[spr_id] && spr_id != CHARACTER_NONE && !characterSelect.end)
+    {
+        my_sprite_draw(&lock);
+    }
 }
 
 int snap_to_nearest_angle(int angle)

@@ -1,4 +1,5 @@
 #include "main.h"
+// #include <srl_timer.hpp>
 
 #include "core/backup.h"
 #include "core/input.h"
@@ -41,7 +42,7 @@ GameOptions g_GameOptions = {
     .unlockBigHeadMode = false,
     .bigHeadMode = false,
     .enableItems = true,
-    .enableMeows = true, // up for elimination
+    .bossMode = false,
     .reservedBool = false,
     .bombTouchCounter = 0,
     .fishTouchCounter = 0,
@@ -74,11 +75,11 @@ void initGame(void) {
     g_Game.gameDifficulty = GAME_DIFFICULTY_MEDIUM;
         
     // TIMERS
-    g_Game.endDelayTimer = 0;
+    // g_Game.endDelayTimer = 0;
     g_Game.BeginTimer = 0;
     g_Game.roundBeginTimer = 0;
     g_Game.dropBallTimer = 0;
-    g_Game.time_over = false;
+    // g_Game.time_over = false;
 
     // is the game loading?
     g_Game.isLoading = false;
@@ -95,7 +96,7 @@ void initGame(void) {
     g_Game.isRoundOver = false;
     g_Game.countofRounds = 0;
    
-    g_Game.winner = -2;
+    // g_Game.winner = -2;
     
     // is the game playing?
     g_Game.isActive = false;
@@ -223,6 +224,9 @@ void abcStart_callback(void)
                 SYS_Exit(0);
             }
             else {
+                SRL::Debug::PrintClearScreen();
+                SRL::VDP2::NBG2::ScrollDisable();
+                SRL::VDP2::NBG3::ScrollDisable();
                 transitionState(GAME_STATE_UNINITIALIZED);
             }
         }
@@ -390,7 +394,7 @@ void run_once(void) {
 
 int main()
 {
-    SRL::Core::Initialize(HighColor(0,0,0), SRL::TV::Resolutions::Normal704x240 );
+    SRL::Core::Initialize(HighColor(0,0,0), SRL::TV::Resolutions::Normal704x240);
     
     slZdspLevel(3);
     
@@ -399,9 +403,8 @@ int main()
 
     SRL::TV::TVOff();
     
-    #ifdef SRL_HIGH_RES_NON_INTERLACED
-        slSetSprTVMode(static_cast<uint16_t>(SRL::TV::Resolutions::Interlaced704x480));
-    #endif
+    slSetSprTVMode(static_cast<uint16_t>(SRL::TV::Resolutions::Interlaced704x480));
+
     // CRAM mode 0 - required for VDP2 transparency in high-res
     slColRAMMode ( CRM16_1024 ); // must be set before loading any palettes
     
@@ -418,6 +421,19 @@ int main()
     }
     while(1)
     {
+        // if (g_GameOptions.debug_display)
+        // {
+            // Fxp fps = 0;
+            // if (SRL::Timer::DeltaSeconds() > 0)
+                // fps = 1 / SRL::Timer::DeltaSeconds();
+            // SRL::Debug::Print(2, 3, "FPS:%f  ", fps);
+            // // PrintFxp(2, 3, "FPS:", fps);
+        // }
+        
+        // // Measure rendering time using Capture()
+        // // Use Capture() for benchmarking/profiling - reads hardware registers
+        // auto renderStart = SRL::Timer::Capture();
+        
         screenTransition_update();
         game_state_update();
         my_input_callback();
@@ -463,7 +479,15 @@ int main()
         }
     
         my_color_calc();
-    
+        
+        // if (g_GameOptions.debug_display)
+        // {
+            // auto renderEnd = SRL::Timer::Capture();
+            // auto renderTime = renderEnd - renderStart;
+            // SRL::Debug::Print(2, 4, "RenderT:%f ms ", renderTime.ToMilliseconds());
+            // // PrintFxp(2, 4, "RenderT:", renderTime.ToMilliseconds());
+        // }
+            
         SRL::Core::Synchronize();
     }
     return(0);

@@ -257,9 +257,6 @@ void explodeGoals(void) {
     for (int8_t i = 0; i <= g_Game.numPlayers; i++)
     {
         PGOAL goal = &g_Goal[i];
-        if (goal->player->isAI && g_Game.gameMode == GAME_MODE_STORY) {
-            continue;
-        }
         if (g_Team.isActive[goal->player->teamChoice] == true && goal->player->isDead) {
             goal->sprite->rot.z += 1;
             if (g_Transition.explosion_flash) {
@@ -296,6 +293,7 @@ void checkRightGoalCollision(Sprite *ball) {
             g_AnimateGoal = true;
             if (g_Game.gameMode == GAME_MODE_STORY) {
                 g_Game.isGoalScored = true;
+                initStarsFx();
                 calculateScore(ball, 0);
                 updatePlayerLives(1);
                 if (!g_Game.isBoss) {
@@ -306,6 +304,7 @@ void checkRightGoalCollision(Sprite *ball) {
             }
             else if (!g_Game.isGoalScored) { // scored on TEAM_2 or TEAM_4
                 updateScore(ball, goal->id);
+                initStarsFx();
                 break;
             }
         }
@@ -325,6 +324,7 @@ void checkLeftGoalCollision(Sprite *ball) {
             g_AnimateGoal = true;
             if (g_Game.gameMode == GAME_MODE_STORY) {
                 g_Game.isGoalScored = true;
+                initStarsFx();
                 ballTtouchTimer = 0;
                 updatePlayerLives(0);
                 if (!g_Game.isBoss) {
@@ -335,6 +335,7 @@ void checkLeftGoalCollision(Sprite *ball) {
             }
             else if (!g_Game.isGoalScored) { // scored on TEAM_2 or TEAM_4
                 updateScore(ball, goal->id);
+                initStarsFx();
                 break;
             }
         }

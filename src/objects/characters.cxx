@@ -22,7 +22,7 @@ const char *classicCharacterNames[] = {
     "Jelly Bean",
     "Queen Penny",
     "Hairy Potter",
-    "Dr. Sparta",
+    "Dr.Sparta",
     "Poppy",
     "Toe Jam",
     "George",
@@ -38,7 +38,7 @@ const char *fullCharacterNames[] = {
     "Jelly Bean",
     "Queen Penny",
     "Hairy Potter",
-    "Dr. Sparta",
+    "Dr.Sparta",
     "Princess Poppy",
     "Toe Jam",
     "Curious George",
@@ -48,51 +48,144 @@ const char *fullCharacterNames[] = {
     "Random",
 };
 
-// if this was a 12x12 matrix it would have a saying for every cat vs every cat
-const char *characterQuotes[] = {
-    "I'm the best!",
-    "Hello?  HELLO??",
-    "No, *I'm* the best!",
-    "The cat who lived",
-    "I love lamp!",
-    "I'm so fluffy YOU wanna die!!",
-    "Yo, Anyone seen Earl?",
-    "Can I eat that?",
-    "I just wanna play cat pong!",
-    "Great shot!!",
-    "I hate Mondays..",
-    "Beep Beep Boop!",
+// // if this was a 12x12 matrix it would have a saying for every cat vs every cat
+// const char *characterQuotes[] = {
+    // "I'm the best!",
+    // "Hello?  HELLO??",
+    // "No, *I'm* the best!",
+    // "The cat who lived",
+    // "I love lamp!",
+    // "I'm so fluffy YOU wanna die!!",
+    // "Yo, Anyone seen Earl?",
+    // "Can I eat that?",
+    // "I just wanna play cat pong!",
+    // "Great shot!!",
+    // "I hate Mondays..",
+    // "Beep Boop Beep!",
+// };
+
+// struct BossQuotes {
+    // const char* phase1;  // first taunt, weakest (~4 lives)
+    // const char* phase2;  // getting serious (~2 lives)
+    // const char* phase3;  // desperate (~1 life)
+// };
+
+BossQuotes bossQuotes[CHARACTER_MAX] = {};
+
+void initBossQuotes(void) {
+    // Wuppy: excited → confused → heartbroken
+    bossQuotes[CHARACTER_WUPPY] = {
+        "YAY!! THIS IS SO FUN!! AGAIN!! AGAIN!!",        // phase1: just having a great time
+        "Wait...are you trying to beat me?? WHY??",       // phase2: starting to understand
+        "I just want to be friends... *whimpers*",        // phase3: genuinely devastated
+        "OOOOH!! A Mushroom!! I LOVE Mushrooms!!",
+    };
+
+    // Craig: golf brain, completely unbothered, never escalates
+    bossQuotes[CHARACTER_WALRUS] = {
+        "Great shot!",
+        "Can you get yours inside mine?",
+        "Right down the middle!",
+        "Found one in the rough.",
+    };
+
+    // Garfield: not threatened, just increasingly done with you
+    bossQuotes[CHARACTER_GARF] = {
+        "Oh good, you're still here.",                   // phase1: sarcastic
+        "I could be eating right now. Just so you know.",// phase2: passive aggressive
+        "Fine. I didn't want the lasagna anyway.",       // phase3: the ultimate sacrifice
+        "...I've eaten worse.",
+    };
+
+    // CPU: beeps get more distressed, cracks under pressure
+    bossQuotes[CHARACTER_NONE] = {
+        "BEEP-BEEP! BOOP!",
+        "beeep... boop...?",
+        "BZZT!",
+        "please... help me...",
+    };
+}
+
+const char *stadlerItemQuotes[] = {
+    "Great shot!",
+    "Right down the middle!",
+    "Great birdie!",
+    "Think you can get it inside mine?",
+    "Great Eagle!",
+    "Found one in the rough.",
+    "I'll show you my best shot.",
+    "Well done!",
+    "You're in pretty good shape now!",
+    // "Today is make or break.",
+    // "Hmmm, you missed it just a little..",
+    // "That made my shot just a little tougher.",
 };
 
+const char *garfieldItemQuotes[] = {
+    "Finally, something worth getting up for.",
+    "Power? I prefer to call it motivation.",
+    "I feel... mildly enthusiastic.",
+    "Oh, so NOW you need me.",
+    "This better be worth interrupting my nap.",
+    "Consider yourself... assisted.",    
+    // "I didn't come all this way for nothing. Actually, I did. But still.",
+    // "Fine. I'll try. Don't make a big deal out of it.",
+};
+
+
 const char *characterBios[] = {
+
     "A cool, confident cat who thinks everything should be served with a little foam on top.\n\nBelieves they were born to win at Pong.",
 
-    "Excitable and loud, sometimes forgets which direction they're supposed to hit the ball.\n\nStill having fun either way.",
+    "Chatty, friendly, and never really stops talking.\n\nStill somehow wins. You had to be there.",
 
-    "Self-declared royalty.\n\nDemands respect, belly rubs, and at least three crowns per match.",
+    "Self-declared royalty who demands respect, belly rubs, and at least three treats per match.\n\nThe treat is non-negotiable.",
 
-    "The wizard of whiskers!\n\nMay or may not believe Pong is played with actual magic.",
+    "The wizard of whiskers!\n\nConvinced that Pong is powered by ancient cat magic.\n\nThe wand is just a stick. Probably.",
 
-    "This. Is. CAT-PONG!\n\nThrows themselves into every rally like it's a battle for glory",
+    "A self-proclaimed genius with absolutely no evidence to support it.\n\nAlso, loves lamp. Cannot explain lamp.",
 
     "Fluffy, adorable, and armed with devastating cuteness.\n\nDo not underestimate the paws.",
 
-    "The scrappy street-cat with mystery crumbs always stuck in their fur.\n\nKnows all the back-alley Pong tricks.",
+    "A scrappy six-toed street cat who plays better with his lucky shoelace.\n\nKnows all the back-alley Pong tricks.",
 
-    "Constantly distracted by shiny objects, smells, and buttons.\n\nStill manages to smack the ball back somehow.",
+    "Easily distracted by shiny objects, strange smells, and his own tail.\n\nStill manages to smack the ball back somehow.",
 
-    "Not technically a cat... but really, really wants to be.\n\nTries hard, tail wags even harder.",
+    "Not technically a cat... but really, really wants to be one someday!\n\nDidn't mean to cause all that trouble. Tail wags either way.",
 
-    "The only \"human\" in the lineup, a golf legend who wandered into the wrong game.\n\nStill insists it's basically the same sport.",
+    "The golf legend who somehow wandered into the wrong game!\n\nInsists it's basically the same sport.",
 
     "Plays only under protest.\n\nWill do anything to finish quickly and get back to lasagna.",
 
     "Who will it be this time?\n\nEven it doesn't know.",
+    
+    // "A cool, confident cat who thinks everything should be served with a little foam on top.\n\nBelieves they were born to win at Pong.",
+
+    // "Excitable and loud, sometimes forgets which direction they're supposed to hit the ball.\n\nStill having fun either way.",
+
+    // "Self-declared royalty.\n\nDemands respect, belly rubs, and at least three crowns per match.",
+
+    // "The wizard of whiskers!\n\nMay or may not believe Pong is played with actual magic.",
+
+    // "This. Is. CAT-PONG!\n\nThrows themselves into every rally like it's a battle for glory",
+
+    // "Fluffy, adorable, and armed with devastating cuteness.\n\nDo not underestimate the paws.",
+
+    // "The scrappy street-cat with mystery crumbs always stuck in their fur.\n\nKnows all the back-alley Pong tricks.",
+
+    // "Constantly distracted by shiny objects, smells, and buttons.\n\nStill manages to smack the ball back somehow.",
+
+    // "Not technically a cat... but really, really wants to be.\n\nTries hard, tail wags even harder.",
+
+    // "The only \"human\" in the lineup, a golf legend who wandered into the wrong game.\n\nStill insists it's basically the same sport.",
+
+    // "Plays only under protest.\n\nWill do anything to finish quickly and get back to lasagna.",
+
+    // "Who will it be this time?\n\nEven it doesn't know.",
 };
 
 bool characterUnlocked[CHARACTER_MAX] = {};
 bool characterAvailable[CHARACTER_MAX] = {};
-bool storyCharacterAvailable[CHARACTER_MAX] = {};
 
 const CHARACTER_ATTRIBUTES characterAttributes[] = {
   // s   a   p    // speed, acceleration, power - scale 0-100
@@ -107,7 +200,7 @@ const CHARACTER_ATTRIBUTES characterAttributes[] = {
     {Fxp(90), Fxp(62), Fxp(100)},// WUPPY: High power, medium speed, low acceleration
     {Fxp(88), Fxp(88), Fxp(88)}, // THE WALRUS: Above average attributes
     {Fxp(99), Fxp(99), Fxp(99)}, // GARFIELD: Ultimate attributes
-    {Fxp(60), Fxp(60), Fxp(60)}, // NONE: Medium attributes (for CPU)
+    {Fxp(100), Fxp(100), Fxp(100)}, // NONE: random character
 };
 
 void initUnlockedCharacters(void) {
@@ -135,25 +228,46 @@ void initAvailableCharacters(void) {
             characterAvailable[i] = characterUnlocked[i];
         }
     }
+    Dialog::InitDialog();
 }
 
-void initAvailableStoryCharacters(void)
+void PrintWrapped(int x, int y, int maxCharsPerLine, const char* text, Align align)
 {
-    for (int i = CHARACTER_MACCHI; i < CHARACTER_MAX; i++)
+    bool centerX = (align == Align::CenterX || align == Align::CenterBoth);
+    bool centerY = (align == Align::CenterY || align == Align::CenterBoth);
+
+    // pre-pass: measure each line's length so we can center
+    int lineLengths[32] = {};  // assuming max 32 lines, adjust if needed
+    int totalLines = 0;
     {
-        storyCharacterAvailable[i] = true;
-    }
-}
+        const char* p = text;
+        int col = 0;
+        while (*p && totalLines < 32)
+        {
+            if (*p == '\n') { lineLengths[totalLines++] = col; col = 0; p++; continue; }
 
-void PrintWrapped(int x, int y, int maxCharsPerLine, const char *text)
-{
+            int wordLen = 0;
+            while (p[wordLen] && p[wordLen] != ' ' && p[wordLen] != '\n')
+                wordLen++;
+
+            if (col + wordLen > maxCharsPerLine) { lineLengths[totalLines++] = col; col = 0; }
+
+            col += wordLen;
+            if (p[wordLen] == ' ') col++;  // account for space
+            p += wordLen + (p[wordLen] == ' ' ? 1 : 0);
+        }
+        if (col > 0) lineLengths[totalLines++] = col;  // last line
+    }
+
+    int yOffset = centerY ? centeredY(totalLines) : 0;
+
+    // print pass — same logic as before, but offset per line
+    const char* p = text;
     int col = 0;
     int row = 0;
 
-    const char *p = text;
     while (*p)
     {
-        // Handle explicit newlines
         if (*p == '\n')
         {
             col = 0;
@@ -162,40 +276,89 @@ void PrintWrapped(int x, int y, int maxCharsPerLine, const char *text)
             continue;
         }
 
-        // Find the length of the next word
-        const char *wordStart = p;
+        const char* wordStart = p;
         int wordLen = 0;
-        while (p[wordLen] && p[wordLen] != ' ' && p[wordLen] != '\n') // does it need to check against '\n'?  doesn't that get skipped?
+        while (p[wordLen] && p[wordLen] != ' ' && p[wordLen] != '\n')
             wordLen++;
 
-        // If the word won't fit on this line, wrap
         if (col + wordLen > maxCharsPerLine)
         {
             col = 0;
             row++;
         }
 
-        // Print the word character by character
+        int xOffset = centerX ? centeredX(lineLengths[row]) : 0;
+        
         for (int i = 0; i < wordLen; i++)
         {
-            SRL::Debug::Print(x + col, y + row, "%c", *p++);
+            SRL::Debug::Print(x + col + xOffset, y + row + yOffset, "%c", *p++);
             col++;
         }
 
-        // Skip and print a space if present
         if (*p == ' ')
         {
-            if (col + 1 > maxCharsPerLine)
-            {
-                col = 0;
-                row++;
-            }
+            if (col + 1 > maxCharsPerLine) { col = 0; row++; }
             else
             {
-                SRL::Debug::Print(x + col, y + row, " ");
+                SRL::Debug::Print(x + col + xOffset, y + row + yOffset, " ");
                 col++;
             }
             p++;
         }
     }
 }
+
+// void PrintWrapped(int x, int y, int maxCharsPerLine, const char *text)
+// {
+    // int col = 0;
+    // int row = 0;
+
+    // const char *p = text;
+    // while (*p)
+    // {
+        // // Handle explicit newlines
+        // if (*p == '\n')
+        // {
+            // col = 0;
+            // row++;
+            // p++;
+            // continue;
+        // }
+
+        // // Find the length of the next word
+        // const char *wordStart = p;
+        // int wordLen = 0;
+        // while (p[wordLen] && p[wordLen] != ' ' && p[wordLen] != '\n') // does it need to check against '\n'?  doesn't that get skipped?
+            // wordLen++;
+
+        // // If the word won't fit on this line, wrap
+        // if (col + wordLen > maxCharsPerLine)
+        // {
+            // col = 0;
+            // row++;
+        // }
+
+        // // Print the word character by character
+        // for (int i = 0; i < wordLen; i++)
+        // {
+            // SRL::Debug::Print(x + col, y + row, "%c", *p++);
+            // col++;
+        // }
+
+        // // Skip and print a space if present
+        // if (*p == ' ')
+        // {
+            // if (col + 1 > maxCharsPerLine)
+            // {
+                // col = 0;
+                // row++;
+            // }
+            // else
+            // {
+                // SRL::Debug::Print(x + col, y + row, " ");
+                // col++;
+            // }
+            // p++;
+        // }
+    // }
+// }

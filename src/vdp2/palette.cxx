@@ -2,10 +2,12 @@
 #include "palette.h"
 #include "palette.pal"
 
-SRL::CRAM::Palette gamePalette;
+// for HSL colors / normap mapping
 uint16_t* basePalette = 0;
 
-// Palette for logo
+// for sprites
+SRL::CRAM::Palette gamePalette;
+
 uint16_t* init_game_palette(void)
 {
     gamePalette  = LoadSpritePalette(game_pal);
@@ -20,11 +22,8 @@ SRL::CRAM::Palette LoadSpritePalette(uint16_t* palData)
 
     SRL::CRAM::Palette cramPalette(mode, id);
 
-    if (cramPalette.Load((SRL::Types::HighColor*)palData, 256) >= 0)
-    {
-        // Mark bank as in use
-        SRL::CRAM::SetBankUsedState(id, mode, true);
-    }
+    cramPalette.Load((SRL::Types::HighColor*)palData, 256);
+    
     return cramPalette;
 }
 

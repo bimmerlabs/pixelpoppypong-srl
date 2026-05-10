@@ -26,6 +26,7 @@ typedef struct {
     unsigned int timer[MAX_PLAYERS];
     bool isActive;
     bool update;
+    uint8_t textFramesRemaining;
     Sprite *_sprite;
 } Item;
 

@@ -23,7 +23,7 @@ const char *difficulty[] = {
     "Hard"
 };
 void highScore_init(void) {
-    highScores[0] = (HighScoreEntry){10000000, "CDS",  0, 1}; // could put an actual score here
+    highScores[0] = (HighScoreEntry){10000000, "CDS",  0, 1};
     highScores[1] = (HighScoreEntry){5000000,  "GBA", 10, 2};
     highScores[2] = (HighScoreEntry){4500000,  "SES",  8, 1};
     highScores[3] = (HighScoreEntry){4000000,  "OCS",  4, 0};
@@ -42,10 +42,6 @@ void init_scores(void)
     }
     if (!g_Assets.characterAssetsLoaded) {
         loadCharacterAssets();
-    }
-    if (!g_Assets.NameEntryAssetsLoaded)
-    {
-        loadNameEntryAssets();
     }
     
     init_nbg2_img();
@@ -169,11 +165,21 @@ void sortHighScores(HighScoreEntry scores[]) {
     }
 }
 
-void addHighScore(uint32_t newScore, const char *initials, uint8_t character) {
+bool checkHighScore(uint32_t newScore) {
     // Check if the new score qualifies
+    // checks against index 10, which should be the lowest high score
     if (newScore <= highScores[SCORE_ENTRIES - 1].score) {
-        return;  // Score is too low, ignore
+        return false;  // Score is too low, ignore
     }
+    return true;
+}
+
+void addHighScore(uint32_t newScore, const char *initials, uint8_t character) {
+    // don't need to check anymore - score can't be entered unless it was already checked
+    // // Check if the new score qualifies
+    // if (newScore <= highScores[SCORE_ENTRIES - 1].score) {
+        // return;  // Score is too low, ignore
+    // }
     // Insert at the last position
     highScores[SCORE_ENTRIES - 1].score = newScore;
     highScores[SCORE_ENTRIES - 1].character = character;
@@ -188,11 +194,12 @@ void addHighScore(uint32_t newScore, const char *initials, uint8_t character) {
 }
 
 void calculateScore(Sprite *ball, uint8_t playerID) {
-    Fxp BallVelX = ball->vel.x.Abs();
-    Fxp BallVelY = ball->vel.y.Abs();
-    uint32_t points = (BallVelX.As<uint32_t>() * 50) 
-                         + (BallVelY.As<uint32_t>() * 500) 
-                         + (ABS(ball->vel.z.As<int32_t>()) * 1000);
+    Fxp vX = ball->vel.x.Abs();
+    Fxp vY = ball->vel.y.Abs();
+    Fxp vZ = ball->vel.z.Abs();
+    
+    uint32_t points = (vX.As<uint32_t>() * 50) + (vY.As<uint32_t>() * 125) + (vZ.As<uint32_t>() * 250);
+    
     g_Players[playerID].score.points += points * touchedBy[playerID].touchCount;
     ballTtouchTimer = 0;
 }

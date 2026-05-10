@@ -3,7 +3,6 @@
 #include "input.h"
 #include "assets.h"
 #include "backup.h"
-#include "util.h"
 #include "screen_transition.h"
 #include "../game/gameplay.h"
 #include "../objects/player.h"
@@ -144,17 +143,16 @@ static void checkForPauseMenu(void)
         pauseChoice++;
     } 
      
+    #if ENABLE_DEBUG_MODE == 1
     if (gamepad.WasPressed(Digital::Button::Left))
     {
         switch(pauseChoice)
         {
-            #if ENABLE_DEBUG_MODE == 1
             case PAUSE_OPTIONS_DEBUG:
                 Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                 g_GameOptions.debug_display = !g_GameOptions.debug_display;
                 g_Game.vblankClearScreen = true;
                 break;
-            #endif
             default:
                 break;
         }
@@ -163,17 +161,16 @@ static void checkForPauseMenu(void)
     {
         switch(pauseChoice)
         {
-            #if ENABLE_DEBUG_MODE == 1
             case PAUSE_OPTIONS_DEBUG:
                 Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                 g_GameOptions.debug_display = !g_GameOptions.debug_display;
                 g_Game.vblankClearScreen = true;
                 break;
-            #endif
             default:
                 break;
         }
     }
+    #endif
     
     sanitizeValue(&pauseChoice, 0, PAUSE_OPTION_MAX);
 
@@ -197,10 +194,6 @@ static void checkForPauseMenu(void)
             case PAUSE_OPTIONS_RESTART:
                 SRL::Debug::PrintClearScreen();
                 Pcm::Play(Sounds.Core[NextSnd], PlayMode::Volatile, 6);
-                g_Transition.mosaic_in_rate = MOSAIC_FAST_RATE;
-                if (g_GameOptions.mosaic_display) {
-                    g_Transition.mosaic_in = true;
-                }
                 g_Game.isPaused = false;
                 switch_nbg2_img();
                 slColOffsetB(NEUTRAL_FADE, NEUTRAL_FADE, NEUTRAL_FADE);

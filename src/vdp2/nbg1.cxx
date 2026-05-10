@@ -21,9 +21,9 @@ void init_nbg1_img(void) {
         
     SRL::VDP2::NBG1::SetPriority(SRL::VDP2::Priority::Layer2);//set NBG1 priority
     SRL::VDP2::NBG1::ScrollDisable();
-    #ifdef SRL_HIGH_RES_NON_INTERLACED
-        slZoomNbg1(toFIXED(0.50), toFIXED(1.0));
-    #endif
+    // #ifdef SRL_HIGH_RES_NON_INTERLACED
+    slZoomNbg1(toFIXED(0.50), toFIXED(1.0));
+    // #endif
 }
 
 // directly set color based on time slot

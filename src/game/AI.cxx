@@ -3,6 +3,8 @@
 #include "gameplay.h"
 #include "../main.h"
 #include "../core/assets.h"
+#include "../core/audio.h"
+#include "../objects/characters.h"
 
 extern PLAYER g_Players[MAX_PLAYERS];
 
@@ -68,7 +70,48 @@ void playerAI(Sprite *ball) {
         player->_sprite->vel.x += player->curPos.dx;
         player->_sprite->vel.y += player->curPos.dy;
         
-        detect_player_ball_collision(&pixel_poppy, player);
+        if (detect_player_ball_collision(&pixel_poppy, player))
+        {
+            if (g_Game.isBoss)
+            {
+                const char* quote = nullptr;
+                BossQuotes& q = bossQuotes[player->character.choice];
+
+                if (player->numLives <= 1 && !g_BossState.phase3Triggered)
+                {
+                    g_BossState.textFramesRemaining = 3*60;
+                    quote = q.phase3;
+                    Pcm::Play(Sounds.Game[LaunchSnd], PlayMode::Protected, 7);
+                    PrintWrapped(0, 23, 30, quote, Align::CenterX);
+                    g_BossState.phase3Triggered = true;
+                    g_BossState.emitFramesRemaining = 60;
+                    g_BossState.soundPlayed = false;
+                    g_BossState.soundDelay = 15;
+                }
+                else if (player->numLives <= 2 && !g_BossState.phase2Triggered)
+                {
+                    g_BossState.textFramesRemaining = 3*60;
+                    quote = q.phase2;
+                    Pcm::Play(Sounds.Game[LaunchSnd], PlayMode::Protected, 7);
+                    PrintWrapped(0, 23, 30, quote, Align::CenterX);
+                    g_BossState.phase2Triggered = true;
+                    g_BossState.emitFramesRemaining = 45;
+                    g_BossState.soundPlayed = false;
+                    g_BossState.soundDelay = 15;
+                }
+                else if (player->numLives <= 4 && !g_BossState.phase1Triggered)
+                {
+                    g_BossState.textFramesRemaining = 3*60;
+                    quote = q.phase1;
+                    Pcm::Play(Sounds.Game[LaunchSnd], PlayMode::Protected, 7);
+                    PrintWrapped(0, 23, 24, quote, Align::CenterX);
+                    g_BossState.phase1Triggered = true;
+                    g_BossState.emitFramesRemaining = 30;
+                    g_BossState.soundPlayed = false;
+                    g_BossState.soundDelay = 15;
+                }
+            }
+        }
         boundAiPlayer(player);
     }
 }

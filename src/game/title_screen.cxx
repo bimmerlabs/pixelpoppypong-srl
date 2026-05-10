@@ -57,17 +57,6 @@ void initTitleScreenStruct(void) {
 
 void titleScreen_init(void)
 {
-    // if (g_Game.lastState == GAME_STATE_TEAM_SELECT 
-     // || g_Game.lastState == GAME_STATE_GAMEPLAY 
-     // || g_Game.lastState == GAME_STATE_DEMO_LOOP 
-     // || g_Game.lastState == GAME_STATE_CREDITS) {
-        // // unloadGameAssets();
-        // // loadTitleScreenAssets();
-    // }
-    // if (!g_Assets.titleAssetsLoaded) {
-        // loadTitleScreenAssets();
-    // }
-    
     if (g_Game.lastState != GAME_STATE_PPP_LOGO) {
         reset_sprites();
     }
@@ -111,10 +100,7 @@ void titleScreen_init(void)
     g_Transition.all_in = true;
     
     SRL::VDP2::NBG2::ScrollDisable();
-    
-    // enable Endcodes
-    // SRL::Scene2D::SetEffect(SRL::Scene2D::SpriteEffect::EnableECD, true);
-    
+        
     initTitleScreenFx();
 }
 
@@ -165,7 +151,7 @@ void startScreen_update(void)
 {
     titleScreen.timer++;
     
-    titleScreen.poppy_animation_id = rnd.GetNumber(0, 11);
+    titleScreen.poppy_animation_id = rnd.GetNumber(1, 11); // removed "0", because it doesn't do anything
     
     if (!titleScreen.logo_bounce && !titleScreen.logo_falling) {
         if (titleScreen.timer == LOGO_TIMER) {
@@ -320,11 +306,7 @@ void drawTitle(void)
             else {
                 SRL::Debug::Print(16, 27, "           ");
             }
-            #if ENABLE_DEBUG_MODE == 1
-                SRL::Debug::Print(18, 28, "%s", VERSION); // Regular version
-            #else
-                SRL::Debug::Print(18, 28, "%s RC", VERSION); // release canidate
-            #endif
+            SRL::Debug::Print(18, 28, "%s", VERSION); // Regular version
         }
     }
 }
@@ -357,7 +339,7 @@ void menuScreen_input(void)
     PPLAYER player = &g_Players[0];
 
     Digital gamepad(player->input->id);
-    
+        
         if (gamepad.WasPressed(Digital::Button::Up))
         {
             Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
@@ -391,11 +373,12 @@ void menuScreen_input(void)
                     
                 case TITLE_OPTION_GAME_OPTIONS:
                     titleScreen.menuChoice = titleScreen.menuLastChoice;
+                    titleScreen.menuLastChoice = TITLE_OPTION_GAME_OPTIONS;
                     break;
             }
-        }
+         }
 
-        if (gamepad.WasPressed(Digital::Button::Down))
+        else if (gamepad.WasPressed(Digital::Button::Down))
         {
             Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
             titleScreen.h_value = 0;
@@ -417,7 +400,7 @@ void menuScreen_input(void)
                     break;
                 
                 case TITLE_OPTION_GAME_DIFFICULTY:
-                    titleScreen.menuLastChoice = TITLE_OPTION_GAME_PLAYERS;
+                    titleScreen.menuLastChoice = TITLE_OPTION_GAME_DIFFICULTY;
                     titleScreen.menuChoice = TITLE_OPTION_GAME_OPTIONS;
                     break;
                     
@@ -428,11 +411,12 @@ void menuScreen_input(void)
                     
                 case TITLE_OPTION_GAME_OPTIONS:
                     titleScreen.menuChoice = titleScreen.menuLastChoice;
+                    titleScreen.menuLastChoice = TITLE_OPTION_GAME_OPTIONS;
                     break;
             }
         }
 
-        if (gamepad.WasPressed(Digital::Button::Left))
+        else if (gamepad.WasPressed(Digital::Button::Left))
         {
             switch(titleScreen.menuChoice)
             {
@@ -460,17 +444,8 @@ void menuScreen_input(void)
                     break;
             }
         }
-        if (titleScreen.menuChoice != TITLE_OPTION_GAME_OPTIONS) {
-            if (gamepad.IsHeld(Digital::Button::Left))
-            {
-                titleScreen.left_arrow_id = LEFT_ARROW_DN;
-            }
-            else {
-                titleScreen.left_arrow_id = LEFT_ARROW_UP;
-            }
-        }
 
-        if (gamepad.WasPressed(Digital::Button::Right))
+        else if (gamepad.WasPressed(Digital::Button::Right))
         {
             switch(titleScreen.menuChoice)
                 {
@@ -498,16 +473,14 @@ void menuScreen_input(void)
                     break;
             }
         }
-        if (titleScreen.menuChoice != TITLE_OPTION_GAME_OPTIONS) {
-            if (gamepad.IsHeld(Digital::Button::Right))
-            {
-                titleScreen.right_arrow_id = RIGHT_ARROW_DN;
-            }
-            else {
-                titleScreen.right_arrow_id = RIGHT_ARROW_UP;
-            }
-        }
 
+        bool arrowsActive = (titleScreen.menuChoice != TITLE_OPTION_GAME_OPTIONS);
+
+        titleScreen.left_arrow_id  = (arrowsActive && gamepad.IsHeld(Digital::Button::Left))  
+            ? LEFT_ARROW_DN  : LEFT_ARROW_UP;
+        titleScreen.right_arrow_id = (arrowsActive && gamepad.IsHeld(Digital::Button::Right)) 
+            ? RIGHT_ARROW_DN : RIGHT_ARROW_UP;
+        
         // keep title screen choice in range
         sanitizeValue(&titleScreen.menuChoice, 0, TITLE_OPTION_MAX);
 
@@ -987,6 +960,10 @@ void optionsScreen_input(void)
                     Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                     g_GameOptions.testCollision = !g_GameOptions.testCollision;
                     break;
+                case OPTION_BOSS_MODE:
+                    Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
+                    g_GameOptions.bossMode = !g_GameOptions.bossMode;
+                    break;
                 case OPTION_ITEMS:
                     Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                     g_GameOptions.enableItems = !g_GameOptions.enableItems;
@@ -1100,6 +1077,10 @@ void drawOptions(void)
     options_y += 2;
     SRL::Debug::Print(title_x, options_y, "Debug Collision:");
     SRL::Debug::Print(options_x, options_y, g_GameOptions.testCollision ? "On " : "Off");
+    
+    options_y += 2;
+    SRL::Debug::Print(title_x, options_y, "Boss Mode:");
+    SRL::Debug::Print(options_x, options_y, g_GameOptions.bossMode ? "On " : "Off");
     
     options_y += 2;
     SRL::Debug::Print(title_x, options_y, "Power-Ups:");

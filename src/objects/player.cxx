@@ -8,9 +8,12 @@
 #include "../game/AI.h"
 #include "../game/physics.h"
 #include "../game/player_setup.h"
+#include "../game/gameplay_state.hpp"
 #include "../vdp2/sprite_colors.h"
 
 PLAYER g_Players[MAX_PLAYERS] = {};
+
+StoryProgressData g_StoryProgress = {};
 
 void resetPlayerScores(void)
 {
@@ -27,7 +30,6 @@ void resetPlayerScores(void)
         player->totalLives = getLives(player);
         player->numLives = player->totalLives;
         assignCharacterSprite(player);
-        // set_spr_scale(player->_sprite, 2, 2);
         set_spr_scale(&shield[i], 2, 2);
         player->isBig = false;
         player->isSmall = false;
@@ -90,6 +92,7 @@ int getLives(PPLAYER player)
                     break;
                 case GAME_DIFFICULTY_MEDIUM:
                     numLives = 6;
+                    // numLives = 1;
                     break;
                 case GAME_DIFFICULTY_HARD:
                     numLives = 9;
@@ -109,6 +112,7 @@ int getLives(PPLAYER player)
                         break;
                     case GAME_DIFFICULTY_MEDIUM:
                         numLives = 6;
+                        // numLives = 1;
                         break;
                     case GAME_DIFFICULTY_HARD:
                         numLives = 6;
@@ -134,6 +138,7 @@ int getLives(PPLAYER player)
                         break;
                     case GAME_DIFFICULTY_MEDIUM:
                         numLives = 6;
+                        // numLives = 1;
                         break;
                     case GAME_DIFFICULTY_HARD:
                         numLives = 4;
@@ -233,6 +238,7 @@ void initPlayers(bool resetInputs)
 
         // PLAYER      
         player->startSelection = false;
+        player->pressedStart = false;
         player->isReady = false;
         player->pressedB = false; // get rid of this?
         player->isPlaying = false;
@@ -272,7 +278,7 @@ void initPlayers(bool resetInputs)
         player->_bg->scl.y = PLAYER_BG_Y;
         player->_bg->zmode = _ZmLC;
         assignCharacterSprite(player);
-        // set_spr_scale(player->_sprite, 2, 2);
+
         player->_sprite->isColliding = false;
         
         // cursors
@@ -301,7 +307,6 @@ void initPlayers(bool resetInputs)
         player->attack1Frames = 0;
         player->attack2Frames = 0;
         
-        // player->_sprite->pos.r = PLAYER_RADIUS;
         player->shield.activate = false;
         
         player->_portrait = &character_portrait;
@@ -340,7 +345,6 @@ void initAiPlayers(void)
         
         player_bg.mesh = MESHoff;
         
-        // computer->_sprite->pos.r = PLAYER_RADIUS;
         computer->shield.activate = false;
         
         computer->isPlaying = true;
@@ -351,29 +355,90 @@ void initAiPlayers(void)
 
 void initStoryCharacters(void)
 {
-    PPLAYER player   = &g_Players[0];
+    PPLAYER player = &g_Players[0];
     PPLAYER computer = &g_Players[1];
     
-    computer->teamChoice = TEAM_2;
-    g_Team.isAvailable[computer->teamChoice] = false; 
-    g_Team.isActive[computer->teamChoice] = true;
-    
-    computer->_bg->id = computer->_bg->anim[0].asset + 1;
-    
-    if (player->character.choice == CHARACTER_MACCHI)
+    g_Game.isBoss = false;
+
+    // initialize all as unavailable first
+    for (int i = 0; i < CHARACTER_MAX; i++)
     {
-        computer->character.choice = CHARACTER_JELLY;
+        g_StoryProgress.available[i] = false;
+        g_StoryProgress.finished[i] = false;
+    }
+
+    // normal characters always available
+    if (g_GameOptions.bossMode) {
+        g_StoryProgress.available [CHARACTER_MACCHI] = false;
+        g_StoryProgress.available[CHARACTER_JELLY]  = false;
+        g_StoryProgress.available[CHARACTER_PENNY]  = false;
+        g_StoryProgress.available[CHARACTER_POTTER] = false;
+        g_StoryProgress.available[CHARACTER_SPARTA] = false;
+        g_StoryProgress.available[CHARACTER_POPPY]  = false;
+        g_StoryProgress.available[CHARACTER_TJ]     = false;
+        g_StoryProgress.available[CHARACTER_GEORGE] = false;
     }
     else {
-        computer->character.choice = CHARACTER_MACCHI;
+        g_StoryProgress.available [CHARACTER_MACCHI] = true;
+        g_StoryProgress.available[CHARACTER_JELLY]  = true;
+        g_StoryProgress.available[CHARACTER_PENNY]  = true;
+        g_StoryProgress.available[CHARACTER_POTTER] = true;
+        g_StoryProgress.available[CHARACTER_SPARTA] = true;
+        g_StoryProgress.available[CHARACTER_POPPY]  = true;
+        g_StoryProgress.available[CHARACTER_TJ]     = true;
+        g_StoryProgress.available[CHARACTER_GEORGE] = true;
     }
-    characterAvailable[computer->character.choice] = false;
 
+    // wuppy always available as opponent
+    g_StoryProgress.available[CHARACTER_WUPPY] = true;
+    
+    // CHARACTER_NONE never available (or are they??)
+    g_StoryProgress.available[CHARACTER_NONE] = false;
+
+    switch (player->character.choice)
+    {
+        case CHARACTER_WUPPY:
+            g_StoryProgress.available[CHARACTER_WALRUS] = true;
+            break;
+            
+        case CHARACTER_WALRUS:
+            g_StoryProgress.available[CHARACTER_GARF] = true;
+            break;
+            
+        case CHARACTER_GARF:
+            g_StoryProgress.available[CHARACTER_NONE] = true;
+            break;
+            
+        case CHARACTER_NONE:
+            g_StoryProgress.available[CHARACTER_WALRUS] = true;
+            g_StoryProgress.available[CHARACTER_GARF] = true;
+            break;
+            
+        default:
+            break;
+    }
+    
+    // player's own character is never an opponent
+    g_StoryProgress.available[player->character.choice] = false;
+
+    // set up first opponent - first available character
+    for (int i = 0; i < CHARACTER_MAX; i++)
+    {
+        if (g_StoryProgress.available[i])
+        {
+            computer->character.choice = i;
+            break;
+        }
+    }
+
+    // team and sprite setup unchanged
+    computer->teamChoice = TEAM_2;
+    g_Team.isAvailable[computer->teamChoice] = false;
+    g_Team.isActive[computer->teamChoice] = true;
+    computer->_bg->id = computer->_bg->anim[0].asset + 1;
     assignCharacterSprite(computer);
     assignCharacterStats(computer);
-    
     player_bg.mesh = MESHoff;
-    
     computer->isPlaying = true;
     computer->isActivated = true;
     computer->isDead = false;
@@ -381,29 +446,16 @@ void initStoryCharacters(void)
     g_Team.numTeams = TWO_TEAMS;
 }
 
+// this doesn't do much anymore
 void nextStoryCharacter(void)
 {
     PPLAYER computer = &g_Players[1];
-    
-    computer->character.choice += 1;
-;
-    validateStoryCharacters(computer);
 
-    characterAvailable[computer->character.choice] = false;
-        
     computer->isActivated = true;
     computer->isDead = false;
-
-    assignCharacterSprite(computer);
-    assignCharacterStats(computer);
     
     initVsModePlayers();
     boundPlayer(computer);
-    
-    if (g_Game.countofRounds == MAX_ROUNDS-1)
-    {
-        g_Game.isBoss = true;
-    }
 }
 
 void initVsModePlayers(void)
@@ -622,12 +674,10 @@ void initDemoPlayers(void)
         player->_sprite->mesh = MESHoff;
         player->_portrait->id = player->_portrait->anim[0].asset + player->character.choice;
         set_spr_scale_fxp(player->_portrait, Fxp(1.1), Fxp_1);
-        // player->isDead = false;
         player->isActivated = true;
         player->isPlaying = true;
         player->isAI = true;
         player->_sprite->isColliding = false;
-        // g_Team.isActive[player->teamChoice] = true;
         boundPlayer(player);
     }
     resetTeamState();
@@ -661,21 +711,21 @@ void assignCharacterStats(PPLAYER player) {
             {
                 case GAME_DIFFICULTY_EASY:
                     if (g_Game.gameMode == GAME_MODE_STORY) {
-                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.08);
+                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.1);
                         player->basePower = Fxp(characterAttributes[player->character.choice].power) * Fxp(.06);
                         player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration) * Fxp(1.1);
                     }
                     else {
-                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.06);
+                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.07);
                         player->basePower = Fxp(characterAttributes[player->character.choice].power) * Fxp(.05);
                         player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration);
                     }
                     break;
                 case GAME_DIFFICULTY_MEDIUM:
                     if (g_Game.gameMode == GAME_MODE_STORY) {
-                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.1);
+                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.12);
                         player->basePower = Fxp(characterAttributes[player->character.choice].power) * Fxp(.07);
-                        player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration) * Fxp(1.2);
+                        player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration) * Fxp(1.1);
                     }
                     else {
                         player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.08);
@@ -685,9 +735,9 @@ void assignCharacterStats(PPLAYER player) {
                     break;
                 case GAME_DIFFICULTY_HARD:
                     if (g_Game.gameMode == GAME_MODE_STORY) {
-                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.12);
+                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.13);
                         player->basePower = Fxp(characterAttributes[player->character.choice].power) * Fxp(.08);
-                        player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration) * Fxp(1.3);
+                        player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration) * Fxp(1.2);
                     }
                     else {
                         player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.1);
@@ -768,6 +818,27 @@ void getClassicModeInput(void)
         }
         regenPlayerPower(player);
         playerAttack(player);
+        
+        #if ENABLE_DEBUG_MODE == 1
+        if (gamepad.WasPressed(Digital::Button::X))
+        {
+            if (g_Players[1].numLives > 1)
+            {
+                g_Players[1].numLives--;
+            }
+        }
+        if (gamepad.WasPressed(Digital::Button::Y))
+        {
+            if (g_Players[0].numLives > 1)
+            {
+                g_Players[0].numLives--;
+            }
+        }
+        if (gamepad.WasPressed(Digital::Button::Z))
+        {
+            g_Gameplay.GameTimer = 2;
+        }
+        #endif
     }
 }
 
@@ -831,10 +902,23 @@ void getPlayersInput(void)
         playerAttack(player);
         
         #if ENABLE_DEBUG_MODE == 1
-        if (g_Game.gameMode == GAME_MODE_STORY && gamepad.WasPressed(Digital::Button::X))
+        if (gamepad.WasPressed(Digital::Button::X))
         {
-            g_Game.countofRounds++;
-            initNextRound();
+            if (g_Players[1].numLives > 1)
+            {
+                g_Players[1].numLives--;
+            }
+        }
+        if (gamepad.WasPressed(Digital::Button::Y))
+        {
+            if (g_Players[0].numLives > 1)
+            {
+                g_Players[0].numLives--;
+            }
+        }
+        if (gamepad.WasPressed(Digital::Button::Z))
+        {
+            g_Gameplay.GameTimer = 2;
         }
         #endif
     }
@@ -1010,7 +1094,6 @@ void updatePlayers(void)
 
 void speedLimitPlayer(PPLAYER player)
 {
-    Fxp bonusSpeed = Fxp_0;
     Fxp y_up_speed;
     Fxp y_dn_speed;
     Fxp x_l_speed;
@@ -1029,24 +1112,24 @@ void speedLimitPlayer(PPLAYER player)
     }
 
     // validate speeds
-    if(player->curPos.dx > x_l_speed + bonusSpeed)
+    if(player->curPos.dx > x_l_speed)
     {
-        player->curPos.dx = x_l_speed + bonusSpeed;
+        player->curPos.dx = x_l_speed;
     }
 
-    if(player->curPos.dx < x_r_speed - bonusSpeed)
+    if(player->curPos.dx < x_r_speed)
     {
-        player->curPos.dx = x_r_speed - bonusSpeed;
+        player->curPos.dx = x_r_speed;
     }
 
-    if(player->curPos.dy > y_up_speed + bonusSpeed)
+    if(player->curPos.dy > y_up_speed)
     {
-        player->curPos.dy = y_up_speed + bonusSpeed;
+        player->curPos.dy = y_up_speed;
     }
 
-    if(player->curPos.dy < y_dn_speed - bonusSpeed)
+    if(player->curPos.dy < y_dn_speed)
     {
-        player->curPos.dy = y_dn_speed - bonusSpeed;
+        player->curPos.dy = y_dn_speed;
     }
 }
 
@@ -1137,9 +1220,14 @@ void killPlayer(int8_t playerID) {
     g_Game.currentNumPlayers--;
     if (player->isAI && g_Game.gameMode == GAME_MODE_STORY) {
         g_Game.countofRounds++;
+        PPLAYER computer = &g_Players[1];
+        if (g_Game.isBoss)
+        {
+            initBossFx();
+        }
         // unlock character once you've beaten them
-        if (!characterUnlocked[g_Game.countofRounds] && g_Game.gameDifficulty > GAME_DIFFICULTY_EASY) {
-            characterUnlocked[g_Game.countofRounds] = true;
+        if (!characterUnlocked[computer->character.choice] && g_Game.gameDifficulty > GAME_DIFFICULTY_EASY) {
+            characterUnlocked[computer->character.choice] = true;
             save_game_backup();
         }
     }
@@ -1171,7 +1259,7 @@ void updatePlayerLives(uint8_t scoredOnPlayerID)
         g_Players[scoredOnPlayerID].numLives--;
         touchedBy[scoredOnPlayerID].touchCount = 0;
     }
-    if (g_Players[scoredOnPlayerID] .numLives == 0) {
+    if (g_Players[scoredOnPlayerID].numLives == 0) {
         killPlayer(scoredOnPlayerID);
     }
 }

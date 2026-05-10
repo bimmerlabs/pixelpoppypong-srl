@@ -9,7 +9,6 @@
 #include "../vdp2/nbg1.h"
 #include "../specialfx/seasons.h"
 
-// Using to shorten names for Vector and HighColor
 using namespace SRL::Types;
 using namespace SRL::Math::Types;
 using namespace SRL::Math;
@@ -169,7 +168,7 @@ void pppLogo_draw(void)
     my_sprite_draw(&pppshadow);
     
     my_sprite_draw_rot(&pixel_poppy);
-    SRL::Debug::Print(17, 19, "Presents...");
+    // SRL::Debug::Print(17, 19, "Presents...");
     #if ENABLE_DEBUG_MODE == 1
     if (g_GameOptions.debug_display) {
         SRL::Debug::Print(2, 21, "LightAngle:%d", lightAngle);

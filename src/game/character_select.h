@@ -7,7 +7,7 @@
 using namespace SRL::Types;
 using namespace SRL::Math::Types;
 
-#define CHARACTER_SELECT_TIMER 99
+#define CHARACTER_SELECT_TIMER 60
 #define CHARACTER_X_RADIUS Fxp(140)
 #define CHARACTER_Y_RADIUS Fxp(-60)
 #define CHARACTER_END_RADIUS Fxp(-700)

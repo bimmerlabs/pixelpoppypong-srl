@@ -4,7 +4,7 @@
 #include "../main.h"
 #include "math.h"
 #include "../objects/characters.h"
-// #include <tmsf.hpp>
+#include "../specialfx/particlefx.h"
 
 // SGL doesn't have these by default
 #define	    Pclpoff	(1 << 11)	/* No pre-clipping and no horizontal inversion */
@@ -94,6 +94,7 @@ extern Sprite player_cursor1;
 extern Sprite player_cursor2;
 
 // game UI
+extern Sprite lock;
 extern Sprite timer;
 extern Sprite meter;
 extern Sprite heart;
@@ -222,13 +223,26 @@ static inline void looped_animation_mod(Sprite *sprite, unsigned int framerate) 
 
 static inline bool explode_animation(Sprite *sprite) {
     sprite->id = sprite->anim[1].asset + sprite->anim[1].frame;
-    if (g_Game.frame % 5 == 0) { // modulus
+    explodeCfg.spawnX = sprite->pos.x;
+    explodeCfg.spawnY = sprite->pos.y;
+    if (g_Game.frame % 4 == 0) { // modulus
         sprite->anim[1].frame++;
     }
+    
+    if (sprite->anim[1].frame < 2)
+    {
+        explodeCfg.emitRate = EXPLODE_EMIT_RATE;
+    }
+    else {
+        explodeCfg.emitRate = 0;
+    }
+    
     if (sprite->anim[1].frame == sprite->anim[1].max) {
         sprite->anim[1].frame = 0;
+        initStarsFx();
         return false;
     }
+    // animation is complete
     return true;
 }
 

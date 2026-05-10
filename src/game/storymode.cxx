@@ -1,7 +1,10 @@
 #include "../main.h"
 #include "storymode.h"
+#include "ai.h"
+#include "gameplay_state.hpp"
 #include "../core/assets.h"
 #include "../core/screen_transition.h"
+#include "../core/vdp1print.h"
 #include "../objects/player.h"
 #include "../objects/characters.h"
 #include "../vdp2/nbg1.h"
@@ -28,7 +31,7 @@ void initStoryMode(void)
     set_spr_scale(&menu_bg2, 54, 352);
     
     g_Game.countofRounds = 0;
-    g_StartStoryFrames = CHARACTER_SELECT_TIMER;
+    g_StartStoryFrames = STORY_MODE_TIMER;
 
     initTeams();
     g_Game.currentNumPlayers = 2;              
@@ -37,8 +40,8 @@ void initStoryMode(void)
     g_Team.isAvailable[player->teamChoice] = false;
     g_Team.numTeams = ONE_TEAM;
     
-    set_spr_position_fxp(player->_cursor[0], Fxp_0, Fxp_0, CURSOR_DEPTH);
-    set_spr_position_fxp(player->_cursor[1], Fxp(46), Fxp_0, CURSOR_DEPTH);
+    set_spr_position(player->_cursor[0], character_pos_x, 0, 80);
+    set_spr_position(player->_cursor[1], (character_pos_x + 46), 0, 80);
     player->isActivated = true;
     player->isDead = false;
     player->isPlaying = true;
@@ -46,125 +49,116 @@ void initStoryMode(void)
     boundPlayer(player);
     draw_story_cursor = false;
     
+    initBossQuotes();
     initStoryCharacters();
     initVsModePlayers();
     resetPawScale();
-        
-    g_Transition.fade_in = true;
-    SRL::Debug::PrintClearScreen();
+    
+    init_nbg2_img();
+    SRL::VDP2::NBG2::ScrollEnable();
+    
+    SRL::Debug::PrintClearScreen();    
+    
+    // if (!g_Game.isBoss || allOpponentsBeaten())
+    // move to after nbg2 init
+    // playCDTrack(BEGIN_GAME_TRACK, false);
 }
 
 void initContinue(void) {
     PPLAYER player = &g_Players[0];
     PPLAYER computer = &g_Players[1];
     
-    setGameTimer();
     player->numLives = getLives(player);
-    computer->numLives = getLives(computer);
+    
     player->isDead = false;
     computer->isDead = false;
-    player->score.points = 0;
-    computer->score.points = 0;
-    player->score.stars = 0;
-    computer->score.stars = 0;
-    g_Game.endDelayTimer = GAME_END_DELAY_TIMEOUT;
-    g_Game.currentNumPlayers = 2;
-    initVsModePlayers();
-    resetTeamState();
-
-    initPixelPoppy();
+    
     g_Gameplay.start_gameplay_timer = false;
     g_Gameplay.round_start = false;
     g_Game.isBallActive = false;
     g_Game.isActive = false;
     g_Game.BeginTimer = 0;
-    g_Game.winner = -2;
+    
     initTouchCounter(1);
 
     boundPlayer(player);
     boundPlayer(computer);
-    g_StartStoryFrames = CHARACTER_SELECT_TIMER;
-    g_Game.selectStoryCharacter = true;
-    reset_sprites(); // doesn't do anything yet
-    initGoalColors();
-    g_Game.time_over = false;
-    g_Game.isRoundOver = false;
-    
-    playCDTrack(BEGIN_GAME_TRACK, false);
-    
-    SRL::Debug::PrintClearScreen();
 }
 
 void initNextRound(void) {
     PPLAYER player = &g_Players[0];
     PPLAYER computer = &g_Players[1];
     
+    initPixelPoppy();
     setGameTimer();
-    computer->numLives = getLives(computer);
     player->score.points = 0;
     computer->score.points = 0;
     player->score.stars = 0;
     computer->score.stars = 0;
     computer->score.continues = 0;
-    g_Game.endDelayTimer = GAME_END_DELAY_TIMEOUT;
+    Gameplay::g_GameState.endDelayTimer = Gameplay::GAME_END_DELAY_TIMEOUT;
+    Gameplay::g_GameState.GameOverTimer = Gameplay::GAME_OVER_DELAY_TIMEOUT;
+    
     g_Game.currentNumPlayers = 2;
     nextStoryCharacter();
+
     sprite_frame_reset(&pixel_poppy);
-    g_StartStoryFrames = CHARACTER_SELECT_TIMER;
+    g_StartStoryFrames = STORY_MODE_TIMER;
     g_Game.selectStoryCharacter = true;
     reset_sprites(); // doesn't do anything yet // ??
     initGoalColors();
     
-    g_Game.time_over = false;
+    Gameplay::g_GameState.timeOver = false;
     g_Game.isRoundOver = false;
-    g_Game.winner = -2;
+    Gameplay::g_GameState.winner = -2;
     
-    playCDTrack(BEGIN_GAME_TRACK, false);
+    init_nbg2_img();
+    SRL::VDP2::NBG2::ScrollEnable();
     
-    SRL::VDP2::NBG2::ScrollDisable(); // zzz
-    
-    SRL::Debug::PrintClearScreen();
+    SRL::Debug::PrintClearScreen();    
 }
 
 // main logic loop
 void storySelectUpdate(void)
-{
+{    
+    
     PPLAYER player = &g_Players[0];
     PPLAYER computer = &g_Players[1];
     
-    character_offset = ((g_Game.countofRounds) * CHARACTER_POS_OFFSET);
-    SRL::Debug::Print(6, 10, "%s", characterNames[player->character.choice]);
-    SRL::Debug::Print(26, 14, "%s", characterNames[computer->character.choice]); // needs updated
+    // SRL::Debug::Print(2, 9, "g_StartStoryFrames:%3d", g_StartStoryFrames);
     
-        character_portrait.id = character_portrait.anim[0].asset + player->character.choice;
-        set_spr_position_fxp(&character_portrait, Fxp(-200), Fxp_0, PORTRAIT_DEPTH);
-        set_spr_scale(&character_portrait, 2.0, 2.0);
-        my_sprite_draw(&character_portrait);
+    character_offset = ((g_Game.countofRounds) * CHARACTER_POS_OFFSET);
+    
+    // player 1 portrait
+    character_portrait.id = character_portrait.anim[0].asset + player->character.choice;
+    set_spr_position_fxp(&character_portrait, Fxp(-256), Fxp_0, PORTRAIT_DEPTH);
+    set_spr_scale(&character_portrait, 2.0, 2.0);
+    my_sprite_draw(&character_portrait);
         
     // scroll up list of characters
     if (character_pos_selected < character_offset) {
         character_pos_selected++;
     }
-    else {
-        SRL::Debug::Print(2, 19, "%s", characterQuotes[player->character.choice]);
-        SRL::Debug::Print(21, 19, "vs.");
-        SRL::Debug::Print(26, 16, "%s", characterQuotes[computer->character.choice]); // needs updated
-    }
     if (g_StartStoryFrames == 0)
     {
+        SRL::Debug::PrintClearScreen();
         g_Game.roundBeginTimer = ROUND_BEGIN_TIME_FAST;
         g_Game.dropBallTimer = DROP_BALL_TIME_FAST;
+        
         g_Transition.all_in = true;
-        if (g_GameOptions.mosaic_display) {
-            g_Transition.mosaic_in = true;
-        }
         g_Transition.fade_in = true;
-        // g_Transition.story_fade_in = true;
+        
         g_Game.selectStoryCharacter = false;
-        SRL::Debug::PrintClearScreen();
-        if (g_Game.isBoss) {
+        
+        if (g_Game.isBoss) { // if I want this to play constantly, I need to check if it's already playing or something
             playCDTrack(BOSS_TRACK, true);
         }
+        
+        
+        SRL::VDP2::NBG2::ScrollDisable();
+        init_nbg2_img();
+        
+        Gameplay::SetRoundState(Gameplay::ROUND_STATE_PLAYING);
     }
     
     if (g_Game.frame % 3 == 0) { // modulus
@@ -179,6 +173,24 @@ void storySelectUpdate(void)
         player->_cursor[1]->mesh = MESHoff;
     }
     drawCharacterList();
+    
+    if (!g_GameOptions.debug_display && Gameplay::g_GameState.roundState != Gameplay::ROUND_STATE_PLAYING) {
+        uint8_t playerid   = player->character.choice;
+        uint8_t computerid = computer->character.choice;
+        
+        int32_t xpos = 0;
+        int32_t zpos = 50;
+        const int32_t offset = 24;
+        const int32_t space = 28;
+        
+        DrawSpriteText(&font, fullCharacterNames[playerid],   xpos, -32, zpos, offset, space);     
+        DrawSpriteText(&font, fullCharacterNames[computerid], xpos,  32, zpos, offset, space);     
+        DrawSpriteText(&font, "VS", (xpos + 80), 0, zpos, offset, space);
+        
+        PrintWrapped(20, 7, 21, Dialog::quotes[playerid][computerid].player1);
+        PrintWrapped(20, 20, 21, Dialog::quotes[playerid][computerid].player2);
+    }
+    
     g_StartStoryFrames--;
     
     if (attrNbg1.x_scroll > Fxp_0) {
@@ -193,9 +205,11 @@ void tallyScore(void) {
     PPLAYER player = &g_Players[0];
     
     unsigned int thresholds[] = {100000, 10000, 1000, 50, 1};
-    SRL::Debug::Print(10, 12, "Round Score:%09d", player->score.points);
-    SRL::Debug::Print(10, 14, "Total Score:%09d", player->score.total);
-    if (g_Game.countofRounds < MAX_ROUNDS) {
+    if (!g_GameOptions.debug_display) {
+        SRL::Debug::Print(10, 12, "Round Score:%09d", player->score.points);
+        SRL::Debug::Print(10, 14, "Total Score:%09d", player->score.total);
+    }
+    if (!allOpponentsBeaten()) {
         draw_heart_element(&heart, player, -64, 24, 16);
     }
     
@@ -209,8 +223,8 @@ void tallyScore(void) {
         }
     }
     // additional lives    
-    if (g_Game.endDelayTimer < LIFE_COUNT_DELAY_TIMEOUT && g_Game.countofRounds < MAX_ROUNDS) {
-        unsigned int millions = player->score.total / 1000000;
+    if (Gameplay::g_GameState.endDelayTimer < Gameplay::LIFE_COUNT_DELAY_TIMEOUT && !allOpponentsBeaten()) {
+        unsigned int millions = player->score.total / 1000000; // change to only give extra life if the current score is over 1 million?
         if (millions > player->score.lastMillion) {
             unsigned int livesToAdd = millions - player->score.lastMillion;
             for (unsigned int i = 0; i < livesToAdd; i++) {
@@ -218,11 +232,11 @@ void tallyScore(void) {
                     player->numLives += 1;
                 }
             }
-            player->score.lastMillion = millions;      
+            player->score.lastMillion += millions;      
         }
     }
     // additional time;
-    if (g_Game.endDelayTimer < LIFE_COUNT_DELAY_TIMEOUT && g_Game.countofRounds < MAX_ROUNDS) {
+    if (Gameplay::g_GameState.endDelayTimer < Gameplay::LIFE_COUNT_DELAY_TIMEOUT && !allOpponentsBeaten()) {
         uint16_t addedTime = 0;
         switch(g_Game.gameDifficulty)
         {
@@ -241,13 +255,15 @@ void tallyScore(void) {
         if (touchedBy[0].touchCount > addedTime) {
             addedTime = touchedBy[0].touchCount;     
         }
-        SRL::Debug::Print(14, 18, "Extra Time:%d ", addedTime);
+        if (!g_GameOptions.debug_display) {
+            SRL::Debug::Print(14, 18, "Extra Time:%d ", addedTime);
+        }
     }
-    if (g_Game.endDelayTimer == LIFE_COUNT_DELAY_TIMEOUT && g_Game.countofRounds < MAX_ROUNDS) {
+    if (Gameplay::g_GameState.endDelayTimer == Gameplay::LIFE_COUNT_DELAY_TIMEOUT && !allOpponentsBeaten()) {
         Pcm::Play(Sounds.Core[StartSnd]);
         SRL::Debug::PrintClearScreen();
     }  
-    else if (g_Game.endDelayTimer == WIN_GAME_DELAY_TIMEOUT && g_Game.countofRounds == MAX_ROUNDS) {
+    else if (Gameplay::g_GameState.endDelayTimer == Gameplay::WIN_GAME_DELAY_TIMEOUT && allOpponentsBeaten()) {
         Pcm::Play(Sounds.Game[WinSnd]);
         SRL::Debug::PrintClearScreen();
     }  
@@ -258,6 +274,99 @@ void tallyScore(void) {
         player->score.total++;
     } 
     else {
-        g_Game.endDelayTimer--;
+        Gameplay::g_GameState.endDelayTimer--;
     }
+}
+
+void drawCharacterList(void)
+{
+    PPLAYER player = &g_Players[0];
+    PPLAYER computer = &g_Players[1];
+    
+    // my_sprite_draw(&menu_bg2);
+    my_sprite_draw(player->_cursor[0]);
+    my_sprite_draw(player->_cursor[1]);
+    character_pos_y = character_pos_selected;
+
+    // first pass - find the next opponent (first available unfinished character)
+    for (uint8_t i = 0; i < CHARACTER_MAX; i++)
+    {
+        if (!g_StoryProgress.available[i])
+            continue;
+        if (!g_StoryProgress.finished[i])
+        {
+            computer->character.choice = i;
+            if (character_pos_selected >= character_offset && !Gameplay::g_GameState.spriteAssigned)
+            {
+                computer->character.choice = i;
+                
+                auto getBossCharacter = [](CHARACTER_SELECT playerChoice) -> CHARACTER_SELECT
+                {
+                    switch (playerChoice)
+                    {
+                        case CHARACTER_WUPPY:   return CHARACTER_WALRUS;
+                        case CHARACTER_WALRUS:  return CHARACTER_GARF;
+                        case CHARACTER_GARF:    return CHARACTER_NONE;
+                        case CHARACTER_NONE:    return CHARACTER_NONE;  // both walrus and garf are bosses
+                        default:                return CHARACTER_WUPPY; // normal character
+                    }
+                };
+
+                CHARACTER_SELECT bossChar = getBossCharacter((CHARACTER_SELECT)g_Players[0].character.choice);
+
+                g_Game.isBoss = ((CHARACTER_SELECT)i == bossChar) ||
+                                (g_Players[0].character.choice == CHARACTER_NONE && 
+                                 ((CHARACTER_SELECT)i == CHARACTER_WALRUS || 
+                                  (CHARACTER_SELECT)i == CHARACTER_GARF));
+                
+                if (g_Game.isBoss)
+                {
+                    g_BossState.phase1Triggered = false;
+                    g_BossState.phase2Triggered = false;
+                    g_BossState.phase3Triggered = false;
+                }
+                
+                computer->numLives = getLives(computer);
+                
+                assignCharacterSprite(computer);
+                assignCharacterStats(computer);
+                computer->_sprite->flip = sprHflip;
+                computer->onLeftSide = false;
+                computer->goalCenterThresholdMax = LARGE_GOAL_THRESHOLD_MAX;
+                computer->goalCenterThresholdMin = LARGE_GOAL_THRESHOLD_MIN;
+                set_spr_position(computer->_sprite, PLAYER_X, 0, PLAYER_DEPTH);
+                computer->shield_pos = -SHIELD_OFFSET;
+                shield[1].flip = sprHflip;
+                Gameplay::g_GameState.spriteAssigned = true;
+            }
+            break;  // stop after finding the first unfinished character
+        }
+    }
+
+    // second pass - draw entire available roster
+    for (uint8_t i = 0; i < CHARACTER_MAX; i++)
+    {
+        if (!g_StoryProgress.available[i])
+            continue;
+        character_portrait.id = character_portrait.anim[0].asset + i;
+        set_spr_position(&character_portrait, character_pos_x , character_pos_y, 90);
+        set_spr_scale(&character_portrait, 2.0, 2.0);
+        my_sprite_draw(&character_portrait);
+        character_pos_y -= CHARACTER_POS_OFFSET;
+    }
+    
+    // if (!g_Game.isBoss || allOpponentsBeaten())
+    // move to after nbg2 init
+    // playCDTrack(BEGIN_GAME_TRACK, false);
+}
+
+// helper function - returns true if all available opponents have been beaten
+bool allOpponentsBeaten(void)
+{
+    for (int i = 0; i < CHARACTER_MAX; i++)
+    {
+        if (g_StoryProgress.available[i] && !g_StoryProgress.finished[i])
+            return false;
+    }
+    return true;
 }

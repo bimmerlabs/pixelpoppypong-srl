@@ -24,9 +24,7 @@ bool all_players_ready = false;
 void teamSelect_init(void)
 {
     g_Game.lastState = GAME_STATE_TEAM_SELECT;
-    // if (g_Assets.titleAssetsLoaded) {
-        // unloadTitleAssets();
-    // }
+    
     if (!g_Assets.characterAssetsLoaded) {
         loadCharacterAssets();
     }
@@ -364,6 +362,7 @@ void characterSelect_input(void)
                 Pcm::Play(Sounds.Core[CancelSnd], PlayMode::Volatile, 6);
                 player->teamChoice = TEAM_COUNT;
                 player->startSelection = false;
+                player->pressedStart = false;
                 characterAvailable[player->character.choice] = true;
                 player->character.choice = CHARACTER_NONE;
                 player->maxSpeed = Fxp_0;
@@ -378,7 +377,7 @@ void characterSelect_input(void)
             
             // SELECT CHARACTER
             if (
-                // port.WasPressed(Digital::Button::START) ||
+                port.WasPressed(Digital::Button::START) ||
                 port.WasPressed(Digital::Button::A) ||
                 port.WasPressed(Digital::Button::C)
                 )
@@ -400,6 +399,10 @@ void characterSelect_input(void)
             assignCharacterSprite(player);
             // make sure the scale is normal
             set_spr_scale(player->_sprite, 2, 2);
+        }
+        else if (player->pressedStart)
+        {
+            player->startSelection = true;
         }
         // DEFAULT CHARACTER SETUP
         if (!player->character.selected) {
@@ -488,7 +491,7 @@ void teamSelect_input(void)
             
             // SELECT TEAM
             if (
-                // port.WasPressed(Digital::Button::START) ||
+                port.WasPressed(Digital::Button::START) ||
                 port.WasPressed(Digital::Button::A) ||
                 port.WasPressed(Digital::Button::C)
                 )

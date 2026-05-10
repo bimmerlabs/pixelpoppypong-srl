@@ -3,12 +3,14 @@
 #include "storymode.h"
 #include "AI.h"
 #include "player_setup.h"
+#include "gameplay_state.hpp"
 #include "../core/input.h"
 #include "../core/backup.h"
 #include "../vdp2/nbg2.h"
 #include "../specialfx/seasons.h"
 Item g_item = {};
-GAMEPLAY g_Gameplay = {};void initGameplayStruct(void) {
+GAMEPLAY g_Gameplay = {};
+BossState g_BossState = {};void initGameplayStruct(void) {
     g_Gameplay.GameTimer = 0;
     g_Gameplay.DemoTimer = 0;
     g_Gameplay.isGameOver = false;
@@ -18,9 +20,6 @@ GAMEPLAY g_Gameplay = {};void initGameplayStruct(void) {
     g_Gameplay.round_start = false;
 }
 void gameplay_init() {
-    // if (g_Assets.titleAssetsLoaded) {
-        // unloadTitleAssets();
-    // }
     if (g_Assets.NameEntryAssetsLoaded) {
         unloadNameEntryAssets();
     }
@@ -31,34 +30,36 @@ void gameplay_init() {
         loadGameAssets();
     }
     
+    init_nbg2_img();
+    
+    Gameplay::InitGameState();
+    
     g_Game.lastState = GAME_STATE_GAMEPLAY;    if (g_Game.nextState == GAME_STATE_GAMEPLAY)
     {
         switch(g_Game.gameMode)
         {
             case GAME_MODE_BATTLE:
                 initVsModePlayers();
-                g_Transition.fade_in = true;
+                Gameplay::SetRoundState(Gameplay::ROUND_STATE_PLAYING);
                 break;
             case GAME_MODE_CLASSIC:
                 initVsModePlayers();
-                g_Transition.fade_in = true;
+                Gameplay::SetRoundState(Gameplay::ROUND_STATE_PLAYING);
                 break;
             case GAME_MODE_STORY:
                 initStoryMode();
-                g_Transition.fade_in = true; // huh..
+                Gameplay::SetRoundState(Gameplay::ROUND_STATE_CHARACTER_SELECT);
                 break;
             default:
                 break;
         }
     }
+    g_Transition.fade_in = true;
     g_Transition.music_in = true;
     g_Transition.all_in = true;
-    if (g_GameOptions.mosaic_display)
-    {
-        g_Transition.mosaic_in = true;
-    }
     
-    init_nbg2_img();    
+    
+
     initGameplayStruct();
     resetTeamState(); // only needed if restarting the game
     
@@ -73,9 +74,7 @@ void gameplay_init() {
     resetPlayerScores();
     getContinues();
     
-    reset_ball_movement(&pixel_poppy);
-    sprite_frame_reset(&pixel_poppy);
-    pixel_poppy.isColliding = false;
+        initPixelPoppy();
     
     for (int i = 0; i < MAX_PLAYERS; i++) {
         sprite_frame_reset(&shield[0]);
@@ -88,7 +87,6 @@ void gameplay_init() {
     g_Game.isRoundOver = false;
     g_Game.countofRounds = 0;
     g_Game.isGoalScored = false;
-    g_Game.winner = -2;
     g_Game.explodeBall = false;
     g_Game.isBoss = false;
     
@@ -96,20 +94,17 @@ void gameplay_init() {
     setGameTimer();
     
     g_Transition.explosion_flash = false;
-        initGameplayFx();    
-    initStarsFx();
-    
-    SRL::VDP2::NBG2::ScrollEnable();
+        initGameplayFx();
+    initBossFx(); // doesn't really need to be here
+    initBombFx();
     reset_audio(MAX_VOLUME);
-    playCDTrack(BEGIN_GAME_TRACK, false);
+    if (g_Game.gameMode != GAME_MODE_STORY)
+        playCDTrack(BEGIN_GAME_TRACK, false);
 }
 
 void demo_init(void) {
     g_Game.lastState = GAME_STATE_DEMO_LOOP;
     
-    // if (g_Assets.titleAssetsLoaded) {
-        // unloadTitleAssets();
-    // }
     if (g_Assets.NameEntryAssetsLoaded) {
         unloadNameEntryAssets();
     }
@@ -119,16 +114,18 @@ void demo_init(void) {
         }
         loadGameAssets();
     }
+    
+    Gameplay::SetRoundState(Gameplay::ROUND_STATE_PLAYING);
         initTeams();
     initDemoPlayers();
     
     initGameplayFx();
     initStarsFx();
+    initBombFx();
     
     g_Game.selectStoryCharacter = false;
     g_Gameplay.DemoTimer = 0;    
     g_Game.gameMode = GAME_MODE_BATTLE;
-    g_Transition.fade_in = true;
 }
 void setGameTimer(void) {
     if (g_Game.countofRounds == 0) {
@@ -190,10 +187,10 @@ void demo_init(void) {
     }
     g_Game.roundBeginTimer = ROUND_BEGIN_TIME_NORMAL;
     g_Game.dropBallTimer = DROP_BALL_TIME_NORMAL;
-    g_Game.time_over = false;
     g_Gameplay.start_gameplay_timer = false;
     g_Gameplay.round_start = false;
-    g_Game.endDelayTimer = GAME_END_DELAY_TIMEOUT;
+    Gameplay::g_GameState.timeOver = false;
+    Gameplay::g_GameState.endDelayTimer = Gameplay::GAME_END_DELAY_TIMEOUT;
     g_Game.BeginTimer = 0;
     
     for(unsigned int i = 0; i < MAX_PLAYERS; i++) // this is resetting the mushroom between rounds
@@ -232,7 +229,7 @@ void demo_init(void) {
             Pcm::Play(Sounds.Game[CntDownSnd]);
     }
     else if (g_Gameplay.GameTimer == 0) {
-        g_Game.time_over = true;
+        Gameplay::g_GameState.timeOver = true;
     }
     
     for(int8_t i = 0; i <= g_Game.numPlayers; i++)
@@ -245,7 +242,7 @@ void demo_init(void) {
         ballTtouchTimer++;
     }
     
-    if (ballTtouchTimer == BALL_TOUCH_TIMEOUT && !g_Game.explodeBall) {
+    if (ballTtouchTimer == Gameplay::BALL_TOUCH_TIMEOUT && !g_Game.explodeBall) {
         g_Game.explodeBall = true;
         g_Transition.explosion_flash = true;
         pixel_poppy.pos.r = EASY_BALL_RADIUS;
@@ -258,19 +255,19 @@ void demo_init(void) {
             g_Transition.explosion_flash = explosionEffect();
         }
         g_Game.explodeBall = explode_animation(&pixel_poppy);
-        if (!g_Game.explodeBall) {
+        
+        if (!g_Game.explodeBall) {            
+            initPixelPoppy();
             stopBallMovement(&pixel_poppy);
             g_Transition.fade_out_rate = 4;
             g_Game.roundBeginTimer = ROUND_BEGIN_TIME_FAST;
             g_Game.dropBallTimer = DROP_BALL_TIME_FAST;
             ballTtouchTimer = 0;
-            initPixelPoppy();
             resetPlayerAttacks();
             g_Gameplay.start_gameplay_timer = false;
             g_Game.isBallActive = false;
             g_Game.isActive = false;
             g_Game.BeginTimer = 0;
-            initStarsFx();
         }
     }
     bombTimer();
@@ -278,240 +275,64 @@ void demo_init(void) {
 void gameplay_draw(void)
 {    
     explodeGoals();
+    
     if (g_Transition.fade_out) { // works for both ball and bomb..
         g_Transition.fade_out = fadeOut(8, NEUTRAL_FADE);
     }
                    
     animateGoalColor(&do_update_Goals[g_Game.goalID]);
     animateBombColor(&do_update_bomb);
+    drawExplosionFx();
     
-    if (g_Game.endDelayTimer == 0) {
-        // game ending
-        if (g_Game.nextState == GAME_STATE_GAMEPLAY && g_Game.countofRounds == MAX_ROUNDS) {
-            // TODO:  game ending
-            if (g_Game.gameMode == GAME_MODE_STORY)
-            {
-                transitionState(GAME_STATE_NAME_ENTRY);
-            }
-            else {
-                transitionState(GAME_STATE_CREDITS);
-            }
-        }
-        // you ran out of time or died
-        else if (g_Game.nextState == GAME_STATE_GAMEPLAY &&  g_Game.winner == -1) {
-            initContinue();
-        }
-        // you finished off your opponent..
-        else if (g_Game.nextState == GAME_STATE_GAMEPLAY &&  g_Game.winner == 0) {
-            initNextRound();
-        }
-        else {
-            if (g_Game.isRoundOver) {
-                Pcm::Play(Sounds.Game[GmOverSnd]); // play different sound if player wins vs loses?
-                g_Game.isRoundOver = false;
-                g_Gameplay.isGameOver = true;
-            }
-            if (g_Game.frame == 239) { // this is a hack
-                if (g_Game.gameMode == GAME_MODE_STORY &&  !g_Players[0].isDead) {
-                    g_Players[0].score.points = g_Players[0].score.total;
-                    if (g_Game.nextState == GAME_STATE_NAME_ENTRY) {
-                        // Unlock Stadler
-                        if (!characterUnlocked[CHARACTER_WALRUS] &&
-                            (g_GameOptions.craigTouchCounter >= 100 ||
-                             g_Game.gameDifficulty == GAME_DIFFICULTY_MEDIUM ||
-                              g_Players[0].score.points >= UNLOCK_CRAIG_SCORE))
-                                {
-                                    characterUnlocked[CHARACTER_WALRUS] = true;
-                                }
-
-                        // Unlock Garfield
-                        if (!characterUnlocked[CHARACTER_GARF] &&
-                            (g_GameOptions.garfTouchCounter >= 200 ||
-                             g_Game.gameDifficulty == GAME_DIFFICULTY_HARD ||
-                              g_Players[0].score.points >= UNLOCK_GARFIELD_SCORE))
-                                {
-                                    characterUnlocked[CHARACTER_GARF] = true;
-                                }
-                        // Unlock BIG HEAD MODE
-                        if (!g_GameOptions.unlockBigHeadMode && 
-                            (g_Game.gameDifficulty == GAME_DIFFICULTY_MEDIUM ||
-                            g_Game.gameDifficulty == GAME_DIFFICULTY_HARD))
-                                {
-                                    g_GameOptions.unlockBigHeadMode = true;
-                                }
-                        save_game_backup();
-                    }
-                }                
-                transitionState(g_Game.nextState);
-            }
-        }
-    }
-    else if (g_Game.currentNumPlayers == 1) {
-        if (!g_Game.isRoundOver) {
-            
-            playCDTrack(MATCH_TRACK, false); // not ideal, but I'd have to fix the broken-ass logic below for it to make sense
-            
-            SRL::VDP2::NBG2::ScrollDisable();
-            SRL::Debug::PrintClearScreen();
-            g_Game.isRoundOver = true;
-            g_Game.frame = 0; // this is a hack
-            g_Game.winner = determineWinner();
-            g_Transition.all_out = true;
-        }       
-            switch(g_Game.gameMode)
-            {
-                case GAME_MODE_BATTLE:
-                    g_Game.endDelayTimer--;
-                    if (g_Game.winner > -1) {
-                        SRL::Debug::Print(17, 14, "Game Over!");
-                        SRL::Debug::Print(15, 16, "%s Wins!", classicCharacterNames[g_Game.winner]);
-                        g_Game.nextState = GAME_STATE_CREDITS;
-                    }
-                    else {
-                        SRL::Debug::Print(17, 14, "Game Over!");
-                        SRL::Debug::Print(18, 16, "You Lose");
-                        g_Game.nextState = GAME_STATE_UNINITIALIZED;
-                    }
-                    break;
-                case GAME_MODE_CLASSIC:
-                    g_Game.endDelayTimer--;
-                    if (g_Game.winner > -1) {
-                        SRL::Debug::Print(17, 14, "Game Over!");                        
-                        SRL::Debug::Print(15, 16, "%s Wins!", classicCharacterNames[g_Game.winner]);
-                        g_Game.nextState = GAME_STATE_CREDITS;
-                    }
-                    else {
-                        SRL::Debug::Print(17, 14, "Game Over!");
-                        SRL::Debug::Print(18, 16, "You Lose");
-                        g_Game.nextState = GAME_STATE_UNINITIALIZED;
-                    }
-                    break;
-                case GAME_MODE_STORY:
-                    if (g_Game.winner == 0 && g_Game.countofRounds == MAX_ROUNDS) {
-                        SRL::Debug::Print(17, 10, "Game Over!");
-                        tallyScore();                        
-                        if (g_Game.endDelayTimer < WIN_GAME_DELAY_TIMEOUT)
-                            SRL::Debug::Print(17, 18, "You Win!!!");
-                        g_Game.nextState = GAME_STATE_NAME_ENTRY;
-                    }
-                    else if (g_Game.winner == -1) {
-                        g_Game.endDelayTimer--;
-                        // check for continues
-                        if (g_Players[0].score.continues >= 0) {
-                            g_Game.nextState = GAME_STATE_GAMEPLAY;
-                            SRL::Debug::Print(17, 14, "Try Again!");
-                            if (g_Players[0].score.continues > 0) {
-                                SRL::Debug::Print(12, 16, "Remaining Continues:");
-                                draw_star_element(&star, g_Players[0].score.continues, Fxp(172), Fxp(24), Fxp(16));
-                            }
-                            else {
-                                SRL::Debug::Print(12, 16, "Remaining Continues:%i", g_Players[0].score.continues);
-                            }
-                            
-                        }
-                        else {
-                            SRL::Debug::Print(17, 14, "Game Over!");
-                            SRL::Debug::Print(18, 16, "You Lose");
-                            g_Game.nextState = GAME_STATE_UNINITIALIZED;
-                        }
-                    }
-                    else {
-                        tallyScore();                        
-                        if (g_Game.endDelayTimer < NEXT_BATTLE_DELAY_TIMEOUT)
-                            SRL::Debug::Print(15, 20, "Next Battle..");
-                        g_Game.nextState = GAME_STATE_GAMEPLAY;
-                    }
-                    break;
-                default:
-                    g_Game.endDelayTimer--;
-                    break;
-            }
-    }
-    else if (g_Game.time_over) {
-        if (!g_Game.isRoundOver) {
-            
-            // need a womp womp track
-            playCDTrack(MATCH_TRACK, false); // not ideal, but I'd have to fix the broken-ass logic below for it to make sense
-            
-            SRL::VDP2::NBG2::ScrollDisable();
-            
-            SRL::Debug::PrintClearScreen();
-            stopBallMovement(&pixel_poppy);
-            g_Game.isRoundOver = true;
-            g_Game.frame = 0; // this is a hack
-            g_Transition.all_out = true;
-        }       
-        SRL::Debug::Print(16, 14, "Outta Time!");
-        g_Gameplay.GameTimer = 60;
-        g_Game.endDelayTimer--;
-            switch(g_Game.gameMode)
-            {
-                case GAME_MODE_BATTLE:
-                    SRL::Debug::Print(17, 16, "You Lose..");
-                    g_Game.nextState = GAME_STATE_UNINITIALIZED;
-                    break;
-                case GAME_MODE_CLASSIC:
-                    SRL::Debug::Print(17, 16, "You Lose..");
-                    g_Game.nextState = GAME_STATE_UNINITIALIZED;
-                    break;
-                case GAME_MODE_STORY:
-                    g_Game.winner = -1;
-                    // kill player 1
-                    if (!g_Players[0].isDead) {
-                        g_Players[0].score.continues--;
-                        g_Players[0].isDead = true;
-                    }
-                    if (g_Players[0].score.continues >= 0) {
-                        g_Game.nextState = GAME_STATE_GAMEPLAY;
-                        if (g_Players[0].score.continues > 0) {
-                            SRL::Debug::Print(12, 16, "Remaining Continues:");
-                            draw_star_element(&star, g_Players[0].score.continues, Fxp(172), Fxp(24), Fxp(16));
-                        }
-                        else {
-                            SRL::Debug::Print(12, 16, "Remaining Continues:%i", g_Players[0].score.continues);
-                        }
-                    }
-                    else {
-                        SRL::Debug::Print(17, 16, "You Lose..");
-                        g_Game.nextState = GAME_STATE_UNINITIALIZED;
-                    }
-                    break;
-                default:
-                    break;
-            }
-    } 
-    else if (g_Game.selectStoryCharacter) {
-        if (g_Game.countofRounds > 0) {
-            g_Transition.all_out = true;
-            g_Transition.mosaic_out = true;
-        }
-        else {
-            g_Transition.mosaic_in = false;
-        }
-        storySelectUpdate();
-    } 
-    else if (!g_Game.isPaused) {
-        gameplay_timer();
-        switch(g_Game.gameMode)
+    // story mode / boss attack    if (g_BossState.phase1Triggered || g_BossState.phase2Triggered || g_BossState.phase3Triggered)
+    {
+        if (g_BossState.soundDelay > 0)
         {
-            case GAME_MODE_BATTLE:
-                drawVsMode();
-                drawGameUI();
-                break;
-            case GAME_MODE_CLASSIC:
-                drawClassicMode();
-                drawGameUI();
-                break;
-            case GAME_MODE_STORY:
-                drawVsMode();
-                drawGameUI();
-                break;
-            default:
-                break;
+            g_BossState.soundDelay--;
+        }
+        else if (g_BossState.soundDelay == 0 && !g_BossState.soundPlayed)
+        {
+            Pcm::Play(Sounds.Game[Explode2Snd], PlayMode::Protected, 7);
+            g_BossState.soundPlayed = true;
+        }
+        
+        if (g_BossState.emitFramesRemaining > 0)
+        {
+            updateBossFx(g_Players[1]._sprite->pos.x, g_Players[1]._sprite->pos.y);
+            g_BossState.emitFramesRemaining--;
+        }
+        
+                if (g_BossState.textFramesRemaining > 0)
+        {
+            g_BossState.textFramesRemaining--;
+            if (g_BossState.textFramesRemaining == 0)
+            {
+                SRL::Debug::PrintClearScreen;
+            }
+        }
+        
+        drawBossFx(); 
+    }
+        if (g_item.textFramesRemaining > 0)
+    {
+        g_item.textFramesRemaining--;
+        if (g_item.textFramesRemaining == 0)
+        {
+            SRL::Debug::PrintClearScreen();
+        }
+    }
+    
+    Gameplay::GameUpdateState();
+    
+    if (g_Game.currentNumPlayers == 1) {
+        
+        Gameplay::g_GameState.GameOverTimer--;
+        
+        if (!g_Game.isRoundOver && Gameplay::g_GameState.GameOverTimer == 0) {
+            Gameplay::SetRoundState(Gameplay::ROUND_STATE_ENDING);
         }
     }
 }
-
 // instead, have a bool for "winner"?
 int determineWinner(void)
 {
@@ -533,7 +354,7 @@ void gameScore_draw(void)
     {
         return;
     }
-    if (!g_Game.isPaused && !g_Game.time_over && !g_Game.selectStoryCharacter && g_Game.currentNumPlayers > 1)
+    if (!g_Game.isPaused && !Gameplay::g_GameState.timeOver && !g_Game.selectStoryCharacter && g_Game.currentNumPlayers > 1)
     {
         switch (g_Game.gameMode) 
         {
@@ -698,11 +519,11 @@ void demo_update(void)
     
     if (g_Gameplay.draw_demo_text)
     {
-        SRL::Debug::Print(20, 27, "DEMO!");
+        SRL::Debug::Print(20, 26, "DEMO!");
     }
     else
     {
-        SRL::Debug::Print(20, 27, "     ");
+        SRL::Debug::Print(20, 26, "     ");
     }
     
     g_Gameplay.DemoTimer++;
