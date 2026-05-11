@@ -141,10 +141,12 @@ void titleScreen_input(void)
         }
     }
     
+    #if ENABLE_DEBUG_MODE == 1
     if (gamepad.WasPressed(Digital::Button::R))
     {
         titleScreen.timer = TITLE_TIMER;
     }
+    #endif
 }
 
 void startScreen_update(void)
@@ -845,8 +847,10 @@ void optionsScreen_input(void)
     int options_x = 26;
     int options_y = 20;
     #else
-    int options_x = 30;
-    int options_y = 12;
+    int options_x = 26;
+    int options_y = 20;
+    // int options_x = 30;
+    // int options_y = 12;
     #endif
     
     PPLAYER player = &g_Players[0];
@@ -926,13 +930,17 @@ void optionsScreen_input(void)
             {
                 // load SFX if here
                 if (!Sounds.GameplayFxLoaded) {
-                    SRL::Debug::Print(options_x, options_y, "Loading!");
+                    PrintWrapped(0, options_y, 24, "Loading!", Align::CenterX);
+                    // SRL::Debug::Print(options_x, options_y, "Loading!");
                     Sounds.GameplayFxLoaded = loadGameplaySoundAssets();
+                    SRL::Debug::PrintClearLine(options_y);
                     g_Audio.soundTest = true;
                 }
                 if (!Sounds.NameEntryFxLoaded) {
-                    SRL::Debug::Print(options_x, options_y, "Loading!");
+                    PrintWrapped(0, options_y, 24, "Loading!", Align::CenterX);
+                    // SRL::Debug::Print(options_x, options_y, "Loading!");
                     Sounds.NameEntryFxLoaded = loadNameEntrySoundAssets();
+                    SRL::Debug::PrintClearLine(options_y);
                     g_Audio.soundTest = true;
                 }
                 // then play
@@ -1058,8 +1066,10 @@ void drawOptions(void)
     int title_x = 8;
     int options_x = 26;
     #else
-    int title_x = 11;
-    int options_x = 30;
+    int title_x = 8;
+    int options_x = 26;
+    // int title_x = 11;
+    // int options_x = 30;
     #endif
     int options_y = 2;
     
@@ -1175,7 +1185,8 @@ void drawOptionsCursor(void)
     #if ENABLE_DEBUG_MODE == 1
     cursor.pos.x = Fxp(-240) + offset;
     #else
-    cursor.pos.x = Fxp(-200) + offset;
+    // cursor.pos.x = Fxp(-200) + offset;
+    cursor.pos.x = Fxp(-240) + offset;
     #endif
     cursor.pos.y = Fxp::Convert(static_cast<int16_t>(-160 + (titleScreen.optionChoice * 32)));
     if (titleScreen.optionChoice == OPTION_EXIT) 

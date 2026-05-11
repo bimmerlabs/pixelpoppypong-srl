@@ -135,12 +135,12 @@ namespace Gameplay
                 uint8_t computerid = g_Players[1].character.choice;
                 if (g_GameState.winner == 0)
                 { // win
-                    PrintWrapped(0, 0, 24, Dialog::quotes[playerid][computerid].win, Align::CenterBoth);
+                    PrintWrapped(0, 0, 30, Dialog::quotes[playerid][computerid].win, Align::CenterBoth);
                     g_StoryProgress.finished[g_Players[1].character.choice] = true;
                 }
                 else
                 { // lose
-                    PrintWrapped(0, 0, 24, Dialog::quotes[playerid][computerid].lose, Align::CenterBoth);
+                    PrintWrapped(0, 0, 30, Dialog::quotes[playerid][computerid].lose, Align::CenterBoth);
                 }
             }
             else

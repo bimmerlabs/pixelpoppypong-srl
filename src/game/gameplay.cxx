@@ -307,7 +307,7 @@ void demo_init(void) {
             g_BossState.textFramesRemaining--;
             if (g_BossState.textFramesRemaining == 0)
             {
-                SRL::Debug::PrintClearScreen;
+                SRL::Debug::PrintClearScreen();
             }
         }
         

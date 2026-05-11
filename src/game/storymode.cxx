@@ -178,14 +178,14 @@ void storySelectUpdate(void)
         uint8_t playerid   = player->character.choice;
         uint8_t computerid = computer->character.choice;
         
-        int32_t xpos = 0;
+        int32_t xpos = -24;
         int32_t zpos = 50;
         const int32_t offset = 24;
         const int32_t space = 28;
         
         DrawSpriteText(&font, fullCharacterNames[playerid],   xpos, -32, zpos, offset, space);     
         DrawSpriteText(&font, fullCharacterNames[computerid], xpos,  32, zpos, offset, space);     
-        DrawSpriteText(&font, "VS", (xpos + 80), 0, zpos, offset, space);
+        DrawSpriteText(&font, "VS", xpos, 0, zpos, offset, space);
         
         PrintWrapped(20, 7, 21, Dialog::quotes[playerid][computerid].player1);
         PrintWrapped(20, 20, 21, Dialog::quotes[playerid][computerid].player2);

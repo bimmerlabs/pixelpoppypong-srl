@@ -9,7 +9,7 @@
     #include "core/debug.h"
 #endif
 
-#define VERSION "0.90.3"
+#define VERSION "0.91.0"
 #define MAX_PLAYERS 4
 
 // Screen position

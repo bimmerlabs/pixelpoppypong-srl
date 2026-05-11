@@ -292,7 +292,7 @@ void handlePlayerItemCollision(PPLAYER player) {
                 if (player->isAI && g_Game.gameMode == GAME_MODE_STORY && g_Game.isBoss)
                 {
                     g_item.textFramesRemaining = 3*60;
-                    PrintWrapped(0, 0, 24, bossQuotes[player->character.choice].mushroom, Align::CenterBoth);
+                    PrintWrapped(0, 23, 30, bossQuotes[player->character.choice].mushroom, Align::CenterX);
                 }
                 else
                 {
@@ -326,7 +326,7 @@ void handlePlayerItemCollision(PPLAYER player) {
             
             g_item.textFramesRemaining = 3*60;
             uint8_t quote = rnd.GetNumber(0, GARFIELD_QUOTES);
-            PrintWrapped(0, 23, 20, garfieldItemQuotes[quote], Align::CenterX);
+            PrintWrapped(0, 23, 30, garfieldItemQuotes[quote], Align::CenterX);
             
             player->shield.power = SHIELD_POWER * 4;
             if (touchedBy[player->playerID].touchCount == 0) {
@@ -357,7 +357,7 @@ void handlePlayerItemCollision(PPLAYER player) {
            
             g_item.textFramesRemaining = 3*60;
             uint8_t quote = rnd.GetNumber(0, STADLER_QUOTES);
-            PrintWrapped(0, 23, 20, stadlerItemQuotes[quote], Align::CenterX);
+            PrintWrapped(0, 23, 30, stadlerItemQuotes[quote], Align::CenterX);
            
             player->shield.power = SHIELD_POWER * 2;
             player->score.points += 25000;

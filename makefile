@@ -25,7 +25,7 @@ SGL_MAX_WORKS = 1             # Number of works that can be used
 MODULES_EXTRA = smpc tmsf backup ponesound decompression particles
 
 # Custom flags
-CCFLAGS += -DENABLE_DEBUG_MODE=1
+# CCFLAGS += -DENABLE_DEBUG_MODE=1
 CCFLAGS += -DDISABLE_PERFORMANCE_WARNINGS=1 # For SRL::Math::Fxp conversions
 # CCFLAGS += -DMATH_PERFORMANCE_MODE=ACCURATE
 

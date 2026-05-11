@@ -95,6 +95,7 @@ void nameEntryInput(void)
     PPLAYER player = &g_Players[Gameplay::g_GameState.winner];
     #if ENABLE_DEBUG_MODE == 1
         Digital gamepad(0);
+        // player->score.total = 2567890;
     #else
         Digital gamepad(player->input->id);
     #endif
@@ -291,7 +292,7 @@ void nameEntryUpdate(void)
     {
         SRL::Debug::PrintClearScreen();
         PPLAYER winner = &g_Players[Gameplay::g_GameState.winner];
-        addHighScore(winner->score.points, nameEntry.initials, winner->character.choice);
+        addHighScore(winner->score.total, nameEntry.initials, winner->character.choice);
         save_game_backup();
         g_Game.lastState = GAME_STATE_NAME_ENTRY;
         transitionState(GAME_STATE_HIGHSCORES);

@@ -51,7 +51,7 @@ typedef enum _OPTIONS
     OPTION_ITEMS,
     OPTION_DRAWMOSAIC,
     #else
-    OPTION_DRAWMOSAIC, = 0,
+    OPTION_DRAWMOSAIC = 0,
     #endif
     OPTION_USE_RTC,
     OPTION_BIG_HEAD,
