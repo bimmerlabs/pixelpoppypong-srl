@@ -11,14 +11,25 @@ void initSeason(void)
     switch (time.Month())
     {
         case JANUARY:
+            g_Game.timeSeason = S_WINTER;
+            if (time.Day() == 1) // New Years!
+            {
+                g_Game.timeSeason = S_NEWYEARS;
+            }
+            break;
+            
         case FEBRUARY:
             g_Game.timeSeason = S_WINTER;
             break;
         
         case MARCH:
+        case MAY:
+            g_Game.timeSeason = S_SPRING;
+            break;
+            
         case APRIL:
-            g_Game.timeSeason = S_SPRING; // Well, it should be april/may
-            if (time.Month() == APRIL && time.Day() == 1) // april fools!
+            g_Game.timeSeason = S_SPRING;
+            if (time.Day() == 1) // april fools!
             {
                 g_GameOptions.unlockBigHeadMode = true;
                 g_GameOptions.bigHeadMode = true;
@@ -26,22 +37,25 @@ void initSeason(void)
             }
             break;
         
-        case MAY:
         case JUNE:
-        case JULY:
         case AUGUST:
             g_Game.timeSeason = S_SUMMER;
             break;
+
+        case JULY:
+            g_Game.timeSeason = S_SUMMER;
+            if (time.Day() == 4) // Murrica!
+            {
+                g_Game.timeSeason = S_MURRICADAY;
+            }
+            break;
             
         case OCTOBER:
-        { 
+        {
+            g_Game.timeSeason = S_OCTOBER;
             if (time.Day() >= 29 && time.Day() <= 31)
             {
                 g_Game.timeSeason = S_HALLOWEEN;
-            }
-            else
-            {
-                g_Game.timeSeason = S_OCTOBER;
             }
             break;
         }
@@ -52,13 +66,14 @@ void initSeason(void)
             
         case DECEMBER:
         {
-            if (time.Day() >= 24 && time.Day() <= 31)
+            g_Game.timeSeason = S_WINTER;
+            if (time.Day() >= 24 && time.Day() <= 30)
             {
                 g_Game.timeSeason = S_XMAS;
             }
-            else
+            if (time.Day() == 31)
             {
-                g_Game.timeSeason = S_WINTER;
+                g_Game.timeSeason = S_NEWYEARS;
             }
             break;
         }
@@ -85,8 +100,14 @@ void seasonalMessage(void)
         case S_XMAS:
             SRL::Debug::Print(16, 14, "Meowy Xmas!");
             break;
+        case S_NEWYEARS:
+            SRL::Debug::Print(14, 14, "Happy Mew Year!");
+            break;
         case S_APRIL_FOOLS:
             SRL::Debug::Print(15, 14, "April Fools!");
+            break;
+        case S_MURRICADAY:
+            SRL::Debug::Print(17, 14, "MURRICA!");
             break;
         default:
             SRL::Debug::Print(19, 14, "Meow!");
@@ -100,7 +121,7 @@ bool initNBG1(void)
         LoadBackgroundPalette(nbg1_gray);
     	return true;
     }
-    else if (g_Game.timeSeason == S_WINTER || g_Game.timeSeason == S_XMAS) {
+    else if (g_Game.timeSeason == S_WINTER || g_Game.timeSeason == S_XMAS || g_Game.timeSeason == S_NEWYEARS) {
         LoadBackgroundPalette(nbg1_winter);
     	return true;
     }
@@ -119,6 +140,10 @@ void initTitleScreenFx(void)
         case S_XMAS:
             initSnowFx();
             break;
+            
+        case S_NEWYEARS:
+            initTwinkleFx();
+            break;
         
         case S_APRIL_FOOLS: // garf and craig instead?
         {
@@ -133,6 +158,10 @@ void initTitleScreenFx(void)
             
         case S_SUMMER:
             initFlowersFx();
+            break;
+            
+        case S_MURRICADAY:
+            initFireworksFx();
             break;
             
         case S_HALLOWEEN:
@@ -150,6 +179,7 @@ void initGameplayFx(void)
     {
         case S_WINTER:
         case S_XMAS:
+        case S_NEWYEARS:
         {
             initSnowFx();
             particleCfg.emitRate = 8;

@@ -169,6 +169,60 @@ void initCreditsFx(void)
     paws.Init(paw[0].anim[0].asset, 60, &creditsCfg);  
 }
 
+void initTwinkleFx(void)
+{
+    
+    particleCfg.spawnX   = 0;
+    particleCfg.spawnY   = 0;
+    particleCfg.minScale = 0.5;
+    particleCfg.maxScale = 3.0;
+    particleCfg.minVX    = -0.5;
+    particleCfg.maxVX    = 0.5;
+    particleCfg.minVY    = -0.5;
+    particleCfg.maxVY    = 0.5;
+    particleCfg.gravityX = 0.000;
+    particleCfg.gravityY = 0.000;
+    particleCfg.emitRate = 2;
+    particleCfg.bounceX   = false;
+    particleCfg.bounceY   = false;
+    particleCfg.fadeout  = true;
+    particleCfg.decay    = 30;
+    particleCfg.spawnModeX = SRL::FX::Spawn_Random;
+    particleCfg.spawnModeY = SRL::FX::Spawn_Random;
+    particleCfg.scaleMode = SRL::FX::Scale_GrowThenShrink;    
+    
+    // particles1.Init(star.id, 1, &particleCfg); // star isn't loaded on title screen, but I could add something?
+    particles1.Init(33, 1, &particleCfg);
+    particles2.Init(33, 1, &particleCfg);
+}
+
+void initFireworksFx(void)
+{
+    
+    particleCfg.spawnX   = 0;
+    particleCfg.spawnY   = 0;
+    particleCfg.minScale = 0.5;
+    particleCfg.maxScale = 4.0;
+    particleCfg.minVX    = -0.5;
+    particleCfg.maxVX    = 0.5;
+    particleCfg.minVY    = -0.5;
+    particleCfg.maxVY    = 0.5;
+    particleCfg.gravityX = 0.000;
+    particleCfg.gravityY = 0.000;
+    particleCfg.emitRate = 2;
+    particleCfg.bounceX   = false;
+    particleCfg.bounceY   = false;
+    particleCfg.fadeout  = true;
+    particleCfg.decay    = 30;
+    particleCfg.spawnModeX = SRL::FX::Spawn_Random;
+    particleCfg.spawnModeY = SRL::FX::Spawn_Random;
+    particleCfg.scaleMode = SRL::FX::Scale_GrowThenShrink;    
+    
+    // particles1.Init(star.id, 1, &particleCfg); // star isn't loaded on title screen, but I could add something?
+    particles1.Init(33, 1, &particleCfg);
+    particles2.Init(33, 1, &particleCfg);
+}
+
 void initStarsFx(void)
 {   
     // xy pos to be generated from poppy
@@ -191,7 +245,6 @@ void initStarsFx(void)
     
     stars.Init(star.id, 1, &starCfg);
 }
-
 void resetStarsFx(void)
 {
     stars.Reset();
@@ -288,11 +341,16 @@ void displayParticleFx(void) {
     if (
         g_Game.timeSeason == S_WINTER || 
         g_Game.timeSeason == S_XMAS || 
+        g_Game.timeSeason == S_NEWYEARS || 
         g_Game.timeSeason == S_OCTOBER || 
         g_Game.timeSeason == S_HALLOWEEN || 
         g_Game.timeSeason == S_FALL || 
         g_Game.timeSeason == S_SPRING || 
-        g_Game.timeSeason == S_SUMMER
+        g_Game.timeSeason == S_SUMMER || 
+        (g_Game.timeSeason == S_MURRICADAY && 
+            (g_Game.gameState == GAME_STATE_TITLE_SCREEN 
+            || g_Game.gameState == GAME_STATE_TITLE_MENU)
+        )
     ) {
         particles1.Emit();
         particles1.Update();

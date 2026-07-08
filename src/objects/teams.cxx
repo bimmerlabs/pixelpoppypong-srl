@@ -10,7 +10,7 @@ void initTeams(void) {
         g_Team.isAvailable[i] = true;
         g_Team.isActive[i] = false;
         // if (g_GameOptions.debug_display)
-            // SRL::Debug::Print(22, 15+i, "g_Team.isActive[%i]:%i", i, g_Team.isActive[i]);
+            // SRL::Debug::Print(22, 15+i, "g_Team.isActive[%d]:%d", i, g_Team.isActive[i]);
     }
 }
 

@@ -421,18 +421,22 @@ int main()
     }
     while(1)
     {
-        // if (g_GameOptions.debug_display)
-        // {
-            // Fxp fps = 0;
-            // if (SRL::Timer::DeltaSeconds() > 0)
-                // fps = 1 / SRL::Timer::DeltaSeconds();
-            // SRL::Debug::Print(2, 3, "FPS:%f  ", fps);
-            // // PrintFxp(2, 3, "FPS:", fps);
-        // }
+        if (SRL::Cd::IsTrayOpen())
+        {
+            SYS_Exit(0);
+        }
         
-        // // Measure rendering time using Capture()
-        // // Use Capture() for benchmarking/profiling - reads hardware registers
-        // auto renderStart = SRL::Timer::Capture();
+        if (g_GameOptions.debug_display)
+        {
+            Fxp fps = 0;
+            if (SRL::Timer::DeltaSeconds() > 0)
+                fps = 1 / SRL::Timer::DeltaSeconds();
+            SRL::Debug::Print(2, 3, "FPS:%f  ", fps);
+        }
+        
+        // Measure rendering time using Capture()
+        // Use Capture() for benchmarking/profiling - reads hardware registers
+        auto renderStart = SRL::Timer::Capture();
         
         screenTransition_update();
         game_state_update();
@@ -480,13 +484,12 @@ int main()
     
         my_color_calc();
         
-        // if (g_GameOptions.debug_display)
-        // {
-            // auto renderEnd = SRL::Timer::Capture();
-            // auto renderTime = renderEnd - renderStart;
-            // SRL::Debug::Print(2, 4, "RenderT:%f ms ", renderTime.ToMilliseconds());
-            // // PrintFxp(2, 4, "RenderT:", renderTime.ToMilliseconds());
-        // }
+        if (g_GameOptions.debug_display)
+        {
+            auto renderEnd = SRL::Timer::Capture();
+            auto renderTime = renderEnd - renderStart;
+            SRL::Debug::Print(2, 4, "RenderT:%fms ", renderTime.ToMilliseconds());
+        }
             
         SRL::Core::Synchronize();
     }

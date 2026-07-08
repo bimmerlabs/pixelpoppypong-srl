@@ -261,6 +261,7 @@ static inline void drawGameUI(void) {
             my_sprite_draw(&shield[i]);
         }
         player->_portrait->id = player->_portrait->anim[0].asset + player->character.choice;
+        player->_portrait->mesh = MESHoff; // hack - probably fine, it's only 4 calls per frame
         gameplayUI_draw(player);
     }
     drawGameTimer();

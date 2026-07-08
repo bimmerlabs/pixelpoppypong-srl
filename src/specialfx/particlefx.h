@@ -23,6 +23,9 @@ void initBatsFx(void);
 
 void initCreditsFx(void);
 
+void initTwinkleFx(void);
+void initFireworksFx(void);
+
 void initStarsFx(void);
 void resetStarsFx(void);
 

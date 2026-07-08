@@ -72,7 +72,7 @@ void pause_draw(void)
                 draw_star_element(&star, g_Players[0].score.continues, Fxp(56), Fxp(-72), Fxp(16));
             }
             else {
-                SRL::Debug::Print(15, options_y, "Continues:%i", g_Players[0].score.continues);
+                SRL::Debug::Print(15, options_y, "Continues:%d", g_Players[0].score.continues);
             }
             
             options_y += 2;
@@ -273,10 +273,10 @@ const Angle cursorAngleAdder = Angle(0.0222222222222222);
 
 static void drawPauseMenuCursor(void)
 {
-    Fxp offset = SRL::Math::Trigonometry::Sin(g_Game.cursor_angle) * Fxp_8;
-    cursor.pos.x = Fxp(-124) + offset;
+    Fxp offset = SRL::Math::Trigonometry::Sin(g_Game.cursor_angle) * 8;
+    cursor.pos.x = -124 + offset;
     Fxp choice = Fxp::Convert(pauseChoice);
-    cursor.pos.y = Fxp(-32) + (choice * Fxp(32));
+    cursor.pos.y = -32 + (choice * 32);
     my_sprite_draw(&cursor);
     g_Game.cursor_angle += cursorAngleAdder;
 }

@@ -22,13 +22,15 @@ typedef enum _SEASON
 {
     S_NORMAL = 0,
     S_SPRING,
-    S_SUMMER,
     S_APRIL_FOOLS,
+    S_SUMMER,
+    S_MURRICADAY,
     S_OCTOBER,
     S_HALLOWEEN,
     S_FALL,
     S_WINTER,
     S_XMAS,
+    S_NEWYEARS,
 } SEASON;
 
 #ifdef __cplusplus

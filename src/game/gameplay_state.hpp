@@ -12,8 +12,6 @@ using namespace SRL::Math::Types;
 
 namespace Gameplay
 {
-    // one of these is fucking up the music
-    // zzz
     static const int32_t END_DELAY = 5 * 60;
     static const int32_t RESULT_DELAY = 5 * 60;
     
@@ -83,15 +81,6 @@ namespace Gameplay
             initNextRound();
         }
         
-        // if (g_Game.countofRounds > 0) // I think this is the source of my bug
-        // {
-            // if (Gameplay::g_GameState.winner == -1)
-            // {
-                // initContinue();
-            // }
-            // initNextRound();
-        // }
-        
         g_Transition.fade_in = true;
         g_Transition.all_in = true;
         
@@ -148,15 +137,23 @@ namespace Gameplay
                 g_GameState.endDelayTimer = 0;
             }
         }
+        
         if (g_GameOptions.mosaic_display)
         {
             g_Transition.mosaic_out = true;
         }
+        
         g_Transition.story_fade_out = true;
         g_Transition.all_out = true;
-        
-        if (!g_Game.isBoss || allOpponentsBeaten())
+
+        if (g_GameState.winner == -1) // you lose - continue?
+        {
+            playCDTrack(CONTINUE_TRACK, false);
+        }
+        else if (!g_Game.isBoss || allOpponentsBeaten())
+        {
             playCDTrack(MATCH_TRACK, false);
+        }
     }
     
     static inline void EnterBattleResult()
@@ -305,21 +302,7 @@ namespace Gameplay
         // CASE 2: Player lost (or time over)
         else
         {
-            if (g_Game.gameMode == GAME_MODE_STORY)
-            {
-                uint8_t playerid   = g_Players[0].character.choice;
-                uint8_t computerid = g_Players[1].character.choice;
-                SRL::Debug::Print(17, 12, "Game Over!");
-                
-                bool useTaunt2 = rnd.GetNumber(0, 1);
-                const char* taunt = useTaunt2 ? Dialog::quotes[playerid][computerid].taunt2
-                                               : Dialog::quotes[playerid][computerid].taunt1;
-                PrintWrapped(0, 14, 20, taunt, Align::CenterX);
-            }
-            else
-            {
-                SRL::Debug::Print(17, 14, "Game Over!");
-            }
+            SRL::Debug::Print(17, 14, "Game Over!");
             
             if (g_GameState.endDelayTimer < WIN_GAME_DELAY_TIMEOUT)
             {

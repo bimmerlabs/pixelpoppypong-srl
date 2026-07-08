@@ -54,6 +54,14 @@ void loadCoreAssets(void)
     {
         coreTiles = new TilemapObject("COREX.LZ", PaletteID, false, true);
     }
+    else if (g_Game.timeSeason == S_NEWYEARS)
+    {
+        coreTiles = new TilemapObject("CORET.LZ", PaletteID, false, true);
+    }
+    else if (g_Game.timeSeason == S_MURRICADAY)
+    {
+        coreTiles = new TilemapObject("COREM.LZ", PaletteID, false, true);
+    }
     else {
         coreTiles = new TilemapObject("CORE.LZ", PaletteID, false, true);
     }

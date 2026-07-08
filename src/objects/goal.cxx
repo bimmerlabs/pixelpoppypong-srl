@@ -4,6 +4,7 @@
 #include "../game/physics.h"
 #include "../game/highscores.h"
 #include "../vdp2/sprite_colors.h"
+#include "../objects/characters.h"
 
 GOAL g_Goal[MAX_PLAYERS] = {};
 bool g_AnimateGoal = false;
@@ -67,6 +68,10 @@ void animateGoalColor(bool *_do_update) {
     else {
         g_AnimateGoal = false;
         goal_animation_cycles = 0;
+        // clear taunts if needed
+        SRL::Debug::PrintClearLine(14);
+        SRL::Debug::PrintClearLine(15);
+        SRL::Debug::PrintClearLine(16);
     }
 }
 
@@ -327,6 +332,23 @@ void checkLeftGoalCollision(Sprite *ball) {
                 initStarsFx();
                 ballTtouchTimer = 0;
                 updatePlayerLives(0);
+                
+                if (g_Players[0].numLives == 4 || g_Players[0].numLives == 2)
+                {
+                    uint8_t playerid   = g_Players[0].character.choice;
+                    uint8_t computerid = g_Players[1].character.choice;
+
+                    // uint8_t threshold = rnd.GetNumber(0, 255);
+                    bool useTaunt2 = rnd.GetNumber(0, 1);
+                    // if (threshold > 127)
+                    // {
+                        // useTaunt2 = true;
+                    // }
+                    const char* taunt = useTaunt2 ? Dialog::quotes[playerid][computerid].taunt2
+                                                   : Dialog::quotes[playerid][computerid].taunt1;
+                    PrintWrapped(0, 14, 32, taunt, Align::CenterX);
+                }
+                
                 if (!g_Game.isBoss) {
                     playCDTrack(g_Audio.currentTrack, false);
                     nextcurrentTrack();

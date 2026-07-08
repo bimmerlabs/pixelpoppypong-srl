@@ -175,10 +175,10 @@ void check_ui_inputs(void) {
         if (Management::GetType(i) == PeripheralType::Analog3dPad) {
             // when srl_string is fixed, this can be %f, or replaced with a graphic
             Fxp sensitivity = input->sensitivity * Fxp_100;
-            SRL::Debug::Print(input_x, input_y, "Input %i: - %i + ", i+1, sensitivity.As<uint8_t>());
+            SRL::Debug::Print(input_x, input_y, "Input %d: - %d + ", i+1, sensitivity.As<uint8_t>());
         }
         else {
-            SRL::Debug::Print(input_x, input_y, "Input %i: Digital", i+1);
+            SRL::Debug::Print(input_x, input_y, "Input %d: Digital", i+1);
         }
         input_y += 1;
     }

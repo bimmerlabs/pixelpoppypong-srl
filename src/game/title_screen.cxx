@@ -889,7 +889,7 @@ void optionsScreen_input(void)
                 g_Audio.currentTrack--;
                 if (g_Audio.currentTrack < LOGO_TRACK)
                 {
-                    g_Audio.currentTrack = BOSS_TRACK;
+                    g_Audio.currentTrack = LAST_TRACK - 1;
                 }
             }
             // play

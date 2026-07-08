@@ -98,6 +98,10 @@ extern const char *garfieldItemQuotes[];
 extern "C" {
 #endif
 
+void initBossQuotes(void);
+void initUnlockedCharacters(void);
+void initAvailableCharacters(void);
+
 static inline int centeredX(int lineLen) {
     return (44 - lineLen) / 2; // 352 / 8 = 44 chars
 }
@@ -105,10 +109,6 @@ static inline int centeredX(int lineLen) {
 static inline int centeredY(int totalLines) {
     return (30 - totalLines) / 2; // 240 / 8 = 30 lines
 }
-
-void initBossQuotes(void);
-void initUnlockedCharacters(void);
-void initAvailableCharacters(void);
 
 void PrintWrapped(int x, int y, int maxCharsPerLine, const char* text, Align align = Align::None);
 

@@ -58,10 +58,6 @@ void initStoryMode(void)
     SRL::VDP2::NBG2::ScrollEnable();
     
     SRL::Debug::PrintClearScreen();    
-    
-    // if (!g_Game.isBoss || allOpponentsBeaten())
-    // move to after nbg2 init
-    // playCDTrack(BEGIN_GAME_TRACK, false);
 }
 
 void initContinue(void) {
@@ -133,6 +129,7 @@ void storySelectUpdate(void)
     character_portrait.id = character_portrait.anim[0].asset + player->character.choice;
     set_spr_position_fxp(&character_portrait, Fxp(-256), Fxp_0, PORTRAIT_DEPTH);
     set_spr_scale(&character_portrait, 2.0, 2.0);
+    character_portrait.mesh = MESHoff;
     my_sprite_draw(&character_portrait);
         
     // scroll up list of characters
@@ -178,17 +175,17 @@ void storySelectUpdate(void)
         uint8_t playerid   = player->character.choice;
         uint8_t computerid = computer->character.choice;
         
-        int32_t xpos = -24;
+        int32_t xpos = -40;
         int32_t zpos = 50;
         const int32_t offset = 24;
         const int32_t space = 28;
         
-        DrawSpriteText(&font, fullCharacterNames[playerid],   xpos, -32, zpos, offset, space);     
-        DrawSpriteText(&font, fullCharacterNames[computerid], xpos,  32, zpos, offset, space);     
-        DrawSpriteText(&font, "VS", xpos, 0, zpos, offset, space);
+        DrawSpriteText(&font, fullCharacterNames[playerid],   xpos, -126, zpos, offset, space);     
+        DrawSpriteText(&font, fullCharacterNames[computerid], xpos,  66, zpos, offset, space);     
+        DrawSpriteText(&font, "V.S.", xpos+70, 0, zpos, offset, space);
         
-        PrintWrapped(20, 7, 21, Dialog::quotes[playerid][computerid].player1);
-        PrintWrapped(20, 20, 21, Dialog::quotes[playerid][computerid].player2);
+        PrintWrapped(20, 8, 23, Dialog::quotes[playerid][computerid].player1);
+        PrintWrapped(20, 20, 23, Dialog::quotes[playerid][computerid].player2);
     }
     
     g_StartStoryFrames--;
@@ -283,7 +280,6 @@ void drawCharacterList(void)
     PPLAYER player = &g_Players[0];
     PPLAYER computer = &g_Players[1];
     
-    // my_sprite_draw(&menu_bg2);
     my_sprite_draw(player->_cursor[0]);
     my_sprite_draw(player->_cursor[1]);
     character_pos_y = character_pos_selected;
@@ -307,7 +303,7 @@ void drawCharacterList(void)
                         case CHARACTER_WUPPY:   return CHARACTER_WALRUS;
                         case CHARACTER_WALRUS:  return CHARACTER_GARF;
                         case CHARACTER_GARF:    return CHARACTER_NONE;
-                        case CHARACTER_NONE:    return CHARACTER_NONE;  // both walrus and garf are bosses
+                        case CHARACTER_NONE:    return CHARACTER_GARF;  // both walrus and garf are bosses
                         default:                return CHARACTER_WUPPY; // normal character
                     }
                 };
@@ -351,13 +347,19 @@ void drawCharacterList(void)
         character_portrait.id = character_portrait.anim[0].asset + i;
         set_spr_position(&character_portrait, character_pos_x , character_pos_y, 90);
         set_spr_scale(&character_portrait, 2.0, 2.0);
+        
+        if (computer->character.choice == i)
+        {
+            character_portrait.mesh = MESHoff;
+        }
+        else
+        {
+            character_portrait.mesh = MESHon; // causes mesh effect to stick after this loop ends.  hack is to force it off in drawGameUI()
+        }
+        
         my_sprite_draw(&character_portrait);
         character_pos_y -= CHARACTER_POS_OFFSET;
     }
-    
-    // if (!g_Game.isBoss || allOpponentsBeaten())
-    // move to after nbg2 init
-    // playCDTrack(BEGIN_GAME_TRACK, false);
 }
 
 // helper function - returns true if all available opponents have been beaten

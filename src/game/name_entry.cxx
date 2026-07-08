@@ -336,9 +336,9 @@ void nameEntryDraw(void)
         SRL::Debug::Print(2, 12, "Pos:X=%3d", light.x.As<int32_t>());
         SRL::Debug::Print(2, 13, "Pos:Y=%3d", light.y.As<int32_t>());
         SRL::Debug::Print(2, 14, "Angle:%3d", nameEntry.angle);
-        SRL::Debug::Print(2, 15, "nameEntry.end:%i", nameEntry.end);
-        SRL::Debug::Print(2, 16, "isAngleSnapped:%i", nameEntry.isAngleSnapped);
-        SRL::Debug::Print(2, 17, "finished:%i", nameEntry.finished);
+        SRL::Debug::Print(2, 15, "nameEntry.end:%d", nameEntry.end);
+        SRL::Debug::Print(2, 16, "isAngleSnapped:%d", nameEntry.isAngleSnapped);
+        SRL::Debug::Print(2, 17, "finished:%d", nameEntry.finished);
     }
     #endif
 }

@@ -52,8 +52,8 @@ void debux_text(void)
         SRL::Debug::Print(18, 2, "Last:%2d", g_Game.lastState);
         SRL::Debug::Print(29, 2, "Next:%2d", g_Game.nextState);
         // SRL::Debug::Print(2, 3, "Frame:%3d", g_Game.frame);
-        SRL::Debug::Print(2, 4, "MasterVolume:%3d", g_Audio.masterVolume);
-        SRL::Debug::Print(2, 5, "cdIsPlaying:%d", g_Audio.cdIsPlaying);
+        // SRL::Debug::Print(2, 4, "MasterVolume:%3d", g_Audio.masterVolume);
+        // SRL::Debug::Print(2, 5, "cdIsPlaying:%d", g_Audio.cdIsPlaying);
         SRL::Debug::Print(20, 3, "Sprites:%d    ", SRL::VDP1::GetTextureCount());
         SRL::Debug::Print(20, 4, "VDP1 Memory:%06d", SRL::VDP1::GetAvailableMemory());
         SRL::Debug::Print(20, 5, "HWRAM free space:%06d", SRL::Memory::HighWorkRam::GetFreeSpace());

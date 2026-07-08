@@ -19,7 +19,8 @@ typedef enum
     MATCH_TRACK              = 11,
     NAME_ENTRY_TRACK         = 12,
     BOSS_TRACK               = 13,
-    LAST_TRACK               = 14
+    CONTINUE_TRACK           = 14,
+    LAST_TRACK               = 15
 } MUSIC_TRACKS;
 
 #define AUDIO_FADE_TIMER (3 * 60)

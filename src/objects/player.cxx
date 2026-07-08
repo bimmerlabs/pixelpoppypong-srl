@@ -111,8 +111,17 @@ int getLives(PPLAYER player)
                         // numLives = 1;
                         break;
                     case GAME_DIFFICULTY_MEDIUM:
+                    #if ENABLE_DEBUG_MODE == 1
+                    if (g_GameOptions.debug_mode) {
+                        numLives = 1;
+                    }
+                    else
+                    {
                         numLives = 6;
-                        // numLives = 1;
+                    }
+                    #else
+                        numLives = 6;
+                    #endif
                         break;
                     case GAME_DIFFICULTY_HARD:
                         numLives = 6;
@@ -368,18 +377,8 @@ void initStoryCharacters(void)
     }
 
     // normal characters always available
-    if (g_GameOptions.bossMode) {
-        g_StoryProgress.available [CHARACTER_MACCHI] = false;
-        g_StoryProgress.available[CHARACTER_JELLY]  = false;
-        g_StoryProgress.available[CHARACTER_PENNY]  = false;
-        g_StoryProgress.available[CHARACTER_POTTER] = false;
-        g_StoryProgress.available[CHARACTER_SPARTA] = false;
-        g_StoryProgress.available[CHARACTER_POPPY]  = false;
-        g_StoryProgress.available[CHARACTER_TJ]     = false;
-        g_StoryProgress.available[CHARACTER_GEORGE] = false;
-    }
-    else {
-        g_StoryProgress.available [CHARACTER_MACCHI] = true;
+    if (!g_GameOptions.bossMode) {
+        g_StoryProgress.available[CHARACTER_MACCHI] = true;
         g_StoryProgress.available[CHARACTER_JELLY]  = true;
         g_StoryProgress.available[CHARACTER_PENNY]  = true;
         g_StoryProgress.available[CHARACTER_POTTER] = true;
@@ -395,10 +394,12 @@ void initStoryCharacters(void)
     // CHARACTER_NONE never available (or are they??)
     g_StoryProgress.available[CHARACTER_NONE] = false;
 
+    // build up characters to unlock (garf and craig)
     switch (player->character.choice)
     {
         case CHARACTER_WUPPY:
             g_StoryProgress.available[CHARACTER_WALRUS] = true;
+            g_StoryProgress.available[CHARACTER_GARF] = true;
             break;
             
         case CHARACTER_WALRUS:
@@ -406,6 +407,7 @@ void initStoryCharacters(void)
             break;
             
         case CHARACTER_GARF:
+            g_StoryProgress.available[CHARACTER_WALRUS] = true;
             g_StoryProgress.available[CHARACTER_NONE] = true;
             break;
             
@@ -416,6 +418,17 @@ void initStoryCharacters(void)
             
         default:
             break;
+    }
+    
+    // always available to fight against once unlocked
+    if (characterUnlocked[CHARACTER_WALRUS])
+    {
+        g_StoryProgress.available[CHARACTER_WALRUS] = true;
+    }
+    if (characterUnlocked[CHARACTER_GARF])
+    {
+        g_StoryProgress.available[CHARACTER_GARF] = true;
+        g_StoryProgress.available[CHARACTER_NONE] = true;
     }
     
     // player's own character is never an opponent
@@ -1085,8 +1098,8 @@ void updatePlayers(void)
         detect_player_ball_collision(&pixel_poppy, player);
         
         // if (i == 0) {
-            // SRL::Debug::Print(2, 9, "Player isBig %i", player->isBig);
-            // SRL::Debug::Print(2, 10, "Player isSmall %i", player->isSmall);
+            // SRL::Debug::Print(2, 9, "Player isBig %d", player->isBig);
+            // SRL::Debug::Print(2, 10, "Player isSmall %d", player->isSmall);
             // SRL::Debug::Print(2, 11, "Player scale %3d", player->_sprite->scl.x.As<int16_t>());
         // }
     }
