@@ -21,7 +21,7 @@ namespace Dialog
               [CHARACTER_JELLY] =
         {
             "Oh! Are we playing?! I heard yelling!",
-            "Yeah, like I was saying, my fluffy tail got caught one time-",
+            "Yeah, like I was saying\n - my fluffy tail got caught one time-",
             "Oh!! I think I won!! Was that right?!",              // lose: Jelly taunts you
             "I think I distracted you with my stories!",                       // win: Jelly reacts to losing
             "George. GEORGE. The ball, buddy.",
@@ -64,56 +64,56 @@ namespace Dialog
         quotes[CHARACTER_GEORGE]
               [CHARACTER_POPPY] =
         {
-            "Oh!! Your ribbon!! Is it silk?? It looks silk!!",
-            "Hehe! Focus, George!",
+            "Oh!! Your ribbon!! Is it silk??\nIt looks like silk!!",
+            "\nHehe! Focus, George!",
             "Oh!! I won!! Can I feel it now?!",                   // lose: Poppy taunts you
             "Hehe!! I guess the ribbon was distracting!",  // win: Poppy reacts to losing
             "George!! Stop staring!!",
-            "Hehe!!",
+            "Hehe!! You're kinda adorable!!",
         };
 
         quotes[CHARACTER_GEORGE]
               [CHARACTER_TJ] =
         {
             "Oh!! Six toes!! Can I count them?! One -",
-            "No. Play.",
-            "Oh!! I won!! I counted to four though!!",            // lose: TJ taunts you
-            "Six toes wins. I only got to four. Oh well!!",            // win: TJ reacts to losing
-            "BALL. Not toes.",
-            "C'mon!",
+            "No. Play the game and don't stare",
+            "Oh!! I won!! I only counted to four though!!",            // lose: TJ taunts you
+            "Be glad I don't have my lucky shoelace.",
+            "I don't think he can count to 6...",            // win: TJ reacts to losing
+            "HIT THE BALL. Not my toes.",
         };
 
         quotes[CHARACTER_GEORGE]
               [CHARACTER_WUPPY] =
         {
-            "Oh!! A dog!! Wait - are you a cat?! OH!!",
-            "I'M A DOG RAISED BY CATS!! YES!!",
+            "Oh!! A dog!! Wait - are you a cat?!\nHave you seen Mr. Squeakers?!!",
+            "I'M A DOG RAISED BY CATS!!\nSORRY I DON'T HAVE YOUR SQUEAKY TOY!!",
             "Oh!! I won!! You're still a dog though, right?!",    // lose: Wuppy taunts you
-            "Wuppy wins. Is he a cat? Oh!! I still don't know!!", // win: Wuppy reacts to losing
-            "Yay!!",
-            "We're both having so much fun!! Are you having fun?!!",
+            "OOOPS, I DID HAVE YOUR TOY!!\nIT'S A LITTLE CHEWED - SORRY!!", // win: Wuppy reacts to losing
+            "YAY!! CAN WE DO IT AGAIN?",
+            "WE'RE BOTH HAVING SO MUCH FUN!! ARE YOU HAVING FUN?!!",
         };
 
         quotes[CHARACTER_GEORGE]
               [CHARACTER_WALRUS] =
         {
-            "Oh!! Are you a golfer?! Is this golf?! Oh!!",        // player1
-            "Basically. Great shot.",                             // player2
-            "Great shot.",                                        // win: Craig reacts to losing
+            "Oh!! Are you a golfer?!\nIs this a golf course?!",        // player1
+            "It looks like pong, but basically it's the same thing.",                             // player2
             "Oh!! I won!! Is that a birdie?!",                    // lose: Craig taunts you
-            "Great shot!!",                                       // taunt1
-            "Oh!! He said great shot!!",                          // taunt2
+            "Great shot\n(by me).",                                        // win: Craig reacts to losing
+            "Right down the middle!",                                       // taunt1
+            "Great Shot!",                          // taunt2
         };
 
         quotes[CHARACTER_GEORGE]
               [CHARACTER_GARF] =
         {
-            "Oh!! Garfield!! Are you awake?! OH HI!!",            // player1
-            "Barely.",                                            // player2
-            "Garfield wins. He was barely moving. Oh!!",          // win: Garfield reacts to losing
-            "Oh!! I won!! He was awake the whole time!!",         // lose: Garfield taunts you
-            "Oh!!",                                               // taunt1
-            "Sleepy!!",                                           // taunt2
+            "Garfield!! Oh hi!!\nAre you awake?!",            // player1
+            "Barely. Why are you bothering me?",                                            // player2
+            "Oh!! I won!! He was napping the whole time!!",         // lose: Garfield taunts you
+            "Good luck kid, you're gonna need it.",          // win: Garfield reacts to losing
+            "He makes Odie look like a genius..",                                               // taunt1
+            "Why am I even trying?",                                           // taunt2
         };
 
         quotes[CHARACTER_GEORGE]
@@ -122,7 +122,7 @@ namespace Dialog
             "Oh!! What ARE you?!",                    // player1
             "\nBEEP BOOP.",                                         // player2
             "Oh!! I beat the beepy thing!!",                 // lose: CPU taunts you
-            "BZZT.",                                              // win: CPU reacts to losing
+            "BZZT. BEEP.",                                              // win: CPU reacts to losing
             "BEEP.",                                 // taunt1
             "BOOP.",                                              // taunt2
         };

@@ -9,7 +9,7 @@ namespace Dialog
         quotes[CHARACTER_JELLY]
               [CHARACTER_MACCHI] =
         {
-            "So, I was saying about my sqeaky toy - wait, are we starting?",
+            "So, I was saying about my sqeaky toy\n- wait, are we starting?",
             "\nWe started thirty seconds ago.",
             "That was actually smooth.\n\nWell done!",
             "Not bad, coffee cat.\n\nNot bad.",
@@ -20,8 +20,8 @@ namespace Dialog
         quotes[CHARACTER_JELLY]
               [CHARACTER_PENNY] =
         {
-            "Oh hey your highness! Love the crown, very shiny -",
-            "Begin. And do stop talking.",
+            "Oh hey your highness!\nLove the crown, very shiny -",
+            "\nBegin. And do stop talking.",
             "The crown wobbled! I saw it!",                       // win: Penny reacts to losing
             "Silence would suit you better.",                           // lose: Penny taunts you
             "Stop. Talking.",
@@ -34,7 +34,7 @@ namespace Dialog
             "Okay so I have a theory about the wand -",
             "Can it wait until after the match?",
             "The wand was just a stick after all...",              // win: Potter reacts to losing
-            "Magic wins. No theory required.",                   // lose: Potter taunts you
+            "Magic wins,\no theory required.",                   // lose: Potter taunts you
             "Silencio! ...Still not working.",
             "By Merlin's whiskers, can you hush?",
         };
@@ -45,7 +45,7 @@ namespace Dialog
             "Hey so what IS a lamp, like philosophically -",
             "Lamp is my friend, I love it!",
             "Talk to the tail!",                      // lose: Sparta taunts you
-            "Lamp didn't help... lamp never helps...",               // win: Sparta reacts to losing
+            "Lamp didn't help...\n\nlamp never helps...",               // win: Sparta reacts to losing
             "LAMP!",
             "WOOP!",
         };
@@ -56,7 +56,7 @@ namespace Dialog
             "Poppy!! Okay, so I have been dying to ask you -",
             "Hehe! Maybe later, let's play now!",
             "Hehe! Fluffy cat wins!!",
-            "Aww, I feel bad. Only a little though.",
+            "Aww, I feel bad.\n\nOnly a little though.",
             "You're so loud!! Hehe!!",
             "That was really close!! Hehe!!",
         };
@@ -64,10 +64,10 @@ namespace Dialog
         quotes[CHARACTER_JELLY]
               [CHARACTER_TJ] =
         {
-            "T.J.!! Bro!\n\nOkay so I heard about the shoelace -",
+            "T.J.!! Bro!\n\nOkay so I heard about your shoelace -",
             "\n\n...don't.",
             "So anyway, maybe that dog has your shoelace?",                     // win: TJ reacts to losing
-            "Quiet wins. Remember that.",                        // lose: TJ taunts you
+            "Quiet wins.\n\nRemember that.",                        // lose: TJ taunts you
             "Shhhh!",
             "C'mon!",
         };
@@ -75,7 +75,7 @@ namespace Dialog
         quotes[CHARACTER_JELLY]
               [CHARACTER_GEORGE] =
         {
-            "GEORGE!! Okay so I was thinking -",
+            "GEORGE!!\n\nOkay so I was thinking -",
             "Oh!! What were you thinking?! Tell me!!",
             "Chasing your tail again instead of the ball!", // win: George reacts to losing
             "I thought the ball was my missing bell!",
@@ -87,7 +87,7 @@ namespace Dialog
               [CHARACTER_WUPPY] =
         {
             "Okay Wuppy, so funny story about my squeaky toy -",
-            "I DIDN'T STEAL IT! I JUST WANTED TO SAY HELLO!!",
+            "I SWEAR i DIDN'T STEAL IT!\nI JUST WANTED TO SAY HELLO!!",
             "The squeaky toy is safe!\nBut eww, slobber..",            // win: Wuppy reacts to losing
             "I ACCIDENTALLY MIGHT HAVE ATE YOUR TOY!!\nI'M SO SORRY!!",      // lose: Wuppy taunts you
             "YAY!! AGAIN!!",
@@ -109,12 +109,12 @@ namespace Dialog
         quotes[CHARACTER_JELLY]
               [CHARACTER_GARF] =
         {
-            "Garfield!! Okay so I have been DYING to ask you -", // player1
-            "No.",                                               // player2
+            "Garfield!!\nOkay so I have been DYING to ask you -", // player1
+            "\nNo.",                                               // player2
             "He barely moved and still won. I have questions.",  // win: Garfield reacts to losing
             "Finally, I can get some peace and quiet.",                 // lose: Garfield taunts you
-            "Yawn.",        // taunt1
-            "Not the sharpest tool in the shed...",     // taunt2
+            "Yawn.  I'd rather be napping",        // taunt1
+            "Orange cat to Orange cat: got any lasagna?",     // taunt2
         };
 
         quotes[CHARACTER_JELLY]
@@ -123,7 +123,7 @@ namespace Dialog
             "Oh hey! So I was thinking -\nUh, what?? Hello??",        // player1
             "\nBEEP BOOP.",                                        // player2
             "Are you even listening?",                           // taunt1
-            "BEEP help me BOOP.",
+            "BEEP (help me) BOOP.",
             "BZZT.",                                             // win: CPU reacts to losing
             "BEEP BOOP.",                                        // lose: CPU taunts you
         };

@@ -32,7 +32,7 @@ namespace Dialog
               [CHARACTER_POTTER] =
         {
             "Your magic does not impress the crown.",
-            "The crown hasn't seen my best spells yet.",
+            "You haven't seen my best spells yet!",
             "Magic or not - royalty reigns.",                     // lose: Potter taunts you
             "The queen... is immune to enchantment?!",           // win: Potter reacts to losing
             "Prepare for the spell of - ow.",
@@ -45,7 +45,7 @@ namespace Dialog
             "You are the strangest subject I have ever had.",
             "I love lamp! Also hello your majesty! WOOP!",
             "Order. Dignity. Victory.",                           // lose: Sparta taunts you
-            "Lamp... lamp would have been better at this...",        // win: Sparta reacts to losing
+            "Lamp...\nlamp would have been better at this...",        // win: Sparta reacts to losing
             "My tail is following me!",
             "WOOP!",
         };
@@ -58,7 +58,7 @@ namespace Dialog
             "One crown. One queen. Lesson learned.",              // lose: Poppy taunts you
             "You're worthy of a title. Almost.",                  // win: Poppy reacts to losing
             "Your crown is SO pretty!!",
-            "Hehe! Almost!!",
+            "Hehe! You almost had it!!",
         };
 
         quotes[CHARACTER_PENNY]
@@ -75,10 +75,10 @@ namespace Dialog
         quotes[CHARACTER_PENNY]
               [CHARACTER_GEORGE] =
         {
-            "Eyes forward. This is a royal audience.",
-            "Oh! Okay! Wait - your crown is so shiny -",
+            "Eyes forward.\nThis is a royal audience.",
+            "Oh! Okay!\nWait - your crown is so shiny -",
             "Focus is the mark of a champion.",                   // lose: George taunts you
-            "I lost because of the crown. It sparkled at me.",   // win: George reacts to losing
+            "I lost because of the crown. It sparkled at me!",   // win: George reacts to losing
             "So Shiny!!",
             "I got the ball!!",
         };
@@ -86,12 +86,12 @@ namespace Dialog
         quotes[CHARACTER_PENNY]
               [CHARACTER_WUPPY] =
         {
-            "You chewed on my crown.  I am not pleased.",
-            "I DIDN'T MEAN TO!! It looked so tasty!!",
-            "Royal justice. Served.",                             // lose: Wuppy taunts you
-            "I'm sorry about the crown!! It's still pretty!!",   // win: Wuppy reacts to losing
-            "Oops!! Sorry your highness!!",
-            "Yay!! Let's do that again!",
+            "You chewed on my crown. \nI am not pleased.",
+            "I DIDN'T MEAN TO!! IT LOOKED SO TASTY!!",
+            "Royal justice, Served.",                             // lose: Wuppy taunts you
+            "I'M SORRY ABOUT THE CROWN!! IT'S STILL PRETTY!!",   // win: Wuppy reacts to losing
+            "OOPS!! SORRY YOUR HIGHNESS!!",
+            "YAY!! LET'S DO THAT AGAIN!",
         };
 
         quotes[CHARACTER_PENNY]
@@ -100,20 +100,20 @@ namespace Dialog
             "You are not from this court.",                       // player1
             "Nope. But it's basically still golf.",                                  // player2
             "Even wanderers fall before the crown.",              // lose: Craig taunts you
-            "Great shot.",                                        // win: Craig reacts to losing
-            "Stop calling it a fairway.",                         // taunt1
-            "He's completely unbothered. Infuriating.",           // taunt2
+            "Right down the middle!.",                                        // win: Craig reacts to losing
+            "Keep it on the fairway.",                         // taunt1
+            "Hmm, you missed it a little.",           // taunt2
         };
 
         quotes[CHARACTER_PENNY]
               [CHARACTER_GARF] =
         {
             "You will show the crown respect.",                   // player1
-            "Sure. After my nap.",                                // player2
+            "Sure - right after my nap.",                                // player2
             "Lost to a cat who was half asleep. Undignified.",   // win: Garfield reacts to losing
-            "Laziness is no match for royalty.",                  // lose: Garfield taunts you
-            "Wake up.",                                           // taunt1
-            "Are you sleeping between points?",                   // taunt2
+            "Royalty is no match for laziness.",                  // lose: Garfield taunts you
+            "*Yawn* Nap time!",                                           // taunt1
+            "Is it over yet?  I'm so bored.",                   // taunt2
         };
 
         quotes[CHARACTER_PENNY]
@@ -121,9 +121,9 @@ namespace Dialog
         {
             "\nWhat manner of creature is this.",                   // player1
             "\nBEEP.",                                              // player2
-            "BZZT.",                                              // win: CPU reacts to losing
             "Even machines bow to the crown.",                    // lose: CPU taunts you
-            "Did it just beep at me.",                            // taunt1
+            "BZZT.",                                              // win: CPU reacts to losing
+            "BEEP BOOP!",                            // taunt1
             "BOOP.",                                              // taunt2
         };
     }

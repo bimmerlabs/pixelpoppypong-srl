@@ -23,7 +23,7 @@ namespace Dialog
             "\nBy the way,\nI don't bow.",
             "\n\nYou will...",
             "This crown is...\n\ntemporarily tarnished.",              // win: Penny reacts to losing
-            "Smooth victory. As I expected, you will bow.",                       // lose: Penny taunts you
+            "As I expected, you will bow.",                       // lose: Penny taunts you
             "Don't let it go to your head.",
             "Even royalty can appreciate espresso form.",
         };
@@ -77,7 +77,7 @@ namespace Dialog
         {
             "Eyes on the ball, please.",
             "Oh! Okay! Wait -\nis that a new ball? It's so round!",
-            "Focus is everything.\nRemember that!",               // win:
+            "Focus is everything.\n\nRemember that!",               // win:
             "I got distracted by my tail!\n\nIt's following me!", // lose: George reacts to losing
             "Is the ball new? It looks new.",
             "Oh! Have you seen my bell?",
@@ -122,8 +122,8 @@ namespace Dialog
             "\n...What are you?",                                   // player1
             "\nBEEP.",                                              // player2
             "Whatever you are, you lose.",                       // lose: CPU taunts you
+            "BEEP. BOOP!",                                              // taunt1
             "BZZT.",                                              // win: CPU reacts to losing
-            "BOOP!",                                              // taunt1
             "BEEP.",                                              // taunt2
         };
     }

@@ -11,10 +11,10 @@ namespace Dialog
         {
             "\nBEEP.",
             "\n...I'm not dignifying that with a response.",
-            "...Was that a beep of victory? I can't tell.",
+            "...Was that a beep of victory?\nI can't tell.",
             "BZZT.",
-            "BOOP.",
-            "BEEP.",
+            "I think you may have had too much caffine!",
+            "Maybe robots shouldn't have coffee?",
         };
 
         quotes[CHARACTER_NONE]
@@ -22,10 +22,10 @@ namespace Dialog
         {
             "\nBEEP BOOP.",
             "\nHELLO?? ARE YOU TRYING TO TALK TO ME??",
-            "It beeped when I lost. I think it was laughing?",   // lose: Jelly, convinced they bonded
-            "BZZT.",                                              // win
+            "It beeped when I lost.\nI think it was laughing?",   // lose: Jelly, convinced they bonded
             "BOOP.",
-            "BEEP.",
+            "Are you even listening?",                           // taunt1
+            "I feel like we could really talk if you tried.",    // taunt2
         };
 
         quotes[CHARACTER_NONE]
@@ -33,10 +33,10 @@ namespace Dialog
         {
             "\nBEEP.",
             "\n...How peculiar.",
-            "It beeped at the crown. I think it was bowing?",    // lose: Penny choosing to believe this
-            "BZZT.",                                              // win
-            "BOOP.",
+            "It beeped at the crown.\nI think it was bowing?",    // lose: Penny choosing to believe this
             "BEEP.",
+            "Did it just beep at me?",                            // taunt1
+            "I tire of your insolence!",
         };
 
         quotes[CHARACTER_NONE]
@@ -44,21 +44,21 @@ namespace Dialog
         {
             "\nBEEP BOOP.",
             "\nA mechanical familiar!! Fascinating!!",
-            "It countered my spell with a boop. Dark magic.",    // lose: Potter, genuinely concerned
+            "It countered my spell with a boop.\nMust be dark magic!",    // lose: Potter, genuinely concerned
             "BZZT.",                                              // win
-            "BOOP.",
-            "BEEP.",
+            "Is it casting something?",                           // taunt1
+            "By Merlin's whiskers.",                                   // taunt2
         };
 
         quotes[CHARACTER_NONE]
               [CHARACTER_SPARTA] =
         {
-            "BEEP BOOP.",
-            "ROBOT!! SCIENCE!! WOOP!!",
-            "It wooped back. I think. It sounded like a woop?",  // lose: Sparta, delighted
-            "BZZT.",                                              // win
+            "\nBEEP BOOP.",
+            "\nAre you some kind of robot??",
+            "It made a noise.\nI think It sounded like a woop?",  // lose: Sparta, delighted
             "BOOP.",
-            "BEEP.",
+            "Lamp beats robot!" 
+            "Are you a robot scientist?.",
         };
 
         quotes[CHARACTER_NONE]
@@ -66,10 +66,10 @@ namespace Dialog
         {
             "\nBEEP.",
             "\nUm... hehe? Hi?",
-            "It beeped very softly when it won. Almost sweet.",  // lose: Poppy, somehow charmed
-            "BZZT.",                                              // win
-            "BOOP.",
-            "BEEP.",
+            "It beeped very softly when it won.\nAlmost sweet.",  // lose: Poppy, somehow charmed
+            "BOOP. BOOP!!",
+            "That was weird!! Hehe!!",                            // taunt1
+            "Aww, can I boop you back?",
         };
 
         quotes[CHARACTER_NONE]
@@ -77,21 +77,21 @@ namespace Dialog
         {
             "\nBEEP BOOP.",
             "\n...You don't talk much. I respect that.",
-            "Lost to the beeping thing. Tch. It's got moves.",   // lose: TJ, grudging respect
+            "Lost to the #$@&%*! thing.\nTch. It's got moves.",   // lose: TJ, grudging respect
             "BZZT.",                                              // win
-            "BOOP.",
-            "BEEP.",
+            "C'mon, stop beeping!",
+            "Pfft, that's all you got?.",
         };
 
         quotes[CHARACTER_NONE]
               [CHARACTER_GEORGE] =
         {
             "\nBEEP BOOP.",
-            "\nOH!! BEEP BOOP!! Wait, what does that mean?!",
-            "It booped and I lost. Is boop a move?! OH!!",       // lose: George, fascinated
+            "Oh!! BEEP BOOP!!\n\nWait, what does that mean?!",
             "BOOP BEEP BOOP!.",                                              // win
-            "BOOP.",
-            "BEEP.",
+            "Oh!! I beat the beepy thing!!",      // lose: George, fascinated
+            "Oh!! Shiny robot!!",                                 // taunt1
+            "I think we could be friends!",
         };
 
         quotes[CHARACTER_NONE]
@@ -99,10 +99,10 @@ namespace Dialog
         {
             "\nBEEP BOOP.",
             "\nHI!! ARE YOU A CAT?! YOU SMELL LIKE A CAT!!",
-            "IT WON AND THEN IT BEEPED AT ME. I THINK WE'RE FRIENDS!!", // lose: Wuppy, certain of this
+            "IT WON AND THEN IT BEEPED AT ME.\nI THINK WE'RE FRIENDS!!", // lose: Wuppy, certain of this
             "BZZT... BEEP BOOP!!",                                              // win
-            "BOOP.",
-            "BEEP.",
+            "ARE YOU A CAT?? YOU SEEM LIKE A CAT!!", 
+            "AT LEAST YOU'RE NOT MAD AT ME! ARE YOU!?.",
         };
 
         quotes[CHARACTER_NONE]
@@ -111,9 +111,9 @@ namespace Dialog
             "\nBEEP.",
             "\nAren't you an unusual caddie?",
             "Ouch! Right down the middle!",                                        // lose: Craig, unfazed as always
-            "BZZT.",                                              // win
             "BOOP.",
-            "BEEP.",
+            "Have you even played golf before?",                  // taunt1
+            "That made your shot just a little tougher.",           // taunt2
         };
 
         quotes[CHARACTER_NONE]
@@ -121,10 +121,10 @@ namespace Dialog
         {
             "\nBEEP BOOP.",
             "\n...what?  Why are you bothering me?",
-            "It said something at the end. Almost sounded like Lasagna!", // lose: Garfield, the only one who noticed
-            "BZZT.",                                              // win
-            "BOOP.",
+            "It said something at the end.\nAlmost sounded like Lasagna!", // lose: Garfield, the only one who noticed
             "BEEP.",
+            "You're weird enough that I'm not even bored.",                                              // win
+            "Well, now I am bored...",
         };
     }
 }

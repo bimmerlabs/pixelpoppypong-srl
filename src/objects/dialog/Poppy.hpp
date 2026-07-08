@@ -121,9 +121,9 @@ namespace Dialog
         {
             "\nHehe! Um... hi??",                                     // player1
             "\nBEEP.",                                              // player2
-            "BZZT.",                                              // win: CPU reacts to losing
             "Hehe! I think I won??",                              // lose: CPU taunts you
-            "That was weird!! Hehe!!",                            // taunt1
+            "BEEP!",                                              // win: CPU reacts to losing
+            "BZZT.",                                              // taunt1
             "BOOP.",                                              // taunt2
         };
     }
