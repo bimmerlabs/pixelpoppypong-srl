@@ -107,7 +107,7 @@ Backgrounds have been reworked with updated colors and new compositions.  Most o
 
 #### Seasons & Special Dates *(top secret - shhh!)*
 <img width="32" height="19" alt="image" src="https://github.com/user-attachments/assets/c6173ea5-cc4d-42e5-a047-799c20649ce0" />
-Pixel Poppy Pong reads the Saturn's internal clock and alters the presentation accordingly. There are four seasons, each with their own effects and visual modes. A handful of special dates unlock additional content beyond the seasons. Players are encouraged to experiment with their Saturn's clock settings - try it out, there are secrets to find!
+Pixel Poppy Pong reads the Saturn's internal clock and alters the presentation accordingly. There are four seasons, each with their own effects and visual modes. Eight additional special dates unlock additional content beyond the seasons. Players are encouraged to experiment with their Saturn's clock settings - try it out, there are secrets to find!
 
 #### Aseprite to Saturn Tilemap Tool
 A tilemap conversion tool by **purist** ([saturn-aseprite](https://github.com/buhman/saturn-aseprite)) significantly reduced the effort involved in generating tilemaps for VDP2. Now I can easily draw assets directly in Aseprite, then convert them to a VDP2-friendly format with minimal friction. 
@@ -323,6 +323,7 @@ All options (and high scores) are saved to backup memory automatically.  If you 
 
 | Option | Description |
 |---|---|
+| **Boss mode** | A boss gauntlet featuring the hidden/special characters.  Is unlocked once Garfield is unlocked (by beating him in story mode or another way). |
 | **Mosaic effect** | Toggles the mosaic effect on or off. Leave on normally, turn off on emulators which do not render this effect correctly. |
 | **Background mode** | **Auto** cycles through background color variations. **RTC** uses the Saturn's internal clock to display a background matching the current time of day. |
 | **Big Head Mode** *(unlockable)* | Makes the ball twice its normal size. Purely for fun. |
