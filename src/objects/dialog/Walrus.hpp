@@ -10,7 +10,7 @@ namespace Dialog
               [CHARACTER_MACCHI] =
         {
             "A ball, a hole, a stick; Yeah, pong is basically just golf.",
-            "This isn't golf though?  I'm so confused..",
+            "\nThis isn't golf though? I'm so confused..",
             "Right down the middle!",                             // lose: Craig taunts you
             "Smooth finish. Good round.",                         // win: Macchi reacts to losing
             "What kind of cat are you anyway?",
@@ -20,8 +20,8 @@ namespace Dialog
         quotes[CHARACTER_WALRUS]
               [CHARACTER_JELLY] =
         {
-            "Shhh - Quiet on the tee.",
-            "Uh, What's a tee??",
+            "\nShhh - Quiet on the tee.",
+            "\nUh, What's a tee??",
             "Hmmm, you missed it just a little.",                  // lose: Craig taunts you
             "Are you even in the right game?",                     // win: Jelly reacts to losing
             "His cat-fur looks so strange.",
@@ -31,8 +31,8 @@ namespace Dialog
         quotes[CHARACTER_WALRUS]
               [CHARACTER_PENNY] =
         {
-            "Nice golf course you've got here!",
-            "It's a royal court.  Now tremble before royalty!",
+            "\nNice golf course you've got here!",
+            "It's a royal court.\nNow tremble before royalty!",
             "I'll show you my best shot...",                        // lose: Craig taunts you
             "You play pong well. For a golfer.",                       // win: Penny reacts to losing
             "Stop calling it a fairway.",                         // taunt1
@@ -42,8 +42,8 @@ namespace Dialog
         quotes[CHARACTER_WALRUS]
               [CHARACTER_POTTER] =
         {
-            "Is that a 9-iron? No... weird club.",
-            "Uh, it's a wand.  It's magic??",
+            "\nIs that a 9-iron? No... weird club.",
+            "\nUh, it's a wand.\nA magic wand??",
             "Found one in the rough.",           // lose: Craig taunts you
             "He hits straight. The wand was no help.",            // win: Potter reacts to losing
             "Only magic could make you a real cat!",
@@ -53,8 +53,8 @@ namespace Dialog
         quotes[CHARACTER_WALRUS]
               [CHARACTER_SPARTA] =
         {
-            "First tee is... wherever this is.",
-            "WOOP!! I LOVE TEA!!",
+            "\nFirst tee is... wherever this is.",
+            "\nWOOP!! I LOVE TEA!!",
             "Great birdie! ...by me.",                                      // lose: Craig taunts you
             "WANT TO SEE MY LAMP?",                                // win: Sparta reacts to losing
             "WOOP!",
@@ -64,8 +64,8 @@ namespace Dialog
         quotes[CHARACTER_WALRUS]
               [CHARACTER_POPPY] =
         {
-            "Good weather for a round of golf.",
-            "Hehe! You're funny!\nBut this is pong?",
+            "\nGood weather for a round of golf.",
+            "\nHehe! You're funny!\nBut this is pong?",
             "Well done!\nThis is still basically golf though.",                                         // lose: Craig taunts you
             "Hehe! Nice game, Mr. Golf man!!",                         // win: Poppy reacts to losing
             "Hehe! You're cute, but I think you're confused!",
@@ -76,7 +76,7 @@ namespace Dialog
               [CHARACTER_TJ] =
         {
             "I've never played golf against a six-toed cat before.",
-            "First time for everything.",
+            "\nFirst time for everything.",
             "I showed you my best shot.",                        // lose: Craig taunts you
             "Tch. The street beats golf. Every time.",             // win: TJ reacts to losing
             "You're the hairiest cat I've ever seen.",
@@ -87,7 +87,7 @@ namespace Dialog
               [CHARACTER_GEORGE] =
         {
             "Ready to play some - hey, stop smelling the ball.",
-            "Oh!! It smells like rubber!!",
+            "\nOh!! It smells like plastic!!",
             "Any way you spin it, this is basically the same as golf.",                                       // lose: Craig taunts you
             "What are you doing with that club?  Oh!!",          // win: George reacts to losing
             "Oh!! Are you a cat?",
@@ -108,12 +108,12 @@ namespace Dialog
         quotes[CHARACTER_WALRUS]
               [CHARACTER_GARF] =
         {
-            "You look like you'd rather be elsewhere.",
-            "I didn't come all this way for nothing. Actually, I did. But still.",
+            "\nYou look like you'd rather be elsewhere.",
+            "I didn't come all this way for nothing.\nActually, I did. But still.",
             "Found one in the rough.",                            // lose: Craig taunts you
-            "He's the only one here less bothered than me. I respect that.",
+            "He's the only one here less bothered than me.\nI respect that.",
             "I don't care. Now where's my Lasagna?",                             // win: Garfield reacts to losing
-            "Yawn.  Golf is so boring.",
+            "Yawn. Golf is so boring.",
         };
 
         quotes[CHARACTER_WALRUS]

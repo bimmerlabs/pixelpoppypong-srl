@@ -34,11 +34,12 @@ void animateBombColor(bool *_do_update) {
 
 void setItemPositions(void) {
     if (g_GameOptions.debug_mode && !g_GameOptions.enableItems) {
+    // if (g_GameOptions.debug_mode) {
         // TODO: make this an option in the menu (need a debug menu)
-        // g_item.id = GAME_ITEM_BOMB;
+        g_item.id = GAME_ITEM_BOMB;
         // g_item.id = GAME_ITEM_FISH;
         // g_item.id = GAME_ITEM_SHROOM;
-        g_item.id = GAME_ITEM_GARF;
+        // g_item.id = GAME_ITEM_GARF;
         // g_item.id = GAME_ITEM_CRAIG;
         // g_item.id = GAME_ITEM_MAX;
     }
@@ -342,7 +343,9 @@ void handlePlayerItemCollision(PPLAYER player) {
                 }
             }
             g_GameOptions.garfTouchCounter++;
-            if (g_GameOptions.garfTouchCounter == 200) {
+            // unlock - but you have to win!
+            if (g_GameOptions.garfTouchCounter >= 200) {
+                characterUnlocked[CHARACTER_GARF] = true;
                 Pcm::Play(Sounds.Game[StadlerSnd]);
             }
             else {
@@ -362,7 +365,9 @@ void handlePlayerItemCollision(PPLAYER player) {
             player->shield.power = SHIELD_POWER * 2;
             player->score.points += 25000;
             g_GameOptions.craigTouchCounter++;
-            if (g_GameOptions.craigTouchCounter == 100) {
+            // unlock - but you have to win!
+            if (g_GameOptions.craigTouchCounter >= 100) {
+                characterUnlocked[CHARACTER_WALRUS] = true;
                 Pcm::Play(Sounds.Game[StadlerSnd]);
             }
             else {

@@ -170,7 +170,7 @@ void demo_init(void) {
                 addedTime = 20;
                 break;
             case GAME_DIFFICULTY_HARD:
-                addedTime = 10;
+                addedTime = 15;
                 break;
             default:
                 break;
@@ -256,7 +256,7 @@ void demo_init(void) {
         }
         g_Game.explodeBall = explode_animation(&pixel_poppy);
         
-        if (!g_Game.explodeBall) {            
+        if (!g_Game.explodeBall) {
             initPixelPoppy();
             stopBallMovement(&pixel_poppy);
             g_Transition.fade_out_rate = 4;
@@ -307,7 +307,10 @@ void demo_init(void) {
             g_BossState.textFramesRemaining--;
             if (g_BossState.textFramesRemaining == 0)
             {
-                SRL::Debug::PrintClearScreen();
+                // SRL::Debug::PrintClearScreen();
+                SRL::Debug::PrintClearLine(23);
+                SRL::Debug::PrintClearLine(24);
+                SRL::Debug::PrintClearLine(25);
             }
         }
         
@@ -318,7 +321,9 @@ void demo_init(void) {
         g_item.textFramesRemaining--;
         if (g_item.textFramesRemaining == 0)
         {
-            SRL::Debug::PrintClearScreen();
+            SRL::Debug::PrintClearLine(23);
+            SRL::Debug::PrintClearLine(24);
+            SRL::Debug::PrintClearLine(25);
         }
     }
     

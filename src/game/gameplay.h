@@ -212,6 +212,10 @@ static inline void gameplayScore_draw(PPLAYER player) {
             if (g_Game.isBallActive) {
                 update_ball(&pixel_poppy);
                 displayStarsFx();
+                if (!g_item.isActive && g_Game.frame == 0)
+                {
+                    setItemPositions();
+                }
             }
             my_sprite_draw_rot(&pixel_poppy);
             return;

@@ -10,18 +10,18 @@ namespace Dialog
               [CHARACTER_JELLY] =
         {
             "Hey - have you seen my favorite mug?\nI really miss it..", // player1
-            "Oh sure, I think I -\nwait, are we starting?", // player2
+            "\nOh sure, I think I -\nwait, are we starting?", // player2
             "You know what pairs well with espresso? Winning.",  // Win
             "Ha! I showed you. Good game though, right?",        // Lose
-            "I don't actually like coffee, it gives me the jitters!", // taunt1
-            "I had a dream about the ball once.\nTrue story!",  // taunt2
+            "I don't actually like coffee,\nit gives me the jitters!", // taunt1
+            "I had a dream about the ball once.\nTrue story!!",  // taunt2
         };
 
         quotes[CHARACTER_MACCHI]
               [CHARACTER_PENNY] =
         {
             "\nBy the way,\nI don't bow.",
-            "\n\nYou will...",
+            "\nYou will...",
             "This crown is...\n\ntemporarily tarnished.",              // win: Penny reacts to losing
             "As I expected, you will bow.",                       // lose: Penny taunts you
             "Don't let it go to your head.",
@@ -32,7 +32,7 @@ namespace Dialog
               [CHARACTER_POTTER] =
         {
             "\nMagic won't help your backswing.",
-            "\n\nWe'll see about that!",
+            "\nWe'll see about that!",
             "My wand...\n\nit betrayed me again!",                        // win: Potter reacts to losing
             "No enchantment required.",                            // lose: Potter taunts you
             "By Merlin's whiskers!",
@@ -43,7 +43,7 @@ namespace Dialog
               [CHARACTER_SPARTA] =
         {
             "I've seen smarter cats in the bottom of my missing coffee mug.",
-            "I love lamp! Wait -\nwhat about a missing mug?",
+            "I love lamp!\nWait - what about a missing mug?",
             "Lamp didn't help...\n\nLamp never helps!",               // win: Sparta reacts to losing
             "Yay! Lamp did it! WOOP!",
             "WOOP WOOP WOOP!",
@@ -54,8 +54,8 @@ namespace Dialog
               [CHARACTER_POPPY] =
         {
             "\nDon't let the fluff fool you.",
-            "\n\nHehe... too late!",
-            "...Okay. You're pretty good!\n\nSorry I couldn't find your mug..",                              // win
+            "\nHehe... too late!",
+            "...Okay. You're pretty good!\n\nSorry I couldn't find your mug!",                              // win
             "Cute match. I win! Hehe!",                            // lose: Poppy taunts you
             "Oops! That was close!",
             "Hehe! This is fun!",
@@ -64,7 +64,7 @@ namespace Dialog
         quotes[CHARACTER_MACCHI]
               [CHARACTER_TJ] =
         {
-            "Try not to leave marks on the court.",
+            "\nTry not to leave marks on the court.",
             "These paws have more skills than your whole body.",
             "Pfft. Lucky roast.",                                  // win: TJ reacts to losing
             "Street beats cafe`.\n\nEvery time.",                     // lose: TJ taunts you
@@ -75,11 +75,11 @@ namespace Dialog
         quotes[CHARACTER_MACCHI]
               [CHARACTER_GEORGE] =
         {
-            "Eyes on the ball, please.",
+            "\nEyes on the ball, please.",
             "Oh! Okay! Wait -\nis that a new ball? It's so round!",
             "Focus is everything.\n\nRemember that!",               // win:
             "I got distracted by my tail!\n\nIt's following me!", // lose: George reacts to losing
-            "Is the ball new? It looks new.",
+            "Is the ball new?\nIt looks new.",
             "Oh! Have you seen my bell?",
         };
 
@@ -97,8 +97,8 @@ namespace Dialog
         quotes[CHARACTER_MACCHI]
               [CHARACTER_WALRUS] =
         {
-            "This isn't a golf course...",                          // player1
-            "Looks like a fairway to me.",                       // player2
+            "\nThis isn't a golf course...",                          // player1
+            "\nLooks like a fairway to me.",                       // player2
             "You got yours inside mine!\nWell done.",                        // win: Craig reacts to losing
             "Hmm.. You missed it a little.",              // lose: Craig taunts you
             "Great shot!\n(by me)",                                        // taunt1
@@ -108,8 +108,8 @@ namespace Dialog
         quotes[CHARACTER_MACCHI]
               [CHARACTER_GARF] =
         {
-            "Wake up! We're playing cat-pong.",                            // player1
-            "I know... I hate it.",                                 // player2
+            "\nWake up! We're playing cat-pong.",                            // player1
+            "\nI know... I hate it.",                                 // player2
             "I could've been eating right now.",                  // win: Garfield reacts to losing
             "Yep, now it's lasagna time...",      // lose: Garfield taunts you
             "I could really use a nap right now.",                  // taunt1

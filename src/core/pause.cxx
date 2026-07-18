@@ -5,10 +5,12 @@
 #include "backup.h"
 #include "screen_transition.h"
 #include "../game/gameplay.h"
+#include "../game/gameplay_state.hpp"
 #include "../objects/player.h"
 
 using namespace SRL::Types;
 using namespace SRL::Math::Types;
+using namespace Gameplay;
 
 int8_t pauseChoice = 0;
 
@@ -110,7 +112,8 @@ void pauseGame(void)
 // check if player 1 paused the game
 static void checkForPausePress(void)
 {
-    if (g_Game.selectStoryCharacter)
+    // if (g_Game.selectStoryCharacter)
+    if (g_GameState.roundState != ROUND_STATE_PLAYING)
     {
         return;
     }
@@ -274,9 +277,9 @@ const Angle cursorAngleAdder = Angle(0.0222222222222222);
 static void drawPauseMenuCursor(void)
 {
     Fxp offset = SRL::Math::Trigonometry::Sin(g_Game.cursor_angle) * 8;
-    cursor.pos.x = -124 + offset;
+    cursor.pos.x = Fxp(-124) + offset;
     Fxp choice = Fxp::Convert(pauseChoice);
-    cursor.pos.y = -32 + (choice * 32);
+    cursor.pos.y = Fxp(-32) + (choice * Fxp(32));
     my_sprite_draw(&cursor);
     g_Game.cursor_angle += cursorAngleAdder;
 }

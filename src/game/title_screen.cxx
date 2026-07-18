@@ -968,15 +968,18 @@ void optionsScreen_input(void)
                     Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                     g_GameOptions.testCollision = !g_GameOptions.testCollision;
                     break;
-                case OPTION_BOSS_MODE:
-                    Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
-                    g_GameOptions.bossMode = !g_GameOptions.bossMode;
-                    break;
                 case OPTION_ITEMS:
                     Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                     g_GameOptions.enableItems = !g_GameOptions.enableItems;
                     break;
                 #endif
+                case OPTION_BOSS_MODE:
+                    if (characterUnlocked[CHARACTER_GARF] || g_GameOptions.debug_mode)
+                    {
+                        Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
+                        g_GameOptions.bossMode = !g_GameOptions.bossMode;
+                    }
+                    break;
                 case OPTION_DRAWMOSAIC:
                     Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                     g_GameOptions.mosaic_display = !g_GameOptions.mosaic_display;
@@ -986,7 +989,7 @@ void optionsScreen_input(void)
                     g_GameOptions.use_rtc = !g_GameOptions.use_rtc;
                     break;
                 case OPTION_BIG_HEAD:
-                    if (g_GameOptions.unlockBigHeadMode) {
+                    if (g_GameOptions.unlockBigHeadMode || g_GameOptions.debug_mode) {
                         Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                         g_GameOptions.bigHeadMode = !g_GameOptions.bigHeadMode;
                     }
@@ -1087,27 +1090,36 @@ void drawOptions(void)
     options_y += 2;
     SRL::Debug::Print(title_x, options_y, "Debug Collision:");
     SRL::Debug::Print(options_x, options_y, g_GameOptions.testCollision ? "On " : "Off");
-    
-    options_y += 2;
-    SRL::Debug::Print(title_x, options_y, "Boss Mode:");
-    SRL::Debug::Print(options_x, options_y, g_GameOptions.bossMode ? "On " : "Off");
-    
+        
     options_y += 2;
     SRL::Debug::Print(title_x, options_y, "Power-Ups:");
     SRL::Debug::Print(options_x, options_y, g_GameOptions.enableItems ? "On " : "Off");
     #endif
+    
+    options_y += 2;
+    SRL::Debug::Print(title_x, options_y, "Boss Mode:");
+    if (characterUnlocked[CHARACTER_GARF] || g_GameOptions.debug_mode)
+    {
+        SRL::Debug::Print(options_x, options_y, g_GameOptions.bossMode ? "On    " : "Off   ");
+    }
+    else
+    {
+        SRL::Debug::Print(options_x, options_y, "Locked");
+    }
 
     options_y += 2;
     SRL::Debug::Print(title_x, options_y, "Mosaic Effect:");
-    if (g_GameOptions.mosaic_display) {
-	slScrMosSize(MOSAIC_MAX, MOSAIC_MAX);
-	slScrMosaicOn(NBG1ON);
+    if (g_GameOptions.mosaic_display)
+    {
+        slScrMosSize(MOSAIC_MAX, MOSAIC_MAX);
+        slScrMosaicOn(NBG1ON);
         SRL::Debug::Print(options_x, options_y, "On ");
     }
-    else {
+    else
+    {
         SRL::Debug::Print(options_x, options_y, "Off");
-	slScrMosSize(MOSAIC_MIN, MOSAIC_MIN);
-	slScrMosaicOn(OFF);
+        slScrMosSize(MOSAIC_MIN, MOSAIC_MIN);
+        slScrMosaicOn(OFF);
     }
     
     options_y += 2;
@@ -1116,11 +1128,13 @@ void drawOptions(void)
     
     options_y += 2;
     SRL::Debug::Print(title_x, options_y, "Big Head Mode:");
-    if (g_GameOptions.unlockBigHeadMode) {
-        SRL::Debug::Print(options_x, options_y, g_GameOptions.bigHeadMode ? "On " : "Off");
+    if (g_GameOptions.unlockBigHeadMode || g_GameOptions.debug_mode)
+    {
+        SRL::Debug::Print(options_x, options_y, g_GameOptions.bigHeadMode ? "On    " : "Off   ");
     }
-    else {
-        SRL::Debug::Print(options_x, options_y, "Off");
+    else
+    {
+        SRL::Debug::Print(options_x, options_y, "Locked");
     }
     
     options_y += 2;

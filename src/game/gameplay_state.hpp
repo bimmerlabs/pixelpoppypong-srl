@@ -24,6 +24,10 @@ namespace Gameplay
     static const int32_t GAME_OVER_DELAY_TIMEOUT = 4 * 60;
     static const int32_t GAME_OVER_SOUND_TIMEOUT = 1 * 30;
     
+    // // VDP1 text print
+    // static const int32_t offset = 24;
+    // static const int32_t space = 28;
+    
     
     // need to add these back and remove round stuff from the g_Game struct
     typedef enum
@@ -101,7 +105,8 @@ namespace Gameplay
         
         if (g_GameState.timeOver)
         {
-            SRL::Debug::Print(16, 14, "Outta Time!");
+            // SRL::Debug::Print(16, 14, "Outta Time!");
+            DrawSpriteText(&font, "Outta Time!", -128, -16, 50, 24, 28);
             initPixelPoppy();
             
             g_GameState.winner = -2;
@@ -283,6 +288,8 @@ namespace Gameplay
         if (g_GameState.winner > -1)
         {            
             SRL::Debug::Print(17, 14, "Game Over!");
+            // DrawSpriteText(&font, "Game Over!", -112, -16, 50, 24, 28);
+            
             if (g_GameState.endDelayTimer < WIN_GAME_DELAY_TIMEOUT)
             {
                 SRL::Debug::Print(15, 16, "%s Wins!", classicCharacterNames[g_GameState.winner]);
@@ -302,7 +309,8 @@ namespace Gameplay
         // CASE 2: Player lost (or time over)
         else
         {
-            SRL::Debug::Print(17, 14, "Game Over!");
+            SRL::Debug::Print(17, 14, "Game Over!");            
+            // DrawSpriteText(&font, "Game Over!", -112, -16, 50, 24, 28);
             
             if (g_GameState.endDelayTimer < WIN_GAME_DELAY_TIMEOUT)
             {
@@ -322,11 +330,13 @@ namespace Gameplay
     }
         
     static inline void UpdateStoryResult()
-    {
+    {        
         // CASE 1: Player wins final round
         if (g_GameState.winner == 0 && allOpponentsBeaten())
         {
             SRL::Debug::Print(17, 10, "Game Over!");
+            // DrawSpriteText(&font, "Game Over!", -112, -32, 50, 24, 28);
+            
             tallyScore();
             if (g_GameState.endDelayTimer < WIN_GAME_DELAY_TIMEOUT)
             {
@@ -335,6 +345,7 @@ namespace Gameplay
                     Pcm::Play(Sounds.Game[GmOverSnd]);
                     g_GameState.gameOverSndPlayed = true;
                 }
+                // SRL::Debug::Print(15, 16, "%s Wins!", classicCharacterNames[g_GameState.winner]);
                 SRL::Debug::Print(17, 18, "You Win!!!");
             }
 
@@ -361,6 +372,7 @@ namespace Gameplay
             if (g_Players[0].score.continues >= 0)
             {
                 SRL::Debug::Print(17, 14, "Try Again!");
+                // DrawSpriteText(&font, "Try Again!", -120, -16, 50, 24, 28);
                 
                 g_Players[0].isDead = false;
                 
@@ -383,6 +395,8 @@ namespace Gameplay
             else
             {
                 SRL::Debug::Print(17, 14, "Game Over!" );
+                // DrawSpriteText(&font, "Game Over!", -112, -16, 50, 24, 28);
+                
                 if (g_GameState.endDelayTimer < GAME_OVER_SOUND_TIMEOUT)
                 {                    
                     if (!g_GameState.gameOverSndPlayed)
@@ -406,7 +420,10 @@ namespace Gameplay
         {
             tallyScore();
             if (g_GameState.endDelayTimer < NEXT_BATTLE_DELAY_TIMEOUT)
+            {
                 SRL::Debug::Print(15, 20, "Next Battle..");
+            }
+                
             if (g_GameState.endDelayTimer <= 0 && g_Game.frame == 239)
             {
                 SetRoundState(ROUND_STATE_CHARACTER_SELECT); 

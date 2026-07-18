@@ -420,13 +420,9 @@ void initStoryCharacters(void)
             break;
     }
     
-    // always available to fight against once unlocked
-    if (characterUnlocked[CHARACTER_WALRUS])
-    {
+    // normal characters always available
+    if (g_GameOptions.debug_mode || g_GameOptions.bossMode) {
         g_StoryProgress.available[CHARACTER_WALRUS] = true;
-    }
-    if (characterUnlocked[CHARACTER_GARF])
-    {
         g_StoryProgress.available[CHARACTER_GARF] = true;
         g_StoryProgress.available[CHARACTER_NONE] = true;
     }
@@ -724,9 +720,9 @@ void assignCharacterStats(PPLAYER player) {
             {
                 case GAME_DIFFICULTY_EASY:
                     if (g_Game.gameMode == GAME_MODE_STORY) {
-                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.1);
-                        player->basePower = Fxp(characterAttributes[player->character.choice].power) * Fxp(.06);
-                        player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration) * Fxp(1.1);
+                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.08);
+                        player->basePower = Fxp(characterAttributes[player->character.choice].power) * Fxp(.07);
+                        player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration);
                     }
                     else {
                         player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.07);
@@ -736,7 +732,14 @@ void assignCharacterStats(PPLAYER player) {
                     break;
                 case GAME_DIFFICULTY_MEDIUM:
                     if (g_Game.gameMode == GAME_MODE_STORY) {
-                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.12);
+                        if (g_GameOptions.bossMode)
+                        {
+                            player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.10);
+                        }
+                        else
+                        {
+                            player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.11);
+                        }
                         player->basePower = Fxp(characterAttributes[player->character.choice].power) * Fxp(.07);
                         player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration) * Fxp(1.1);
                     }
@@ -748,12 +751,12 @@ void assignCharacterStats(PPLAYER player) {
                     break;
                 case GAME_DIFFICULTY_HARD:
                     if (g_Game.gameMode == GAME_MODE_STORY) {
-                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.13);
+                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.11);
                         player->basePower = Fxp(characterAttributes[player->character.choice].power) * Fxp(.08);
-                        player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration) * Fxp(1.2);
+                        player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration) * Fxp(1.1);
                     }
                     else {
-                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.1);
+                        player->maxSpeed = Fxp(characterAttributes[player->character.choice].maxSpeed) * Fxp(0.10);
                         player->basePower = Fxp(characterAttributes[player->character.choice].power) * Fxp(.05);
                         player->acceleration = Fxp(characterAttributes[player->character.choice].acceleration);
                     }
@@ -1220,6 +1223,25 @@ bool explodePLayer(PPLAYER player)
             }
             g_ExplodeGoal = true;
             g_Transition.explosion_flash = true;
+            // just like if you scored a goal
+            
+            if (g_Game.numPlayers <= TWO_PLAYER)
+            {
+                reset_ball_movement(&pixel_poppy);
+                // initPixelPoppy();
+                // g_Transition.fade_out_rate = 4;
+                // g_Game.roundBeginTimer = ROUND_BEGIN_TIME_FAST;
+                // g_Game.dropBallTimer = DROP_BALL_TIME_FAST;
+                ballTtouchTimer = 0;
+                // resetPlayerAttacks();
+                // g_Gameplay.start_gameplay_timer = false;
+                g_Game.isBallActive = false;
+                // g_Game.isActive = false;
+                // g_Game.BeginTimer = 0;
+                // g_Gameplay.start_gameplay_timer = false;
+                // g_Game.isActive = false;
+                // g_Game.isBallActive = false;
+            }
         }
     }
     return true;
@@ -1231,6 +1253,7 @@ void killPlayer(int8_t playerID) {
     player->score.continues--;
     player->isDead = true;
     g_Game.currentNumPlayers--;
+    
     if (player->isAI && g_Game.gameMode == GAME_MODE_STORY) {
         g_Game.countofRounds++;
         PPLAYER computer = &g_Players[1];

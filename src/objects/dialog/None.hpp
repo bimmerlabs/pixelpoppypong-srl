@@ -57,7 +57,7 @@ namespace Dialog
             "\nAre you some kind of robot??",
             "It made a noise.\nI think It sounded like a woop?",  // lose: Sparta, delighted
             "BOOP.",
-            "Lamp beats robot!" 
+            "Lamp beats robot!",
             "Are you a robot scientist?.",
         };
 

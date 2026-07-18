@@ -127,7 +127,7 @@ void storySelectUpdate(void)
     
     // player 1 portrait
     character_portrait.id = character_portrait.anim[0].asset + player->character.choice;
-    set_spr_position_fxp(&character_portrait, Fxp(-256), Fxp_0, PORTRAIT_DEPTH);
+    set_spr_position_fxp(&character_portrait, -256, 0, PORTRAIT_DEPTH);
     set_spr_scale(&character_portrait, 2.0, 2.0);
     character_portrait.mesh = MESHoff;
     my_sprite_draw(&character_portrait);
@@ -309,11 +309,18 @@ void drawCharacterList(void)
                 };
 
                 CHARACTER_SELECT bossChar = getBossCharacter((CHARACTER_SELECT)g_Players[0].character.choice);
-
-                g_Game.isBoss = ((CHARACTER_SELECT)i == bossChar) ||
-                                (g_Players[0].character.choice == CHARACTER_NONE && 
-                                 ((CHARACTER_SELECT)i == CHARACTER_WALRUS || 
-                                  (CHARACTER_SELECT)i == CHARACTER_GARF));
+                
+                if (g_GameOptions.bossMode)
+                {
+                    g_Game.isBoss = true;
+                }
+                else
+                {
+                    g_Game.isBoss = ((CHARACTER_SELECT)i == bossChar) ||
+                                    (g_Players[0].character.choice == CHARACTER_NONE && 
+                                    ((CHARACTER_SELECT)i == CHARACTER_WALRUS || 
+                                     (CHARACTER_SELECT)i == CHARACTER_GARF));
+                }
                 
                 if (g_Game.isBoss)
                 {

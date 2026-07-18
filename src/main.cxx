@@ -182,7 +182,7 @@ void loading_screen(void)
 
 static void main_loop(void) {
     g_Game.frame++; // this controls a lot of logic, drawing, & timing..
-    if (g_Game.frame > 239)
+    if (g_Game.frame > 599)
         g_Game.frame = 0;
     if (g_Game.vblankClearScreen) {
         SRL::Debug::PrintClearScreen();

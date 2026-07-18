@@ -38,6 +38,15 @@ void initSeason(void)
             break;
         
         case JUNE:
+            if (time.Day() == 2) // Craig Stadler's Birthday!
+            {
+                g_Game.timeSeason = S_CRAIG_BDAY;
+            }
+            else
+            {
+                g_Game.timeSeason = S_SUMMER;
+            }
+            break;
         case AUGUST:
             g_Game.timeSeason = S_SUMMER;
             break;
@@ -106,6 +115,9 @@ void seasonalMessage(void)
         case S_APRIL_FOOLS:
             SRL::Debug::Print(15, 14, "April Fools!");
             break;
+        case S_CRAIG_BDAY:
+            SRL::Debug::Print(11, 14, "Happy Birthday Craig!");
+            break;
         case S_MURRICADAY:
             SRL::Debug::Print(17, 14, "MURRICA!");
             break;
@@ -156,6 +168,7 @@ void initTitleScreenFx(void)
             initRainFx();
             break;
             
+        case S_CRAIG_BDAY:
         case S_SUMMER:
             initFlowersFx();
             break;
@@ -204,6 +217,7 @@ void initGameplayFx(void)
             break;
         }
             
+        case S_CRAIG_BDAY:
         case S_SUMMER:
         {
             initFlowersFx();

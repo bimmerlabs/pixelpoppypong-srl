@@ -20,7 +20,7 @@ namespace Dialog
         quotes[CHARACTER_GARF]
               [CHARACTER_JELLY] =
         {
-            "I swear, if you say hello one more time-",
+            "\nI swear, if you say hello one more time-",
             "What - HELLO?? - ops, sorry.\nI've got a story about that - one time-",
             "He said hello seventeen times. I counted.\nI hate that I counted.", // win: Jelly reacts to losing
             // "Silence. Sweet, beautiful silence.",                         // lose: Jelly taunts you
@@ -32,8 +32,8 @@ namespace Dialog
         quotes[CHARACTER_GARF]
               [CHARACTER_PENNY] =
         {
-            "I could use a throne right now.",
-            "Then earn it.",
+            "\nI could use a throne right now.",
+            "\nThen earn it.",
             "Close enough to a nap. I'll take it.",                       // lose: Penny taunts you
             "Fine. The crown wins. I didn't want the throne anyway.",     // win: Penny reacts to losing
             "Wake up and show some respect!",
@@ -44,7 +44,7 @@ namespace Dialog
               [CHARACTER_POTTER] =
         {
             "If you turn the ball into lasagna, I'll let you win.",
-            "Uh, I - that's not how -  hmm..\n I'll try?",
+            "Uh, I - that's not how-  hmm..\n I'll try?",
             "You didn't give me lasagna.\nI gave you no mercy.",                                      // lose: Potter taunts you
             "The wand wins. Still no lasagna, I don't know that spell.",                  // win: Potter reacts to losing
             "He's completely unbothered. Infuriating.",           // taunt2
@@ -54,8 +54,8 @@ namespace Dialog
         quotes[CHARACTER_GARF]
               [CHARACTER_SPARTA] =
         {
-            "I don't care about your lamp.",
-            "LAMP CARES ABOUT YOU!! WOOP!!",
+            "\nI don't care about your dumb lamp.",
+            "\nLAMP CARES ABOUT YOU!! WOOP!!",
             "I won. I have so many questions -\nbut I won't ask them.",             // win: Sparta reacts to losing
             "Lamp wins again!",                     // lose: Sparta taunts you
             "LAMP!",
@@ -65,8 +65,8 @@ namespace Dialog
         quotes[CHARACTER_GARF]
               [CHARACTER_POPPY] =
         {
-            "You're cute. I still won't lose on purpose.",
-            "Hehe! Wouldn't want you to!",
+            "You're cute.\nI still won't lose on purpose.",
+            "\nHehe!\nWouldn't want you to!",
             "See? No mercy. Cute or not.",    // win: Poppy reacts to losing
             "Hehe! You're cute too!",                                // lose: Poppy taunts you
             "Are you literally asleep right now??",
@@ -76,8 +76,8 @@ namespace Dialog
         quotes[CHARACTER_GARF]
               [CHARACTER_TJ] =
         {
-            "Six toes? Interesting. Also irrelevant.",
-            "We'll see about irrelevant.",
+            "\nSix toes? Interesting. Also irrelevant.",
+            "\nWe'll see about irrelevant.",
             "Actrually, not that interesting.\nAlso irrelevant.",                                // lose: TJ taunts you
             "Six toes wins. Show some respect.", // win: TJ reacts to losing
             "Are you even moving?",
@@ -87,8 +87,8 @@ namespace Dialog
         quotes[CHARACTER_GARF]
               [CHARACTER_GEORGE] =
         {
-            "Stop touching everything.",
-            "Oh!! But everything is so interesting!!",
+            "\nStop touching everything.",
+            "\nOh!! But everything is so interesting!!",
             "Done. Now which way to the buffet?",                                    // lose: George taunts you
             "Oh!! I got distracted by the net!",   // win: George reacts to losing
             "What are you eating now?? Oh!!",
@@ -98,9 +98,9 @@ namespace Dialog
         quotes[CHARACTER_GARF]
               [CHARACTER_WUPPY] =
         {
-            "Wuppy didn't steal my lasagna. But he probably wanted to.",
-            "IT SMELLED SO GOOD!! I DIDN'T EAT IT!! PROBABLY!!",
-            "Thanks for not drooling in the lasagna.",                         // lose: Wuppy taunts you
+            "Wuppy didn't steal my lasagna, but he probably wanted to.",
+            "IT SMELLED SO GOOD!!\nBUT I DIDN'T EAT IT I SWEAR!!",
+            "Thanks for not drooling on the lasagna.",                         // lose: Wuppy taunts you
             "Lost to the dog. He said he loved me. I feel nothing.",     // win: Wuppy reacts to losing
             "YAY!! NOW CAN I HAVE LASAGNA?",
             "I LOVE YOU GARFIELD!!",
@@ -109,9 +109,9 @@ namespace Dialog
         quotes[CHARACTER_GARF]
               [CHARACTER_WALRUS] =
         {
-            "I think you wandered into the wrong game.",
-            "Seems fine to me. Did you bring your clubs?",
-            "Even the best golfers fail sometimes.\nNow, back to lasagna..",                        // lose: Craig taunts you
+            "\nI think you wandered into the wrong game.",
+            "\nSeems fine to me. Did you bring your clubs?",
+            "Even the best golfers fail sometimes.\n\nNow, back to lasagna..",                        // lose: Craig taunts you
             "In the game of golf, everything is make or break",    // win: Craig reacts to losing
             "Right down the middle!",
             "Hmmm, you missed it just a little.",
@@ -121,8 +121,8 @@ namespace Dialog
               [CHARACTER_NONE] =
         {
             "\nI... don't even want to know.",
-            "\nBOOP BEEP BOOP!.",
-            "Whatever. I win. Lasagna, that is..",                                  // lose: CPU taunts you
+            "\nBOOP BEEP BOOP!",
+            "Whatever. I win.\n\nLasagna, that is..",                                  // lose: CPU taunts you
             "BEEP! BOOP!",  // win: CPU reacts to losing
             "BZZT.",
             "BOOP.",

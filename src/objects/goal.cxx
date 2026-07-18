@@ -338,12 +338,7 @@ void checkLeftGoalCollision(Sprite *ball) {
                     uint8_t playerid   = g_Players[0].character.choice;
                     uint8_t computerid = g_Players[1].character.choice;
 
-                    // uint8_t threshold = rnd.GetNumber(0, 255);
                     bool useTaunt2 = rnd.GetNumber(0, 1);
-                    // if (threshold > 127)
-                    // {
-                        // useTaunt2 = true;
-                    // }
                     const char* taunt = useTaunt2 ? Dialog::quotes[playerid][computerid].taunt2
                                                    : Dialog::quotes[playerid][computerid].taunt1;
                     PrintWrapped(0, 14, 32, taunt, Align::CenterX);

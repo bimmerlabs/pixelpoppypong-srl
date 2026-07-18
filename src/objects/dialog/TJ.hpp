@@ -10,7 +10,7 @@ namespace Dialog
               [CHARACTER_MACCHI] =
         {
             "Let's see what you got.\nDoesn't look like much...",
-            "I'm too hot for you to handle.",
+            "\nI'm too hot for you to handle.",
             "Not bad, coffee cat.",                          // win: Macchi reacts to losing
             "Clean. Precise. You never had a chance.",           // lose: TJ taunts you
             "Six toes and still slow.",
@@ -20,9 +20,9 @@ namespace Dialog
         quotes[CHARACTER_TJ]
               [CHARACTER_JELLY] =
         {
-            "Don't ask about the shoelace again.",
-            "I'll try! When do you want me to start?\nNow or after -",
-            "Street smart wins. Remember that.",                         // lose: Jelly taunts you
+            "\nDon't ask about the shoelace again.",
+            "I'll try! When do you want me to start?\nNow or after-",
+            "Street smart wins.\n\nRemember that.",                         // lose: Jelly taunts you
             "Maybe I we can hang sometime and chat! \nAbout that shoelace-",         // win: Jelly reacts to losing
             "Six toes is genuinely fascinating, I have questions.",
             "You could just TELL me about the shoelace...",
@@ -31,8 +31,8 @@ namespace Dialog
         quotes[CHARACTER_TJ]
               [CHARACTER_PENNY] =
         {
-            "I don't bow to anyone.",
-            "You will...",
+            "\nI don't bow to anyone.",
+            "\n\nYou will...",
             "Street cats don't bow. We win.",                     // lose: Penny taunts you
             "...You've earned my grace. For now.",            // win: Penny reacts to losing
             "Wipe your paws!",
@@ -43,7 +43,7 @@ namespace Dialog
               [CHARACTER_POTTER] =
         {
             "If that wand touches my shoelace, we've got a problem.",
-            "I wouldn't dare - well, actually...",
+            "\nI wouldn't dare - well, actually...",
             "Magic can't replace street smarts.",                 // lose: Potter taunts you
             "My wand was almost distracted by the toes.", // win: Potter reacts to losing
             "If you tied your shoes, you wouldn't trip!",
@@ -53,8 +53,8 @@ namespace Dialog
         quotes[CHARACTER_TJ]
               [CHARACTER_SPARTA] =
         {
-            "You're weird.\nWhat are you eating?",
-            "ALL TRUE!! WOOP!!",
+            "\nYou're weird.\nWhat are you eating?",
+            "\nALL TRUE!! WOOP!!",
             "Tch. Easier than expected.",                         // lose: Sparta taunts you
             "LAMP DIDN'T HELP!! WOOP!!",                          // win: Sparta reacts to losing
             "LAMP IS MY FRIEND!",
@@ -64,8 +64,8 @@ namespace Dialog
         quotes[CHARACTER_TJ]
               [CHARACTER_POPPY] =
         {
-            "I can't let the fluff fool me again.",
-            "\nHehe! Too late!",
+            "\nI can't let the fluff fool me again.",
+            "\n\nHehe! Too late!",
             "Tch. Almost let the cuteness get me.",                   // lose: Poppy taunts you
             "Hehe! Sorry T.J.!",                                  // win: Poppy reacts to losing
             "Oops! Sorry!!",
@@ -75,8 +75,8 @@ namespace Dialog
         quotes[CHARACTER_TJ]
               [CHARACTER_GEORGE] =
         {
-            "Eyes on the ball, not my toes.",
-            "Oh! Right! Sorry - wait, how many toes -",
+            "\nEyes on the ball, not my toes.",
+            "\nOh! Right! Sorry -wait, how many toes-",
             "Six toes, one winner.",                              // lose: George taunts you
             "I was counting his toes. There are six. Very interesting.", // win: George reacts to losing
             "Three... four... wait -",
@@ -86,8 +86,8 @@ namespace Dialog
         quotes[CHARACTER_TJ]
               [CHARACTER_WUPPY] =
         {
-            "That's my lucky shoelace in your mouth, isn't it.",
-            "IT LOOKED LIKE A TOY I'M SO SORRY!!",
+            "That's my lucky shoelace\nin your mouth, isn't it?!",
+            "\nIT LOOKED LIKE A CHEW TOY!!\nI'M SO SORRY!!",
             "Give. Back. The shoelace.",                          // lose: Wuppy taunts you
             "THE SHOELACE IS RIGHT HERE!! I WAS JUST HOLDING IT!!", // win: Wuppy reacts to losing
             "OOPS!! I DON'T REMEMBER WHERE I PUT IT!!",
@@ -108,9 +108,9 @@ namespace Dialog
         quotes[CHARACTER_TJ]
               [CHARACTER_GARF] =
         {
-            "Wake up. I want a real match.",                      // player1
+            "\nWake up. I want a real match.",                      // player1
             "This is me at full effort. Terrifying, right?",      // player2
-            "Easy. Wake me up when Garfield tries.",              // lose: Garfield taunts you
+            "Easy.\n\nWake me up when Garfield tries.",              // lose: Garfield taunts you
             "I'd try harder, but that sounds like work -\nand I hate work.",            // win: Garfield reacts to losing
             "Why am I even here?",                               // taunt1
             "At least one of us cares.",                    // taunt2
@@ -119,9 +119,9 @@ namespace Dialog
         quotes[CHARACTER_TJ]
               [CHARACTER_NONE] =
         {
-            "You got a name?\n...okayyy...",                                    // player1
-            "\nBEEP.",                                              // player2
-            "Six toes beats whatever the #$@&%*! that was.",                  // lose: CPU taunts you
+            "\nYou got a name?\n...okayyy...",                                    // player1
+            "\n\nBEEP.",                                              // player2
+            "Six toes beats whatever the !$@&%# that was.",                  // lose: CPU taunts you
             "BZZT. BEEP.",                                              // win: CPU reacts to losing
             "BZZT.",                                             // taunt1
             "BOOP.",                                              // taunt2
