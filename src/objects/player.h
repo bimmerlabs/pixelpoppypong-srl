@@ -73,6 +73,7 @@ typedef struct _SCORE
     unsigned int total;  // total score (story mode)
     unsigned int points; // round score
     unsigned int lastMillion;
+    unsigned int lastFiveMillion;
 
 } SCORE, *PSCORE;
 
@@ -101,7 +102,7 @@ typedef struct _PLAYER
     bool isActivated;
     bool isDead;
     bool onLeftSide;
-    bool scored;
+    uint8_t scoredOnCount;
     bool isAI;
     bool isExploded;
     bool isBig;
@@ -212,7 +213,6 @@ static inline bool growPlayerSprite(PPLAYER player, Fxp targetSize)
         shield[player->playerID].scl.y = player->_sprite->scl.y;
         return true;
     }
-    // SRL::Debug::Print(22, 9, "BigTargetSize %d", targetSize.As<int16_t>());
     return false;
 }
 
@@ -225,7 +225,6 @@ static inline bool shrinkPlayerSprite(PPLAYER player, Fxp targetSize)
         shield[player->playerID].scl.y = player->_sprite->scl.y;
         return true;
     }
-    // SRL::Debug::Print(22, 10, "SmallTargetSize %d", targetSize.As<int16_t>());
     return false;
 }
 

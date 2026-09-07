@@ -29,8 +29,7 @@ void init_credits(void)
     // are game assets sometimes loaded here?
     if (g_Assets.NameEntryAssetsLoaded) {
         unloadNameEntryAssets();
-    }
-    
+    }    
     
     if (g_GameOptions.mosaic_display) {
         g_Transition.mosaic_in = true;

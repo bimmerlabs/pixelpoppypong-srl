@@ -9,7 +9,8 @@
     #include "core/debug.h"
 #endif
 
-#define VERSION "0.97.0"
+#define VERSION "0.99.2"
+#define SPECIAL_VERSION "Unlocked Edition" // for conventions, special modes, whatever
 #define MAX_PLAYERS 4
 
 // Screen position
@@ -34,7 +35,7 @@ typedef struct {
     bool bigHeadMode;
     bool enableItems;
     bool bossMode;
-    bool reservedBool;
+    bool disableParticleFx;
     unsigned int bombTouchCounter;
     unsigned int fishTouchCounter;
     unsigned int redShroomTouchCounter;
@@ -89,20 +90,15 @@ typedef struct _GAME
 
     // easy, medium, hard
     int8_t gameDifficulty;
-    
-    // // gameplay states
-    // RoundState roundState;
-    
+        
     // real time clock
     uint8_t timeSlot;
     uint8_t timeSeason;
     
     // TIMERS
-    // uint16_t endDelayTimer;
     uint16_t BeginTimer;
     uint16_t roundBeginTimer;
     uint16_t dropBallTimer;
-    // bool time_over;
 
     bool selectStoryCharacter;
     bool isBoss;
@@ -121,8 +117,6 @@ typedef struct _GAME
     // is the game finished?
     bool isRoundOver; // to be deleted
     int countofRounds;
-    
-    // int winner;
     
     // is the game playing?
     bool isActive;

@@ -24,8 +24,5 @@ void initContinue(void);
 void initNextRound(void);
 void storySelectUpdate(void);
 void tallyScore(void);
-
 void drawCharacterList(void);
-
-// helper function - returns true if all available opponents have been beaten
 bool allOpponentsBeaten(void);

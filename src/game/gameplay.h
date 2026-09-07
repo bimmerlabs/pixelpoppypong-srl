@@ -27,7 +27,7 @@
 
 #define COLOR_MULTIPLIER 5
 #define POWER_METER_HEIGHT 3
-    
+
 #define GAMEPLAY_PORTRAIT_X Fxp(300)
 #define GAMEPLAY_PORTRAIT_Y Fxp(190)
 #define GAMEPLAY_PORTRAIT_Y Fxp(190)
@@ -43,13 +43,12 @@ typedef struct _GAMEPLAY
     uint16_t DemoTimer;
     uint16_t GameOverTimer;
     bool isGameOver;
-    
+
     bool draw_demo_text;
     bool start_gameplay_timer;
     bool round_start;
 } GAMEPLAY, *PGAMEPLAY;
 
-// globals
 extern GAMEPLAY g_Gameplay;
 
 typedef struct
@@ -80,6 +79,7 @@ void gameplay_input(void);
 void demo_input(void);
 void setGameTimer(void);
 void drawGameTimer(void);
+void drawGameStatus(void);
 
 #define BALL_VELOCITY Fxp(10)
 extern Fxp ball_velocity;
@@ -112,7 +112,7 @@ static inline void initPixelPoppy(void) {
         else if (player->numLives - player->totalLives < lives) {
 	    sprite->id = sprite->anim[0].asset;
             x += offset;
-            my_sprite_draw(sprite);  
+            my_sprite_draw(sprite);
 	}
         lives--;
     }
@@ -156,7 +156,7 @@ static inline void classicScore_draw(PPLAYER player) {
     if (g_GameOptions.debug_display) {
         return;
     }
-    switch (player->teamChoice) 
+    switch (player->teamChoice)
     {
         case TEAM_1: {
             SRL::Debug::Print(6, 2, "%s", classicCharacterNames[player->character.choice]);
@@ -169,12 +169,12 @@ static inline void classicScore_draw(PPLAYER player) {
         default:
             break;
     }
-}
+}
 static inline void gameplayScore_draw(PPLAYER player) {
     if (player->isDead || g_GameOptions.debug_display) {
         return;
     }
-    switch (player->teamChoice) 
+    switch (player->teamChoice)
     {
         case TEAM_1: {
             SRL::Debug::Print(6, 2, "%09d", player->score.points);
@@ -212,15 +212,33 @@ static inline void gameplayScore_draw(PPLAYER player) {
             if (g_Game.isBallActive) {
                 update_ball(&pixel_poppy);
                 displayStarsFx();
-                if (!g_item.isActive && g_Game.frame == 0)
-                {
-                    setItemPositions();
+
+                if (g_item.isActive && g_item.id != GAME_ITEM_BOMB)
+                {                        
+                    if (g_item.lastItemTimer < LAST_ITEM_TIMER)
+                    {
+                        g_item.lastItemTimer++;
+                    }
+                    else {
+                        g_item.isStale = true;
+                        regenerateItem();  // shrink one step per frame
+                    }
+                }
+                else if (!g_item.isActive)
+                {                    
+                    if (g_item.nextItemTimer < NEXT_ITEM_TIMER)
+                    {
+                        g_item.nextItemTimer++;
+                    }
+                    else {
+                        setItemPositions();  // spawn fresh item
+                    }
                 }
             }
             my_sprite_draw_rot(&pixel_poppy);
             return;
         }
-        if (g_Game.isGoalScored) {         
+        if (g_Game.isGoalScored) {
             initPixelPoppy();
             resetPlayerAttacks();
             g_Gameplay.start_gameplay_timer = false;
@@ -288,5 +306,3 @@ static inline bool startGameplay(void) {
     }
     return true;
 }
-
-

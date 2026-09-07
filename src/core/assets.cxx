@@ -66,6 +66,10 @@ void loadCoreAssets(void)
     {
         coreTiles = new TilemapObject("COREG.LZ", PaletteID, false, true);
     }
+    else if (g_Game.timeSeason == S_STPATRICKS)
+    {
+        coreTiles = new TilemapObject("COREL.LZ", PaletteID, false, true);
+    }
     else {
         coreTiles = new TilemapObject("CORE.LZ", PaletteID, false, true);
     }
@@ -290,6 +294,13 @@ void loadGameAssets(void)
         craig_item.id = craig_item.anim[0].asset + 1; // VAMPIRE CRAIG
         garfield_item.id = garfield_item.anim[0].asset + 1; // VAMPIRE GARF
         heart.id = gameplayTiles->sprite[GAME_SPRITE_CORN].SpriteIndex; // CANDY CORN
+        heart.anim[0].asset = heart.id;
+        star.id = heart.id + 3;
+        star.anim[0].asset = star.id;
+    }
+    else if (g_Game.timeSeason == S_STPATRICKS)
+    {
+        heart.id = gameplayTiles->sprite[GAME_SPRITE_CLOVER].SpriteIndex; // 4 leaf clover
         heart.anim[0].asset = heart.id;
         star.id = heart.id + 3;
         star.anim[0].asset = star.id;

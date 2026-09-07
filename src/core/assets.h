@@ -70,6 +70,7 @@ typedef enum
 typedef enum
 {
     GAME_SPRITE_BOMB = 0,
+    GAME_SPRITE_CLOVER,
     GAME_SPRITE_CORN, // CANDY CORN (HEARTS)
     GAME_SPRITE_CRAIG,
     GAME_SPRITE_EXPLOD,

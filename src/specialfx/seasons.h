@@ -6,12 +6,12 @@ typedef enum _MONTH
     JANUARY,    // WINTER
     FEBRUARY,   // WINTER
     MARCH,      // SPRING
-    APRIL,      // SPRING?
-    MAY,        // NORMAL
-    JUNE,       // NORMAL
-    JULY,       // NORMAL
-    AUGUST,     // NORMAL
-    SEPTEMBER,  // NORMAL?
+    APRIL,      // SPRING
+    MAY,        // SPRING
+    JUNE,       // SUMMER
+    JULY,       // SUMMER
+    AUGUST,     // SUMMER
+    SEPTEMBER,  // FALL
     OCTOBER,    // FALL
     NOVEMBER,   // FALL
     DECEMBER,   // WINTER
@@ -23,6 +23,7 @@ typedef enum _SEASON
     S_NORMAL = 0,
     S_SPRING,
     S_APRIL_FOOLS,
+    S_STPATRICKS,
     S_CRAIG_BDAY,
     S_SUMMER,
     S_MURRICADAY,

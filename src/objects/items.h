@@ -7,6 +7,8 @@
 #define BOMB_TIMER (6 * 60)
 #define BOMB_FLASH_TIMER (3 * 60)
 #define FISH_HUE_INCREMENT 50
+#define NEXT_ITEM_TIMER (4 * 60)
+#define LAST_ITEM_TIMER (8 * 60)
 
 #define ITEM_FRICTION_Y Fxp(1.75)
 #define ITEM_FRICTION_X Fxp(1.15)
@@ -25,8 +27,12 @@ typedef struct {
     unsigned int id;
     unsigned int timer[MAX_PLAYERS];
     bool isActive;
+    bool isStale;
     bool update;
-    uint8_t textFramesRemaining;
+    Fxp scale;
+    uint16_t textFramesRemaining;
+    uint16_t nextItemTimer;
+    uint16_t lastItemTimer; // timeout on an item that might be "stuck" where the player can't reach it
     Sprite *_sprite;
 } Item;
 
@@ -40,6 +46,7 @@ extern "C" {
 
 void animateBombColor(bool *_do_update);
 
+void regenerateItem(void);
 void setItemPositions(void);
 void drawGameItems(void);
 void handlePlayerItemCollision(PPLAYER player);
@@ -162,6 +169,27 @@ static inline void item_bounce(void) {
     if (ABS(g_item._sprite->rot.z) == 360) {
         g_item._sprite->rot.z = 0;
     }
+}
+
+static inline int CalculateBonusSeconds(int timer, int minBonus, int maxBonus, int minThreshold, int maxThreshold)
+{
+    if (timer <= minThreshold)
+    {
+        return timer + maxBonus;
+    }
+    if (timer >= maxThreshold)
+    {
+        return timer + minBonus;
+    }
+
+    int x = maxThreshold - timer;
+    int rangeSpan = maxThreshold - minThreshold;
+    int bonusSpan = maxBonus - minBonus;
+
+    int numer = x * x * bonusSpan;
+    int denom = rangeSpan * rangeSpan;
+
+    return timer + (minBonus + (numer / denom));
 }
 
 #ifdef __cplusplus

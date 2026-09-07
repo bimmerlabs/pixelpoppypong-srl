@@ -301,6 +301,20 @@ void checkRightGoalCollision(Sprite *ball) {
                 initStarsFx();
                 calculateScore(ball, 0);
                 updatePlayerLives(1);
+                                
+                g_Players[1].scoredOnCount++;
+                
+                if (g_Players[1].scoredOnCount == 0 || g_Players[1].scoredOnCount == 2 || g_Players[1].scoredOnCount == 4 || g_Players[1].scoredOnCount == 6) // instead, count how many times you get scored on, then give a quote
+                {
+                    uint8_t playerid   = g_Players[0].character.choice;
+                    uint8_t computerid = g_Players[1].character.choice;
+
+                    bool useTaunt2 = rnd.GetNumber(0, 1);
+                    const char* taunt = useTaunt2 ? Dialog::quotes[computerid][playerid].taunt2
+                                                   : Dialog::quotes[computerid][playerid].taunt1;
+                    PrintWrapped(0, 14, 28, taunt, Align::CenterX);
+                }
+                
                 if (!g_Game.isBoss) {
                     playCDTrack(g_Audio.currentTrack, false);
                     nextcurrentTrack();
@@ -333,7 +347,9 @@ void checkLeftGoalCollision(Sprite *ball) {
                 ballTtouchTimer = 0;
                 updatePlayerLives(0);
                 
-                if (g_Players[0].numLives == 4 || g_Players[0].numLives == 2)
+                g_Players[0].scoredOnCount++;
+                
+                if (g_Players[0].scoredOnCount == 0 || g_Players[0].scoredOnCount == 2 || g_Players[0].scoredOnCount == 4 || g_Players[0].scoredOnCount == 6)
                 {
                     uint8_t playerid   = g_Players[0].character.choice;
                     uint8_t computerid = g_Players[1].character.choice;
@@ -341,7 +357,7 @@ void checkLeftGoalCollision(Sprite *ball) {
                     bool useTaunt2 = rnd.GetNumber(0, 1);
                     const char* taunt = useTaunt2 ? Dialog::quotes[playerid][computerid].taunt2
                                                    : Dialog::quotes[playerid][computerid].taunt1;
-                    PrintWrapped(0, 14, 32, taunt, Align::CenterX);
+                    PrintWrapped(0, 14, 28, taunt, Align::CenterX);
                 }
                 
                 if (!g_Game.isBoss) {

@@ -308,7 +308,11 @@ void drawTitle(void)
             else {
                 SRL::Debug::Print(16, 27, "           ");
             }
+            #ifdef ENABLE_SPECIAL_MODE
+            PrintWrapped(0, 27, 30, SPECIAL_VERSION, Align::CenterX);
+            #else
             SRL::Debug::Print(18, 28, "%s", VERSION); // Regular version
+            #endif
         }
     }
 }
@@ -930,6 +934,7 @@ void optionsScreen_input(void)
             {
                 // load SFX if here
                 if (!Sounds.GameplayFxLoaded) {
+                    SRL::Debug::PrintClearScreen();
                     PrintWrapped(0, options_y, 24, "Loading!", Align::CenterX);
                     // SRL::Debug::Print(options_x, options_y, "Loading!");
                     Sounds.GameplayFxLoaded = loadGameplaySoundAssets();
@@ -937,6 +942,7 @@ void optionsScreen_input(void)
                     g_Audio.soundTest = true;
                 }
                 if (!Sounds.NameEntryFxLoaded) {
+                    SRL::Debug::PrintClearScreen();
                     PrintWrapped(0, options_y, 24, "Loading!", Align::CenterX);
                     // SRL::Debug::Print(options_x, options_y, "Loading!");
                     Sounds.NameEntryFxLoaded = loadNameEntrySoundAssets();
@@ -974,11 +980,16 @@ void optionsScreen_input(void)
                     break;
                 #endif
                 case OPTION_BOSS_MODE:
+                    #ifdef ENABLE_SPECIAL_MODE
+                    Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
+                    g_GameOptions.bossMode = !g_GameOptions.bossMode;
+                    #else
                     if (characterUnlocked[CHARACTER_GARF] || g_GameOptions.debug_mode)
                     {
                         Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                         g_GameOptions.bossMode = !g_GameOptions.bossMode;
                     }
+                    #endif
                     break;
                 case OPTION_DRAWMOSAIC:
                     Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
@@ -993,6 +1004,10 @@ void optionsScreen_input(void)
                         Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
                         g_GameOptions.bigHeadMode = !g_GameOptions.bigHeadMode;
                     }
+                    break;
+                case OPTION_PARTICLES:
+                    Pcm::Play(Sounds.Core[CursorSnd], PlayMode::Volatile, 6);
+                    g_GameOptions.disableParticleFx = !g_GameOptions.disableParticleFx;
                     break;
                 default:
                     break;
@@ -1098,6 +1113,9 @@ void drawOptions(void)
     
     options_y += 2;
     SRL::Debug::Print(title_x, options_y, "Boss Mode:");
+    #ifdef ENABLE_SPECIAL_MODE
+    SRL::Debug::Print(options_x, options_y, g_GameOptions.bossMode ? "On    " : "Off   ");
+    #else
     if (characterUnlocked[CHARACTER_GARF] || g_GameOptions.debug_mode)
     {
         SRL::Debug::Print(options_x, options_y, g_GameOptions.bossMode ? "On    " : "Off   ");
@@ -1106,6 +1124,7 @@ void drawOptions(void)
     {
         SRL::Debug::Print(options_x, options_y, "Locked");
     }
+    #endif
 
     options_y += 2;
     SRL::Debug::Print(title_x, options_y, "Mosaic Effect:");
@@ -1125,7 +1144,7 @@ void drawOptions(void)
     options_y += 2;
     SRL::Debug::Print(title_x, options_y, "Background Mode:");
     SRL::Debug::Print(options_x, options_y, g_GameOptions.use_rtc ? "RTC " : "Auto");
-    
+        
     options_y += 2;
     SRL::Debug::Print(title_x, options_y, "Big Head Mode:");
     if (g_GameOptions.unlockBigHeadMode || g_GameOptions.debug_mode)
@@ -1136,6 +1155,10 @@ void drawOptions(void)
     {
         SRL::Debug::Print(options_x, options_y, "Locked");
     }
+    
+    options_y += 2;
+    SRL::Debug::Print(title_x, options_y, "Particle Fx:");
+    SRL::Debug::Print(options_x, options_y, g_GameOptions.disableParticleFx ? "Off" : "On ");
     
     options_y += 2;
     SRL::Debug::Print(title_x, options_y, "Music Test:");

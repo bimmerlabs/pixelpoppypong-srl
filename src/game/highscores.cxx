@@ -37,6 +37,9 @@ void highScore_init(void) {
 
 void init_scores(void)
 {
+    if (g_Assets.NameEntryAssetsLoaded) {
+        unloadNameEntryAssets();
+    } 
     if (g_Assets.GameplayAssetsLoaded) {
         unloadGameAssets();
     }

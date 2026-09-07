@@ -12,8 +12,7 @@ static bool animate_bomb = false;
 static bool explode_bomb = false;
 static bool bomb_heating = false;
 static uint16_t bomb_timer = 0;
-static float item_scale = 0.1;
-static float item_velocity = 0.0;
+static Fxp item_velocity = 0.05;
 
 void animateBombColor(bool *_do_update) {
     if (!animate_bomb) {
@@ -32,12 +31,28 @@ void animateBombColor(bool *_do_update) {
     }
 }
 
+void regenerateItem(void)
+{
+    if (g_item.scale > 0.0)
+    {
+        g_item.scale -= item_velocity;
+        set_spr_scale_fxp(g_item._sprite, g_item.scale, g_item.scale);
+        
+    }
+    if (g_item.scale <= 0.0)
+    {
+        g_item.nextItemTimer = 0;
+        g_item.lastItemTimer = 0;
+        g_item.isActive = false;
+        g_item._sprite->active = false;
+        g_item.scale = 0.0;
+    }
+}
+
 void setItemPositions(void) {
     if (g_GameOptions.debug_mode && !g_GameOptions.enableItems) {
-    // if (g_GameOptions.debug_mode) {
-        // TODO: make this an option in the menu (need a debug menu)
-        g_item.id = GAME_ITEM_BOMB;
-        // g_item.id = GAME_ITEM_FISH;
+        // g_item.id = GAME_ITEM_BOMB;
+        g_item.id = GAME_ITEM_FISH;
         // g_item.id = GAME_ITEM_SHROOM;
         // g_item.id = GAME_ITEM_GARF;
         // g_item.id = GAME_ITEM_CRAIG;
@@ -47,73 +62,34 @@ void setItemPositions(void) {
         int item = rnd.GetNumber(0, 1000000);
         switch(g_Game.gameDifficulty)
         {
+            // rebalance item difficulty..
             case GAME_DIFFICULTY_EASY:
-                if (item >= 0 && item < 450000) { 
-                    g_item.id = GAME_ITEM_FISH;
-                }
-                else if (item >= 450000 && item < 500000) { 
-                    g_item.id = GAME_ITEM_BOMB;
-                }
-                else if (item >= 500000 && item < 700000) { 
-                    g_item.id = GAME_ITEM_SHROOM;
-                }
-                else if (item >= 700000 && item < 850000) { 
-                    g_item.id = GAME_ITEM_GARF;
-                }
-                else if (item >= 850000 && item < 1000000) { 
-                    g_item.id = GAME_ITEM_CRAIG;
-                }
-                else {
-                    g_item.id = GAME_ITEM_MAX;
-                }
+                if      (item < 250000) g_item.id = GAME_ITEM_FISH;    // 25%
+                else if (item < 450000) g_item.id = GAME_ITEM_BOMB;    // 20%
+                else if (item < 700000) g_item.id = GAME_ITEM_SHROOM;  // 25%
+                else if (item < 850000) g_item.id = GAME_ITEM_CRAIG;   // 15%
+                else                    g_item.id = GAME_ITEM_GARF;    // 15%
                 break;
             case GAME_DIFFICULTY_MEDIUM:
-                if (item >= 0 && item < 200000) { 
-                    g_item.id = GAME_ITEM_BOMB;
-                }
-                else if (item >= 200000 && item < 400000) { 
-                    g_item.id = GAME_ITEM_FISH;
-                }
-                else if (item >= 400000 && item < 600000) { 
-                    g_item.id = GAME_ITEM_SHROOM;
-                }
-                else if (item >= 600000 && item < 800000) { 
-                    g_item.id = GAME_ITEM_GARF;
-                }
-                else if (item >= 800000 && item < 1000000) { 
-                    g_item.id = GAME_ITEM_CRAIG;
-                }
-                else {
-                    g_item.id = GAME_ITEM_MAX;
-                }
+                if      (item < 220000) g_item.id = GAME_ITEM_FISH;    // 22%
+                else if (item < 440000) g_item.id = GAME_ITEM_BOMB;    // 22%
+                else if (item < 660000) g_item.id = GAME_ITEM_SHROOM;  // 22%
+                else if (item < 860000) g_item.id = GAME_ITEM_CRAIG;   // 20%
+                else                    g_item.id = GAME_ITEM_GARF;    // 14%
                 break;
             case GAME_DIFFICULTY_HARD:
-                if (item >= 0 && item < 500000) { 
-                    g_item.id = GAME_ITEM_BOMB;
-                }
-                else if (item >= 500000 && item < 650000) { 
-                    g_item.id = GAME_ITEM_FISH;
-                }
-                else if (item >= 650000 && item < 800000) { 
-                    g_item.id = GAME_ITEM_SHROOM;
-                }
-                else if (item >= 800000 && item < 900000) { 
-                    g_item.id = GAME_ITEM_GARF;
-                }
-                else if (item >= 900000 && item < 1000000) { 
-                    g_item.id = GAME_ITEM_CRAIG;
-                }
-                else {
-                    g_item.id = GAME_ITEM_MAX;
-                }
+                if      (item < 250000) g_item.id = GAME_ITEM_FISH;    // 25%
+                else if (item < 550000) g_item.id = GAME_ITEM_BOMB;    // 30%
+                else if (item < 800000) g_item.id = GAME_ITEM_SHROOM;  // 25%
+                else if (item < 900000) g_item.id = GAME_ITEM_CRAIG;   // 10%
+                else                    g_item.id = GAME_ITEM_GARF;    // 10%
                 break;
             default:
                 g_item.id = GAME_ITEM_MAX;
                 break;
         }
     }
-    item_scale = 0.0;
-    item_velocity = 0.1;
+    
     switch (g_item.id) {
         case GAME_ITEM_BOMB:
             reset_bomb_color();
@@ -122,50 +98,56 @@ void setItemPositions(void) {
             explode_bomb = false;
             bomb_timer = BOMB_TIMER;
             g_item._sprite = &bomb_item;
-            g_item._sprite->active = true;
             sprite_frame_reset(g_item._sprite);
             break;
         case GAME_ITEM_FISH:
             g_item._sprite = &fishtank_item;
-            g_item._sprite->active = true;
             hsl_incSprites[HSL_FISH].h -= FISH_HUE_INCREMENT;
             do_update_fish = true;
             break;
         case GAME_ITEM_SHROOM:
             g_item._sprite = &shroom_item;
-            g_item._sprite->active = true;
             break;
         case GAME_ITEM_GARF:
             g_item._sprite = &garfield_item;
-            g_item._sprite->active = true;
             break;
         case GAME_ITEM_CRAIG:
             g_item._sprite = &craig_item;
-            g_item._sprite->active = true;
             break;
         default:
-            g_item._sprite = &fishtank_item;
-            g_item._sprite->active = false;
             break;
     }
+    
+    g_item.scale = 0.0;
+    g_item.nextItemTimer = 0;
+    g_item.lastItemTimer = 0;
     set_item_position(g_item._sprite);
-    set_spr_scale(g_item._sprite, item_scale, item_scale);
+    set_spr_scale_fxp(g_item._sprite, g_item.scale, g_item.scale);
     g_item._sprite->isColliding = false;
     g_item._sprite->rot.z = 0;
+    g_item._sprite->active = true;
     g_item.isActive = false;
     g_item.update = false;
-    
-    // SRL::Debug::PrintClearScreen();
-    // SRL::Debug::Print(2, 13, "g_item.id:%3d", g_item.id);
+    g_item.isStale = false;
 }
 
-void drawGameItems(void) {
+void drawGameItems(void) {    
+    if (g_item._sprite->active) {
+        my_sprite_draw_rot(g_item._sprite);
+        item_bounce();
+    }
+    
+    if (g_item.isStale)
+    {
+        return;
+    }
+            
     switch (g_item.id) {
         case GAME_ITEM_BOMB:
-            if (item_scale < 2.0) {
-                item_scale += item_velocity;
-                set_spr_scale(&bomb_item, item_scale, item_scale);
-                if (item_scale >= 2.0) {
+            if (g_item.scale < 2.0) {
+                g_item.scale += item_velocity;
+                set_spr_scale_fxp(&bomb_item, g_item.scale, g_item.scale);
+                if (g_item.scale >= 2.0) {
                     g_item.isActive = true;
                 }
             }
@@ -184,20 +166,20 @@ void drawGameItems(void) {
             }
             break;
         case GAME_ITEM_FISH:
-            if (item_scale < 2.0) {
-                item_scale += item_velocity;
-                set_spr_scale(&fishtank_item, item_scale, item_scale);
-                if (item_scale >= 2.0) {
+            if (g_item.scale < 2.0) {
+                g_item.scale += item_velocity;
+                set_spr_scale_fxp(&fishtank_item, g_item.scale, g_item.scale);
+                if (g_item.scale >= 2.0) {
                     g_item.isActive = true;
                 }
             }
             looped_animation_pow(&fishtank_item, 8);
             break;
         case GAME_ITEM_SHROOM:
-            if (item_scale < 2.0) {
-                item_scale += item_velocity;
-                set_spr_scale(&shroom_item, item_scale, item_scale);
-                if (item_scale >= 2.0) {
+            if (g_item.scale < 2.0) {
+                g_item.scale += item_velocity;
+                set_spr_scale_fxp(&shroom_item, g_item.scale, g_item.scale);
+                if (g_item.scale >= 2.0) {
                     g_item.isActive = true;
                 }
             }
@@ -206,19 +188,19 @@ void drawGameItems(void) {
             do_update_shroom = true;
             break;
         case GAME_ITEM_GARF:
-            if (item_scale < 1.0) {
-                item_scale += item_velocity;
-                set_spr_scale(&garfield_item, item_scale, item_scale);
-                if (item_scale >= 1.0) {
+            if (g_item.scale < 1.0) {
+                g_item.scale += item_velocity;
+                set_spr_scale_fxp(&garfield_item, g_item.scale, g_item.scale);
+                if (g_item.scale >= 1.0) {
                     g_item.isActive = true;
                 }
             }
             break;
         case GAME_ITEM_CRAIG:
-            if (item_scale < 1.6) {
-                item_scale += item_velocity;
-                set_spr_scale(&craig_item, item_scale, item_scale);
-                if (item_scale >= 1.6) {
+            if (g_item.scale < 1.6) {
+                g_item.scale += item_velocity;
+                set_spr_scale_fxp(&craig_item, g_item.scale, g_item.scale);
+                if (g_item.scale >= 1.6) {
                     g_item.isActive = true;
                 }
             }
@@ -228,17 +210,11 @@ void drawGameItems(void) {
             g_item.isActive = false;
             break;
     }
-    
-    // SRL::Debug::Print(2, 14, "isVisible:%d", g_item._sprite->active);
-    // SRL::Debug::Print(2, 15, "isActive:%d", g_item.isActive);
-    
-    if (g_item._sprite->active) {
-        my_sprite_draw_rot(g_item._sprite);
-        item_bounce();
-    }
 }
 
 void handlePlayerItemCollision(PPLAYER player) {
+    g_item.nextItemTimer = 0;
+    g_item.lastItemTimer = 0;
     switch (g_item.id) {
         case GAME_ITEM_BOMB:
         {
@@ -250,6 +226,7 @@ void handlePlayerItemCollision(PPLAYER player) {
             else
             {
                 g_item.isActive = false;
+                g_item.isStale = false;
                 g_item.update = false;
                 explode_bomb = true;
                 bomb_heating = false;
@@ -266,16 +243,34 @@ void handlePlayerItemCollision(PPLAYER player) {
         case GAME_ITEM_FISH:
         {
             g_item.isActive = false;
+            g_item.isStale = false;
             Pcm::Play(Sounds.Game[BloopSnd]);
-            if ((player->totalLives - player->numLives) > 1) {
-                player->numLives += (player->totalLives - player->numLives) / 2;
+            
+            int16_t missingLives = (int16_t)player->totalLives - (int16_t)player->numLives;
+            uint8_t bonus;
+
+            if (missingLives <= 0)
+            {
+                bonus = 1;
             }
-            else if (player->numLives < player->totalLives * 2) {
-                player->numLives += 1;
+            else
+            {
+                bonus = (uint8_t)((missingLives * missingLives) / player->totalLives);
+                
+                if (bonus < 1) 
+                {
+                    bonus = 1;
+                }
             }
-            if (player->numLives > player->totalLives * 2) {
-                player->numLives = player->totalLives * 2;
+
+            player->numLives += bonus;
+
+            uint8_t maxCap = player->totalLives * 2;
+            if (player->numLives > maxCap)
+            {
+                player->numLives = maxCap;
             }
+            
             fishtank_item.active = false;
             player->score.points += 5000;
             g_GameOptions.fishTouchCounter++;
@@ -290,6 +285,7 @@ void handlePlayerItemCollision(PPLAYER player) {
             }
             else {
                 g_item.isActive = false;
+                g_item.isStale = false;
                 if (player->isAI && g_Game.gameMode == GAME_MODE_STORY && g_Game.isBoss)
                 {
                     g_item.textFramesRemaining = 3*60;
@@ -323,7 +319,20 @@ void handlePlayerItemCollision(PPLAYER player) {
         case GAME_ITEM_GARF:
         {
             g_item.isActive = false;
+            g_item.isStale = false;
             garfield_item.active = false;
+            
+            if (player->isSmall)
+            {
+                g_item.timer[player->playerID] = 1;
+            }
+            
+            if (g_Game.gameMode == GAME_MODE_STORY)
+            {
+                g_Gameplay.GameTimer = CalculateBonusSeconds(g_Gameplay.GameTimer, 5, 60, 15, TIMEOUT_STORY_MEDIUM);
+                if (g_Gameplay.GameTimer > TIMER_MAX)
+                    g_Gameplay.GameTimer = TIMER_MAX;
+            }
             
             g_item.textFramesRemaining = 3*60;
             uint8_t quote = rnd.GetNumber(0, GARFIELD_QUOTES);
@@ -356,8 +365,17 @@ void handlePlayerItemCollision(PPLAYER player) {
         case GAME_ITEM_CRAIG:
         {
             g_item.isActive = false;
+            g_item.isStale = false;
             craig_item.active = false;
-           
+            g_item.timer[player->playerID] = 1; // if garfield is more powerful, maybe this shouldn't be here
+            
+            if (g_Game.gameMode == GAME_MODE_STORY)
+            {
+                g_Gameplay.GameTimer = CalculateBonusSeconds(g_Gameplay.GameTimer, 3, 30, 15, TIMEOUT_STORY_MEDIUM);
+                if (g_Gameplay.GameTimer > TIMER_MAX)
+                    g_Gameplay.GameTimer = TIMER_MAX;
+            }
+                
             g_item.textFramesRemaining = 3*60;
             uint8_t quote = rnd.GetNumber(0, STADLER_QUOTES);
             PrintWrapped(0, 23, 30, stadlerItemQuotes[quote], Align::CenterX);
@@ -388,9 +406,13 @@ void bombTimer(void) {
         animate_bomb = true;
     }
     if (bomb_timer == 0 && !explode_bomb) {
+        g_item.nextItemTimer = 0;
+        g_item.lastItemTimer = 0;
         explode_bomb = true;
         g_Transition.explosion_flash = true;
         animate_bomb = false;
+        g_item.nextItemTimer = 0;
+        g_item.isActive = false;
     }
     else {
         bomb_timer--;

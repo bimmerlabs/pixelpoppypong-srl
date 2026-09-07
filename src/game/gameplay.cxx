@@ -67,6 +67,7 @@ void gameplay_init() {
     initGoalColors();
     hsl_incSprites[HSL_FISH].h += FISH_HUE_INCREMENT;
     do_update_fish = true;
+    do_update_ppplogo = true;
     
     initGoals();
     setGoalSize();    
@@ -164,13 +165,13 @@ void demo_init(void) {
         switch(g_Game.gameDifficulty)
         {
             case GAME_DIFFICULTY_EASY:
-                addedTime = 30;
+                addedTime = 15;
                 break;
             case GAME_DIFFICULTY_MEDIUM:
-                addedTime = 20;
+                addedTime = 10;
                 break;
             case GAME_DIFFICULTY_HARD:
-                addedTime = 15;
+                addedTime = 5;
                 break;
             default:
                 break;
@@ -307,7 +308,6 @@ void demo_init(void) {
             g_BossState.textFramesRemaining--;
             if (g_BossState.textFramesRemaining == 0)
             {
-                // SRL::Debug::PrintClearScreen();
                 SRL::Debug::PrintClearLine(23);
                 SRL::Debug::PrintClearLine(24);
                 SRL::Debug::PrintClearLine(25);
@@ -512,7 +512,11 @@ void gameplay_update(void)
     pause_draw();
     gameplay_draw();
     gameScore_draw();
-       displayParticleFx();
+    drawGameStatus(); // so I can draw the message with VDP1
+   
+    if (Gameplay::g_GameState.roundState != Gameplay::ROUND_STATE_CHARACTER_SELECT)
+    {        displayParticleFx();
+    }
 }
 
 void demo_update(void)
@@ -665,4 +669,26 @@ void drawGameTimer(void) {
     timer.id = timer.anim[0].asset + g_Timer.sec_ones;
     set_spr_position_fxp(&timer, Fxp(36), Fxp(-210), Fxp(80));
     my_sprite_draw(&timer); 
+}
+
+void drawGameStatus(void)
+{
+    if (Gameplay::g_GameState.outtaTime)
+    {
+        DrawSpriteText(&font, "Outta Time!", -128, -8, 50, 24, 28);
+    }
+    if (Gameplay::g_GameState.gameOver)
+    {
+        if (Gameplay::g_GameState.winner == 0)
+        {
+            DrawSpriteText(&font, "Game Over!", -112, -80, 50, 24, 28);
+        }
+        else {
+            DrawSpriteText(&font, "Game Over!", -112, -8, 50, 24, 28);
+        }
+    }
+    if (Gameplay::g_GameState.tryAgain)
+    {
+        DrawSpriteText(&font, "Try Again!", -120, -8, 50, 24, 28);
+    }
 }

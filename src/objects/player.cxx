@@ -27,6 +27,7 @@ void resetPlayerScores(void)
         player->score.total  = 0;
         player->score.points = 0;
         player->score.lastMillion = 0;
+        player->score.lastFiveMillion = 0;
         player->totalLives = getLives(player);
         player->numLives = player->totalLives;
         assignCharacterSprite(player);
@@ -82,7 +83,6 @@ int getLives(PPLAYER player)
     {
         case GAME_MODE_BATTLE:
             numLives = 9;
-            // numLives = 3;
             break;
         case GAME_MODE_CLASSIC:
             switch(g_Game.gameDifficulty)
@@ -92,7 +92,6 @@ int getLives(PPLAYER player)
                     break;
                 case GAME_DIFFICULTY_MEDIUM:
                     numLives = 6;
-                    // numLives = 1;
                     break;
                 case GAME_DIFFICULTY_HARD:
                     numLives = 9;
@@ -108,7 +107,6 @@ int getLives(PPLAYER player)
                 {
                     case GAME_DIFFICULTY_EASY:
                         numLives = 4;
-                        // numLives = 1;
                         break;
                     case GAME_DIFFICULTY_MEDIUM:
                     #if ENABLE_DEBUG_MODE == 1
@@ -143,11 +141,9 @@ int getLives(PPLAYER player)
                 {
                     case GAME_DIFFICULTY_EASY:
                         numLives = 6;
-                        // numLives = 1;
                         break;
                     case GAME_DIFFICULTY_MEDIUM:
                         numLives = 6;
-                        // numLives = 1;
                         break;
                     case GAME_DIFFICULTY_HARD:
                         numLives = 4;
@@ -243,7 +239,7 @@ void initPlayers(bool resetInputs)
         player->score.continues = 0;
         player->score.points = 0;
         player->score.total = 0;
-        player->score.lastMillion = 0;
+        player->score.lastFiveMillion = 0;
 
         // PLAYER      
         player->startSelection = false;
@@ -253,7 +249,7 @@ void initPlayers(bool resetInputs)
         player->isPlaying = false;
         player->isActivated = true;
         player->isDead = false;
-        player->scored = false;
+        player->scoredOnCount = 0;
         player->isAI = false;
         player->isExploded = false;
         player->onLeftSide = false;
@@ -330,7 +326,7 @@ void initPlayers(bool resetInputs)
 
 void initAiPlayers(void)
 {    
-    for(unsigned short i = 0; i < g_Team.maxTeams; i++) // max players instead of teams?
+    for(unsigned short i = 0; i < g_Team.maxTeams; i++)
     {
         PPLAYER computer = &g_Players[i];
         if (computer->isPlaying) {
@@ -601,7 +597,7 @@ void initDemoPlayers(void)
             g_Game.currentNumPlayers++;
         }
         else if (i == 1) {
-            if (rnd.GetNumber(0, 999) % 2) { // modulus
+            if (rnd.GetNumber(0, 999) % 2) { 
                 player->_sprite = &paw[CHARACTER_JELLY];
                 player->character.choice = 1;
             }
@@ -629,7 +625,7 @@ void initDemoPlayers(void)
             g_Game.currentNumPlayers++;
         }
         else if (i == 2) { // set up player 3 last (we need to know the team count)
-            if (rnd.GetNumber(0, 999) % 2) { // modulus
+            if (rnd.GetNumber(0, 999) % 2) {
                 player->_sprite = &paw[CHARACTER_POPPY];
                 player->character.choice = 5;
             }
@@ -651,7 +647,7 @@ void initDemoPlayers(void)
             g_Game.currentNumPlayers++;
         }
         else if (i == 3) {
-            if (rnd.GetNumber(0, 999) % 2) { // modulus
+            if (rnd.GetNumber(0, 999) % 2) {
                 player->_sprite = &paw[CHARACTER_POTTER];
                 player->character.choice = 3;
             }
@@ -918,18 +914,22 @@ void getPlayersInput(void)
         playerAttack(player);
         
         #if ENABLE_DEBUG_MODE == 1
-        if (gamepad.WasPressed(Digital::Button::X))
+        if (gamepad.WasPressed(Digital::Button::L))
         {
-            if (g_Players[1].numLives > 1)
-            {
-                g_Players[1].numLives--;
-            }
+            player->score.points += 1000000;
         }
-        if (gamepad.WasPressed(Digital::Button::Y))
+        if (gamepad.WasPressed(Digital::Button::X))
         {
             if (g_Players[0].numLives > 1)
             {
                 g_Players[0].numLives--;
+            }
+        }
+        if (gamepad.WasPressed(Digital::Button::Y))
+        {
+            if (g_Players[1].numLives > 1)
+            {
+                g_Players[1].numLives--;
             }
         }
         if (gamepad.WasPressed(Digital::Button::Z))
@@ -1031,7 +1031,6 @@ void playerAttack(PPLAYER player) {
 void regenPlayerPower(PPLAYER player)
 {
     Digital gamepad(player->input->id);
-    // TODO: draw some sort of visual effect when the shield is charging (maybe a sound effect)
     if (player->onLeftSide && player->_sprite->pos.x > -BOUNDARY_SHIELD_REGEN_SLOW) {
         return;
     }
@@ -1049,7 +1048,7 @@ void regenPlayerPower(PPLAYER player)
         !gamepad.IsHeld(Digital::Button::B) || 
         !gamepad.IsHeld(Digital::Button::C)) {
         if (player->shield.power < SHIELD_POWER) {
-            if (g_Game.frame % regen_speed == 0) { // modulus
+            if (g_Game.frame % regen_speed == 0) {
                 player->shield.power++;
             }
         }
@@ -1099,12 +1098,6 @@ void updatePlayers(void)
         
         // ball collision
         detect_player_ball_collision(&pixel_poppy, player);
-        
-        // if (i == 0) {
-            // SRL::Debug::Print(2, 9, "Player isBig %d", player->isBig);
-            // SRL::Debug::Print(2, 10, "Player isSmall %d", player->isSmall);
-            // SRL::Debug::Print(2, 11, "Player scale %3d", player->_sprite->scl.x.As<int16_t>());
-        // }
     }
 }
 
@@ -1228,19 +1221,8 @@ bool explodePLayer(PPLAYER player)
             if (g_Game.numPlayers <= TWO_PLAYER)
             {
                 reset_ball_movement(&pixel_poppy);
-                // initPixelPoppy();
-                // g_Transition.fade_out_rate = 4;
-                // g_Game.roundBeginTimer = ROUND_BEGIN_TIME_FAST;
-                // g_Game.dropBallTimer = DROP_BALL_TIME_FAST;
                 ballTtouchTimer = 0;
-                // resetPlayerAttacks();
-                // g_Gameplay.start_gameplay_timer = false;
                 g_Game.isBallActive = false;
-                // g_Game.isActive = false;
-                // g_Game.BeginTimer = 0;
-                // g_Gameplay.start_gameplay_timer = false;
-                // g_Game.isActive = false;
-                // g_Game.isBallActive = false;
             }
         }
     }

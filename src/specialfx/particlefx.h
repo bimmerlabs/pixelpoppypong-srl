@@ -20,6 +20,8 @@ void initFlowersFx(void);
 void initSnowFx(void);
 void initRainFx(void);
 void initBatsFx(void);
+void initLeavesFx(void);
+void initLuckyFx(void);
 
 void initCreditsFx(void);
 

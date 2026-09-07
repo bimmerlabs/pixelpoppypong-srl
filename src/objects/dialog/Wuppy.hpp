@@ -13,8 +13,8 @@ namespace Dialog
             "\nHey, that's my mug!\nYou knocked it over!",
             "YAY!! I WON!!\nCAN WE STILL BE FRIENDS?!",             // lose: Macchi taunts you
             "Not bad, pup. Not bad.",                              // win: Macchi reacts to losing
-            "Stop wagging during my serve.",
-            "You're getting drool in my mug.",
+            "Stop wagging during my serve!",
+            "You're getting drool in my mug!",
         };
 
         quotes[CHARACTER_WUPPY]

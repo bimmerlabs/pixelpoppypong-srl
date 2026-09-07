@@ -24,11 +24,6 @@ namespace Gameplay
     static const int32_t GAME_OVER_DELAY_TIMEOUT = 4 * 60;
     static const int32_t GAME_OVER_SOUND_TIMEOUT = 1 * 30;
     
-    // // VDP1 text print
-    // static const int32_t offset = 24;
-    // static const int32_t space = 28;
-    
-    
     // need to add these back and remove round stuff from the g_Game struct
     typedef enum
     {
@@ -46,6 +41,9 @@ namespace Gameplay
         int32_t endDelayTimer;
         int32_t GameOverTimer;
         bool timeOver;
+        bool gameOver;
+        bool tryAgain;
+        bool outtaTime;
         bool spriteAssigned;
         bool gameOverSndPlayed;
         RoundState roundState;
@@ -62,6 +60,9 @@ namespace Gameplay
         g_GameState.roundState = ROUND_STATE_PLAYING;
         g_GameState.GameOverTimer = GAME_OVER_DELAY_TIMEOUT;  // sets the time after the round is over
         g_GameState.gameOverSndPlayed = false;
+        g_GameState.gameOver = false;
+        g_GameState.tryAgain = false;
+        g_GameState.outtaTime = false;
     }
     
     static inline void UpdateCharacterSelect()
@@ -71,15 +72,19 @@ namespace Gameplay
 
     static inline void EnterCharacterSelect()
     {
-        Gameplay::g_GameState.spriteAssigned = false;
+        g_GameState.timeOver = false;
+        g_GameState.gameOver = false;
+        g_GameState.tryAgain = false;
+        g_GameState.outtaTime = false;
+        g_GameState.spriteAssigned = false;
         
-        if (Gameplay::g_GameState.winner == -1 || Gameplay::g_GameState.timeOver)
+        if (g_GameState.winner == -1 || g_GameState.timeOver)
         {
             SRL::VDP2::NBG2::ScrollDisable();
             initContinue();
             initNextRound();
         }
-        else if (Gameplay::g_GameState.winner == 0 && g_Game.countofRounds > 0)
+        else if (g_GameState.winner == 0 && g_Game.countofRounds > 0)
         {
             SRL::VDP2::NBG2::ScrollDisable();
             initNextRound();
@@ -105,8 +110,7 @@ namespace Gameplay
         
         if (g_GameState.timeOver)
         {
-            // SRL::Debug::Print(16, 14, "Outta Time!");
-            DrawSpriteText(&font, "Outta Time!", -128, -16, 50, 24, 28);
+            g_GameState.outtaTime = true;
             initPixelPoppy();
             
             g_GameState.winner = -2;
@@ -129,12 +133,12 @@ namespace Gameplay
                 uint8_t computerid = g_Players[1].character.choice;
                 if (g_GameState.winner == 0)
                 { // win
-                    PrintWrapped(0, 0, 30, Dialog::quotes[playerid][computerid].win, Align::CenterBoth);
+                    PrintWrapped(0, 0, 28, Dialog::quotes[playerid][computerid].win, Align::CenterBoth);
                     g_StoryProgress.finished[g_Players[1].character.choice] = true;
                 }
                 else
                 { // lose
-                    PrintWrapped(0, 0, 30, Dialog::quotes[playerid][computerid].lose, Align::CenterBoth);
+                    PrintWrapped(0, 0, 28, Dialog::quotes[playerid][computerid].lose, Align::CenterBoth);
                 }
             }
             else
@@ -151,7 +155,7 @@ namespace Gameplay
         g_Transition.story_fade_out = true;
         g_Transition.all_out = true;
 
-        if (g_GameState.winner == -1) // you lose - continue?
+        if (g_GameState.winner == -1) // you lose
         {
             playCDTrack(CONTINUE_TRACK, false);
         }
@@ -165,24 +169,18 @@ namespace Gameplay
     {
         SRL::Debug::PrintClearScreen();
         g_GameState.endDelayTimer = RESULT_DELAY;
-
-        // set nextState and draw initial messages...
     }
     
     static inline void EnterClassicResult()
     {
         SRL::Debug::PrintClearScreen();
         g_GameState.endDelayTimer = RESULT_DELAY;
-
-        // set nextState and draw initial messages...
     }
     
     static inline void EnterStoryResult()
     {
         SRL::Debug::PrintClearScreen();
         g_GameState.endDelayTimer = RESULT_DELAY;
-
-        // set nextState and draw initial messages...
     }
     
     static inline void EnterShowResult()
@@ -190,8 +188,6 @@ namespace Gameplay
         static void (*EnterResultByMode[])(void) =
         {
             // ORDER IS FIXED - must match GAME_MODE_STORY/BATTLE/CLASSIC defines in main.h
-            // compiler cannot catch mismatches because those are #defines not an enum
-            // if modes are added or reordered in main.h, this table must be updated manually
             EnterStoryResult,
             EnterBattleResult,
             EnterClassicResult
@@ -207,7 +203,9 @@ namespace Gameplay
     
     static inline void EnterPlaying()
     {
-        g_GameState.timeOver = false;
+        g_GameState.gameOver = false;
+        g_GameState.tryAgain = false;
+        g_GameState.outtaTime = false;
         g_GameState.winner = -2;
         g_GameState.endDelayTimer = 0;
         SRL::VDP2::NBG2::ScrollEnable();
@@ -223,7 +221,7 @@ namespace Gameplay
     {
         g_GameState.roundState = newState;
         
-        SRL::Debug::PrintClearScreen(); // putting this here could eliminate from the following
+        SRL::Debug::PrintClearScreen();
         
         switch (newState)
         {
@@ -287,8 +285,7 @@ namespace Gameplay
         // CASE 1: Player wins 
         if (g_GameState.winner > -1)
         {            
-            SRL::Debug::Print(17, 14, "Game Over!");
-            // DrawSpriteText(&font, "Game Over!", -112, -16, 50, 24, 28);
+            g_GameState.gameOver = true;
             
             if (g_GameState.endDelayTimer < WIN_GAME_DELAY_TIMEOUT)
             {
@@ -309,8 +306,8 @@ namespace Gameplay
         // CASE 2: Player lost (or time over)
         else
         {
-            SRL::Debug::Print(17, 14, "Game Over!");            
-            // DrawSpriteText(&font, "Game Over!", -112, -16, 50, 24, 28);
+            g_GameState.gameOver = true;
+            g_GameState.outtaTime = false;
             
             if (g_GameState.endDelayTimer < WIN_GAME_DELAY_TIMEOUT)
             {
@@ -334,8 +331,7 @@ namespace Gameplay
         // CASE 1: Player wins final round
         if (g_GameState.winner == 0 && allOpponentsBeaten())
         {
-            SRL::Debug::Print(17, 10, "Game Over!");
-            // DrawSpriteText(&font, "Game Over!", -112, -32, 50, 24, 28);
+            g_GameState.gameOver = true;
             
             tallyScore();
             if (g_GameState.endDelayTimer < WIN_GAME_DELAY_TIMEOUT)
@@ -345,7 +341,6 @@ namespace Gameplay
                     Pcm::Play(Sounds.Game[GmOverSnd]);
                     g_GameState.gameOverSndPlayed = true;
                 }
-                // SRL::Debug::Print(15, 16, "%s Wins!", classicCharacterNames[g_GameState.winner]);
                 SRL::Debug::Print(17, 18, "You Win!!!");
             }
 
@@ -371,8 +366,8 @@ namespace Gameplay
         {
             if (g_Players[0].score.continues >= 0)
             {
-                SRL::Debug::Print(17, 14, "Try Again!");
-                // DrawSpriteText(&font, "Try Again!", -120, -16, 50, 24, 28);
+                g_GameState.tryAgain = true;
+                g_GameState.outtaTime = false;
                 
                 g_Players[0].isDead = false;
                 
@@ -394,8 +389,8 @@ namespace Gameplay
             }
             else
             {
-                SRL::Debug::Print(17, 14, "Game Over!" );
-                // DrawSpriteText(&font, "Game Over!", -112, -16, 50, 24, 28);
+                g_GameState.gameOver = true;
+                g_GameState.outtaTime = false;
                 
                 if (g_GameState.endDelayTimer < GAME_OVER_SOUND_TIMEOUT)
                 {                    
@@ -415,7 +410,7 @@ namespace Gameplay
                     transitionState(GAME_STATE_UNINITIALIZED);
             }
         }
-        // CASE 3: Won round, not final
+        // CASE 3: Won round, next battle
         else
         {
             tallyScore();
@@ -442,8 +437,6 @@ namespace Gameplay
     static inline void UpdateShowResult()
     {
         // ORDER IS FIXED - must match GAME_MODE_STORY/BATTLE/CLASSIC defines in main.h
-        // compiler cannot catch mismatches because those are #defines not an enum
-        // if modes are added or reordered in main.h, this table must be updated manually
         static void (*UpdateResultByMode[])(void) =
         {
             UpdateStoryResult,

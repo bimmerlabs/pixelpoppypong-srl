@@ -129,7 +129,7 @@ const char *characterBios[] = {
 
     "Easily distracted by shiny objects, strange smells, and his own tail.\n\nStill manages to smack the ball back somehow.",
 
-    "Not technically a cat... but really, really wants to be one someday!\n\nDidn't mean to cause all that trouble! Tail wags either way.",
+    "Not technically a cat... but really wants to be one someday!\n\nDidn't mean to cause all that trouble! Tail wags either way.",
 
     "The golf legend who somehow wandered into the wrong game!\n\nInsists it's basically the same sport.  Great shot!",
 
@@ -154,8 +154,8 @@ const CHARACTER_ATTRIBUTES characterAttributes[] = {
     {Fxp(75), Fxp(50), Fxp(90)}, // GEORGE: He's kinda mean
     {Fxp(90), Fxp(62), Fxp(100)},// WUPPY: High power, medium speed, low acceleration
     {Fxp(88), Fxp(88), Fxp(88)}, // THE WALRUS: Above average attributes
-    {Fxp(99), Fxp(99), Fxp(99)}, // GARFIELD: Ultimate attributes
-    {Fxp(100), Fxp(100), Fxp(100)}, // NONE: random character
+    {Fxp(95), Fxp(95), Fxp(95)}, // GARFIELD: Ultimate attributes
+    {Fxp(98), Fxp(98), Fxp(98)}, // NONE: random character
 };
 
 void initUnlockedCharacters(void) {
@@ -171,6 +171,11 @@ void initUnlockedCharacters(void) {
 }
 
 void initAvailableCharacters(void) {
+    #ifdef ENABLE_SPECIAL_MODE
+    for (int i = CHARACTER_MACCHI; i < CHARACTER_NONE; i++) {
+        characterAvailable[i] = true;
+    }
+    #else
     // all characters are available
     if (g_GameOptions.debug_mode) {
         for (int i = CHARACTER_MACCHI; i < CHARACTER_NONE; i++) {
@@ -183,6 +188,7 @@ void initAvailableCharacters(void) {
             characterAvailable[i] = characterUnlocked[i];
         }
     }
+    #endif
     Dialog::InitDialog();
 }
 

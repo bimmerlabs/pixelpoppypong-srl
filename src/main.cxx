@@ -1,5 +1,4 @@
 #include "main.h"
-// #include <srl_timer.hpp>
 
 #include "core/backup.h"
 #include "core/input.h"
@@ -39,11 +38,15 @@ GameOptions g_GameOptions = {
     .mesh_display = false,
     .mosaic_display = true,
     .use_rtc = true,
+    #ifdef ENABLE_SPECIAL_MODE
+    .unlockBigHeadMode = true,
+    #else
     .unlockBigHeadMode = false,
+    #endif
     .bigHeadMode = false,
     .enableItems = true,
     .bossMode = false,
-    .reservedBool = false,
+    .disableParticleFx = false,
     .bombTouchCounter = 0,
     .fishTouchCounter = 0,
     .redShroomTouchCounter = 0,
@@ -75,11 +78,9 @@ void initGame(void) {
     g_Game.gameDifficulty = GAME_DIFFICULTY_MEDIUM;
         
     // TIMERS
-    // g_Game.endDelayTimer = 0;
     g_Game.BeginTimer = 0;
     g_Game.roundBeginTimer = 0;
     g_Game.dropBallTimer = 0;
-    // g_Game.time_over = false;
 
     // is the game loading?
     g_Game.isLoading = false;
@@ -95,8 +96,6 @@ void initGame(void) {
     // is the game finished?
     g_Game.isRoundOver = false;
     g_Game.countofRounds = 0;
-   
-    // g_Game.winner = -2;
     
     // is the game playing?
     g_Game.isActive = false;
@@ -434,8 +433,6 @@ int main()
             SRL::Debug::Print(2, 3, "FPS:%f  ", fps);
         }
         
-        // Measure rendering time using Capture()
-        // Use Capture() for benchmarking/profiling - reads hardware registers
         auto renderStart = SRL::Timer::Capture();
         
         screenTransition_update();

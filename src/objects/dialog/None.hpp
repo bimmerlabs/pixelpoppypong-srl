@@ -47,7 +47,7 @@ namespace Dialog
             "It countered my spell with a boop.\nMust be dark magic!",    // lose: Potter, genuinely concerned
             "BZZT.",                                              // win
             "Is it casting something?",                           // taunt1
-            "By Merlin's whiskers.",                                   // taunt2
+            "By Merlin's whiskers!",                                   // taunt2
         };
 
         quotes[CHARACTER_NONE]
@@ -55,7 +55,7 @@ namespace Dialog
         {
             "\nBEEP BOOP.",
             "\nAre you some kind of robot??",
-            "It made a noise.\nI think It sounded like a woop?",  // lose: Sparta, delighted
+            "It made a noise.\nI think it sounded like a woop?",  // lose: Sparta, delighted
             "BOOP.",
             "Lamp beats robot!",
             "Are you a robot scientist?.",

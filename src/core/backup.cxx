@@ -14,7 +14,6 @@ unsigned char OldFileName[13] = "PPPONG25";
 
 Device* bup = nullptr;
 BupDevice currentDevice = CartridgeMemoryBackup;
-// static Backup::BupDevice backup_device = Backup::CartridgeMemoryBackup;
 
 void init_save_game() {
     save_game.Options = g_GameOptions;
@@ -30,30 +29,13 @@ void init_save_game() {
 }
 
 void save_game_backup(void) {
-
-    // if (!bup->BupState[currentDevice].Status != BupStatus::Success) {
-        // return;
-    // }
-    init_save_game();
-    
-    // Backup::BupFile backup;    
-
-    // backup.Data = &save_game;
-    // backup.DataSize = sizeof(SaveGame);
-    
-    // backupManager.Save(backup_device, &backup, true);
-    // bup->Save(currentDevice, &save_game);
-    // SRL::Debug::Print(3, 20, "Saved: %s             ", deviceStatus[bup->Save(currentDevice, &save_game, true)]);
-    // backupManager.Unmount(Backup::InternalMemoryBackup);
-    
+    init_save_game();    
     bup->Save(currentDevice, &save_game, true);
 }
 
 bool load_game_backup(void) {
     SaveGame *loaded_save;
     bup = new Device(FileName, Comment, sizeof(SaveGame), English);
-    
-    // Backup::BackupDevice backupManager;
     
     // try cart first
     if (bup->BupState[currentDevice].Status != BupStatus::Success) {

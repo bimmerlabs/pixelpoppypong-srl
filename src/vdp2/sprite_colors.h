@@ -178,6 +178,12 @@ static inline void updateTeamSelectPalette(void) {
 
 // gameplay
 static inline void updateGameColors(void) {
+    if (do_update_ppplogo) {
+        update_ppplogo_color();
+        do_update_ppplogo = false;
+        update_palette_ppplogo = true;
+    }
+    
 	if (do_update_fish) {
 		update_palette_fish = update_sprites_color(&p_rangeFish, HSL_FISH);
 		do_update_fish = false;
@@ -211,6 +217,10 @@ static inline void updateGameColors(void) {
 	}
 }
 static inline void updateGamePalette(void) {
+    if (update_palette_ppplogo) {
+        update_ppplogo_palette();
+        update_palette_ppplogo = false;
+    }
 	if (update_palette_fish) {
 		update_palette_fish = update_sprites_palette(&p_rangeFish);
 	}

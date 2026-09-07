@@ -296,7 +296,6 @@ void nameEntryUpdate(void)
         save_game_backup();
         g_Game.lastState = GAME_STATE_NAME_ENTRY;
         transitionState(GAME_STATE_HIGHSCORES);
-        return;
     }
 }
 

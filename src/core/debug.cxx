@@ -41,6 +41,15 @@ const char *roundState[] = {
         "ShowResult",
         "Ending",
         "Transition"
+};     
+   
+const char *items[] = {
+        "Bomb  ",
+        "Fish  ",
+        "Shroom",
+        "Garf  ",
+        "Craog ",
+        "None  "
 };
 
 void debux_text(void)
@@ -389,13 +398,24 @@ void debux_text(void)
                 // SRL::Debug::Print(2, 18, "endDelayTimer:%d", g_Game.endDelayTimer);
                 // SRL::Debug::Print(2, 19, "currentNumPlayers:%d", g_Game.currentNumPlayers);
                 
-                SRL::Debug::Print(2, 8, "Winner:%2d", Gameplay::g_GameState.winner);
-                SRL::Debug::Print(2, 9, "endDelayTimer:%2d", Gameplay::g_GameState.endDelayTimer);
-                SRL::Debug::Print(2, 10, "timeOver:%d", Gameplay::g_GameState.timeOver);
-                SRL::Debug::Print(2, 11, "roundState:%s", roundState[Gameplay::g_GameState.roundState]);
-                SRL::Debug::Print(2, 12, "GameOverTimer:%2d", Gameplay::g_GameState.GameOverTimer);
-                SRL::Debug::Print(2, 13, "gameOverSndPlayed:%d", Gameplay::g_GameState.gameOverSndPlayed);
-                SRL::Debug::Print(2, 15, "textFramesRemaining:%3d", g_item.textFramesRemaining);
+                // SRL::Debug::Print(2, 8, "Winner:%2d", Gameplay::g_GameState.winner);
+                // SRL::Debug::Print(2, 9, "endDelayTimer:%2d", Gameplay::g_GameState.endDelayTimer);
+                // SRL::Debug::Print(2, 10, "timeOver:%d", Gameplay::g_GameState.timeOver);
+                // SRL::Debug::Print(2, 11, "roundState:%s", roundState[Gameplay::g_GameState.roundState]);
+                // SRL::Debug::Print(2, 12, "GameOverTimer:%2d", Gameplay::g_GameState.GameOverTimer);
+                // SRL::Debug::Print(2, 13, "gameOverSndPlayed:%d", Gameplay::g_GameState.gameOverSndPlayed);
+                // SRL::Debug::Print(2, 15, "textFramesRemaining:%3d", g_item.textFramesRemaining);
+                
+                SRL::Debug::Print(2, 7, "Item:%s", items[g_item.id]);
+                SRL::Debug::Print(2, 8,  "IsItemStale:      %d", g_item.isStale);
+                SRL::Debug::Print(2, 9,  "IsItemActive:     %d", g_item.isActive);
+                SRL::Debug::Print(2, 10, "IsSpriteActive:   %d", g_item._sprite->active);
+                SRL::Debug::Print(2, 11, "NextItemTimer:%5d", g_item.nextItemTimer);
+                SRL::Debug::Print(2, 12, "LastItemTimer:%5d", g_item.lastItemTimer);
+                SRL::Debug::Print(2, 13, "Scale:            %f", g_item.scale);
+                
+                // SRL::Debug::Print(2, 10, "Player1 ScoredOn:%d", g_Players[0].scoredOnCount);
+                // SRL::Debug::Print(2, 11, "Player2 ScoredOn:%d", g_Players[1].scoredOnCount);
                 
                 // SRL::Debug::Print(2, 8, "isBoss:%d", g_Game.isBoss);
                 // // SRL::Debug::Print(2, 9, "initialLives:%d", g_BossState.initialLives);
